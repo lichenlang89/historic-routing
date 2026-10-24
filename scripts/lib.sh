@@ -114,6 +114,7 @@ hr_sha256() { sha256sum "$1" | cut -d' ' -f1; }
 
 hr_tail_log() {
 	local f="$1" n="${2:-40}"
+	sleep 0.3          # 让 tee 落盘（日志是进程替换里的 tee 写的）
 	[ -f "$f" ] || return 0
 	echo "----- $f (末 $n 行) -----"
 	tail -n "$n" "$f"

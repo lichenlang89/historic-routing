@@ -41,16 +41,15 @@ log "目标目录 : $DIR"
 
 if [ -d "$DIR/.git" ]; then
 	cur="$(git -C "$DIR" rev-parse HEAD 2>/dev/null || echo none)"
-	if [ "$cur" = "$FRR_COMMIT" ]; then
-		if [ -n "$(git -C "$DIR" status --porcelain)" ]; then
-			die "$DIR 已存在于基线提交，但工作树有改动；请换目录或清理后再试"
-		fi
+	dirty="$(git -C "$DIR" status --porcelain | wc -l)"
+	if [ "$cur" = "$FRR_COMMIT" ] && [ "$dirty" -eq 0 ]; then
 		log "复用已存在的源码树（提交与基线一致，工作树干净）"
 		exit 0
 	fi
 	if [ "$FORCE" != 1 ]; then
-		die "$DIR 已存在但提交是 $cur，不是基线 $FRR_COMMIT（不自动删除；如需重建请加 --force）"
+		die "$DIR 已存在但不可复用（HEAD=$cur，脏文件=$dirty）；如需重建请加 --force"
 	fi
+	log "强制重建: HEAD=$cur 脏文件=$dirty（--force）"
 	hr_safe_rm_rf "$DIR" "$(basename "$DIR")"
 fi
 
