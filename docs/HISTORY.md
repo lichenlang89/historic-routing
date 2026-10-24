@@ -5,7 +5,7 @@
 | 项 | 值 |
 | --- | --- |
 | 仓库 | `https://github.com/lichenlang89/frr`（FRRouting/frr 的 fork） |
-| 本地克隆 | `<原始 EGP 工作树>` |
+| 本地克隆 | `<原始 EGP 工作树（本仓库之外）>` |
 | 已验证提交 | `3ab0ca74700bf6e8175ec07e930a320a79f232d9` |
 | Tag | `egp-verified-20261024`（annotated，本地创建；**尚未推送**到 GitHub） |
 | 上游基线 | `27f287be9210d4024a140486b7b8ddd5eb41fe04`（FRRouting/frr，2026-10-23，`Merge pull request #23811`） |
@@ -41,7 +41,7 @@
 
 ## 已验证范围（来自真机，不是推断）
 
-在 RHEL 10.1 x86_64（<实验机 A> / <实验机 B>，gcc 14.3.1，libyang 2.1.x，
+在 RHEL 10.1 x86_64（实验机 A / 实验机 B，gcc 14.3.1，libyang 2.1.x，
 内核 6.12.0-124.8.1.el10_1）上：
 
 - `make` / `make install` / `egpd/test_packet` 通过；
@@ -102,7 +102,7 @@
 
 ## S4：构建自动化与首次迁移验证（执行记录）
 
-日期 2026-10-24。执行机：`<实验机 B>`（RHEL 10.1 x86_64，4 vCPU / 7.6 GiB，
+日期 2026-10-24。执行机：实验机（RHEL 10.1 x86_64，4 vCPU / 7.6 GiB，
 gcc 14.4.1，libyang 2.1.148，json-c 0.18，pytest 7.4.3 + pytest-xdist 3.6.1）。
 **不再依赖原 fork 工作目录**：FRR 源码由 `scripts/fetch-frr.sh` 从
 `https://github.com/FRRouting/frr` 浅取固定提交 `27f287be9…`。
@@ -172,7 +172,7 @@ gcc 14.4.1，libyang 2.1.148，json-c 0.18，pytest 7.4.3 + pytest-xdist 3.6.1�
 
 ## S5：EGP 双路由器实验参数化与真实验证（执行记录）
 
-日期 2026-10-24。执行机：`<实验机 B>`（RHEL 10.1，podman 5.6.0 rootful）。
+日期 2026-10-24。执行机：实验机（RHEL 10.1，podman 5.6.0 rootful）。
 使用 S4 的前缀 `/opt/historic-routing/egp-27f287be9`，**未重新编译 FRR**（也不需要）。
 
 ### 做了什么
@@ -212,6 +212,8 @@ gcc 14.4.1，libyang 2.1.148，json-c 0.18，pytest 7.4.3 + pytest-xdist 3.6.1�
 2. **zebra 报 `failed to mkdir .../var/lib/frr`**：安装前缀里本来就没有 `var/`、`run/`
    （`make install` 没创建空目录），且容器里是只读挂载 → 宿主侧 `mkdir -p $LAB_PREFIX/{var,run}`
    作为挂载点，容器里用 `--tmpfs` 盖住这两个目录。
+   *（S6 更正：这行其实只是**警告**，zebra 仍能正常启动并装路由；当时真正的阻塞只有下一条的
+   `privs_init: initial cap_set_proc failed`。目录与 tmpfs 保留，用于提供可写 state/run 路径。）*
 3. **僵尸进程让"进程在不在"判断失真**：容器 PID 1 原为 `sleep infinity`，不回收子进程，
    被 SIGKILL 的 egpd 以 `Z` 状态留在进程表 → 容器加 `--init`（`podman-init` 回收），
    同时测试侧增加"排除僵尸"的存活性判定。
@@ -231,7 +233,109 @@ gcc 14.4.1，libyang 2.1.148，json-c 0.18，pytest 7.4.3 + pytest-xdist 3.6.1�
 
 ### 明确区分
 
-- **本实验在当前开发环境（<实验机 B>）通过**：13/13，且有第二套参数/路径复跑为证。
+- **本实验在当前开发环境（同一台实验机）通过**：13/13，且有第二套参数/路径复跑为证。
 - **未证明"在全新机器上可复现"**：只有这一台 RHEL 10.1 + podman 5.6 的机器可用；
   换机器需要重新验证 podman 版本、SELinux 行为、镜像拉取来源与内核模块。
   这一点不能混为一谈。
+
+---
+
+## S6：统一验证、可复现性检查、证据归档、v0.1.0 发布准备（执行记录）
+
+日期 2026-10-24。执行机：实验机（RHEL 10.1 x86_64，gcc 14.4.1，podman 5.6.0 rootful）。
+**本轮没有创建 tag、没有推送远端、没有创建 Release。**
+
+### 新增
+
+| 文件 | 作用 |
+| --- | --- |
+| `scripts/verify.sh` | 统一验证入口：A 仓库完整性 / B 构建与产物 / C 实验环境；状态 `PASS/FAIL/SKIP/KNOWN-FAIL`；退出码 0/1/2/3；`--build-only/--lab-only/--all` |
+| `scripts/parse-make-check.py` | 从完整 `make check` 日志逐条提取失败测试自己的 `E` 行并分类，生成 `docs/known-failures.md` |
+| `patches/frr/SHA256SUMS` | 5 个补丁的哈希基线（A2 用） |
+| `protocols/egp/evidence/SOURCES.sha256` | 协议源码 6 个文件的哈希基线（A3 用） |
+| `docs/LAB_SAFETY.md` | 实验环境八项安全审查 + 最小能力集 + 残余风险 |
+| `docs/known-failures.md` | 自动生成的 14 项失败逐条证据（**不要手工改**） |
+| `docs/evidence/sys-admin-ab.txt` | zebra 需要 `SYS_ADMIN` 的 A/B 现场输出 |
+| `docs/evidence/verify-20261024.{log,json}` | 本轮最终一次 `verify.sh --all` 的完整日志与机器可读结果 |
+| `CHANGELOG.md`、`docs/RELEASE_NOTES_v0.1.0.md`、`docs/RELEASE_CHECKLIST.md` | v0.1.0 发布准备（未发布） |
+
+### 改动
+
+- `lab/egp/lab.sh`：新增 `check_params()`（镜像名/网络名/前缀白名单、CIDR 与 IPv4 逐段校验、
+  `LAB_PREFIX`/`LAB_MOUNT`/`LAB_RUNDIR` 必须是绝对路径且不是 `/`、AS/端口范围、`LAB_TIMERS` 格式）；
+  每个命令入口先过校验；`up` 创建资源前装 ERR trap，中途失败提示 `down` 清理。
+- 文档按"实际做到什么"重写：`FIDELITY`（已支持/简化/未实现 + 验证状态）、`ARCHITECTURE`（增加验证层）、
+  `ADD_A_PROTOCOL`（从骨架改为可用 + 新协议最小验收清单）、`README`（验证边界）、`scripts/README`（verify 用法）。
+- 发布前清理：把文档里的个人路径（`<用户主页>/...`）与实验机内网地址替换为占位说明；
+  `MIGRATION.sha256` 只改注释行，哈希清单未动。
+
+### 两次干净目录执行（新目录 + 新构建根，不用原 fork 源码）
+
+`/root/hr-s6`（tar 导出，无 `.git`）+ `/root/hr-s6-build`（全新构建根），`lab/egp/lab.env`
+只写 `LAB_PREFIX=/root/hr-s6-build/prefix`。
+
+**第 1 次（14:31–14:37，完整重建）**：18 PASS / 1 KNOWN-FAIL / 1 SKIP / 1 FAIL，退出码 1。
+两条非产品失败，都是验证器自身的缺陷：
+
+| 项 | 现象 | 根因 | 处理 |
+| --- | --- | --- | --- |
+| A5 敏感信息扫描 FAIL | 命中 `scripts/verify.sh:193/198` | 扫描器把自己的模式串（`sshpass`、`toor` 裸词）也扫了出来 | 只保留高置信度形态（私钥块/`ghp_`/`AKIA`/`xox*`/`password=`），并排除扫描器自身 |
+| C0b 最小权限 A/B SKIP | "前缀缺少 var/ 或 run/" | 把容器内挂载点 `LAB_MOUNT=/build/prefix` 当成宿主路径判断 | 改为从 `lab.sh env` 读 `LAB_PREFIX`/`LAB_MOUNT`（尊重 `lab.env` 覆盖），宿主侧 `mkdir -p var run` 后再做 A/B |
+
+同一次运行里，B1 走的是真实全量构建：14:31:18 拉取 → 14:31:24 打补丁 → 14:31:35 configure →
+14:32:03–14:34:32 编译（`OK egpd/egpd`、`OK zebra/zebra`、`OK vtysh/vtysh`）→ 单测 →
+`make check`（rc=2）→ `make dist`（`frr-10.9.0-dev.tar.gz` 8.1M）→ 安装 → 指纹。
+
+**第 2 次（14:38–14:40，复用构建）**：**20 PASS / 1 KNOWN-FAIL / 0 SKIP / 0 FAIL，退出码 0**。
+`B1` 明确打印"复用已有构建：指纹与当前 BASELINE/补丁/核心源码一致（未重复编译）"，
+`B3` 复核三个二进制 SHA256 与指纹相符——复用不等于放松。
+
+### 完整 `make check` 的逐条证据（原样保留 rc=2）
+
+`14 failed, 514 passed, 5 skipped in 16.15s`。逐条（`docs/known-failures.md`）：
+
+- 7 项：`FileNotFoundError: ... 'isisd/test_*'` / `'pimd/test_pim_jp_encode'` —— 被 `--disable` 的模块没有可执行文件；
+- 7 项：`AttributeError: 'TestPimJpEncode' object has no attribute 'testresults'` —— 同一测试类
+  `setUpClass` 里的上一条失败导致的 setup 级联（同组有直接的 `FileNotFoundError` 证据）。
+
+**没有**按"失败发生在 isisd/pimd 目录"来归因；分类只看每个测试自己的异常文本。
+**未完成**：启用 isisd/pimd 的对照构建（证明这些用例在启用后能过）——已作为限制写入
+`docs/known-failures.md` 与发布清单。
+
+### 实验安全：最小权限结论（现场 A/B）
+
+`docs/evidence/sys-admin-ab.txt`：
+
+```
+## 只给 NET_ADMIN + NET_RAW
+privs_init: initial cap_set_proc failed: Operation not permitted
+Wanted caps: cap_net_admin,cap_net_raw,cap_sys_admin=p
+Have   caps: cap_chown,...,cap_net_admin,cap_net_raw,...=ep       退出码=1
+## 再加 SYS_ADMIN
+（zebra 正常启动，跑到 timeout 被杀）                                退出码=124
+```
+
+结论：`SYS_ADMIN` 是 zebra 编译期能力集的一部分，**不给就起不来**；容器最小集为
+`NET_ADMIN + NET_RAW + SYS_ADMIN`。动态验证覆盖 C1/C2/C3/C4/C5/C6：正常启停、重复 `up` 被拒、
+13 项集成测试、`podman kill` 后仍能 `down`、清理后无残留、重复 `down` 幂等。
+
+### 对 S5 结论的一处更正
+
+S5 记录里把 `zebra: failed to mkdir "<前缀>/var/lib/frr"` 列为"zebra 起不来"的原因之一。
+S6 复核发现：**这行只是警告**（zebra 仍正常启动并装路由），当时真正的阻塞只有
+`privs_init: initial cap_set_proc failed`。`var/`、`run/` 两个目录仍然保留在实验流程里
+（给容器里的 `--tmpfs` 提供挂载点），但不再声称它是启动失败的原因。
+另外该警告在容器里会以**构建期前缀**的形式出现（二进制里写死了 `--prefix` 路径），属已知日志噪声。
+
+### 清理状态
+
+`verify.sh` 的 C5/C6 在最后一次运行后确认：无 `egp-lab*` 容器、无 `egp-lab-net` 网络、
+宿主机无 `zebra`/`egpd` 进程、宿主机路由表无 `10.0.0.0/8` 与 `172.16.0.0/16`。
+系统 `frr.service` 全程未启动。
+
+### 可复现性的边界
+
+- **已复现**：在同一台 RHEL 10.1 机器上，用**全新目录 + 全新构建根**从源码构建并通过全部验证
+  （两次，第二次为复用构建的一致性复核）。
+- **未复现**：第二台机器、其他发行版、SELinux 强制域、系统服务启动方式。
+  **不声称跨发行版兼容。**

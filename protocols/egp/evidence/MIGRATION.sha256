@@ -1,5 +1,5 @@
 # EGP 源码迁移对照（S3）
-# 来源: <原始 EGP 工作树>
+# 来源: <原始 EGP 工作树（本仓库之外）>
 # 来源提交: 3ab0ca74700bf6e8175ec07e930a320a79f232d9 （tag egp-verified-20261024）
 # 说明: 从 git blob 导出（LF，即仓库内的规范内容）；
 #       Windows 工作树是 CRLF（core.autocrlf=true），与本文件记录不同，属预期。

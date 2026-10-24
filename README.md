@@ -16,7 +16,7 @@
 
 ## 当前状态
 
-本仓库按迁移方案分阶段建立，**本轮只执行到 S3**：
+本仓库按迁移方案分阶段建立，**当前进度：S6 已完成，尚等 v0.1.0 发布确认**：
 
 | 阶段 | 内容 | 状态 |
 | --- | --- | --- |
@@ -26,22 +26,28 @@
 | S3 | 把 EGP 协议源码迁入 `protocols/egp/`（逐字节不变） | 已完成 |
 | S4 | 构建编排（`scripts/build.sh` 等） | 已完成（RHEL 10.1 实跑通过，见 `docs/HISTORY.md`） |
 | S5 | 实验环境参数化（`lab/egp/`） | 已完成（容器实验 13/13 实跑通过，见 `docs/HISTORY.md`） |
-| S6 | 回归清单自动化与证据归档 | **未开始** |
+| S6 | 统一验证入口、实验安全审查、证据归档、v0.1.0 发布准备 | 已完成（`scripts/verify.sh` 全流程实跑，见 `docs/HISTORY.md`） |
 | S7 | 新协议模板验证（空壳 GGP） | **未开始** |
 
 因此请注意：
 
-- **本仓库现在能从零一键构建到安装前缀**：`./scripts/build.sh --jobs N --prefix DIR`
+- **一条命令从零构建**：`./scripts/build.sh --jobs N --prefix DIR`
   （取固定基线 FRR → 打补丁 → 集成源码 → 编译 → 单测 → make check → make dist → 安装 → 指纹）。
-  详见 `scripts/README.md`。
+- **一条命令验证全部**：`./scripts/verify.sh --all --build-root DIR`
+  （仓库完整性 → 构建/测试/产物 → 双路由器实验 → 清理），结果分
+  `PASS / FAIL / SKIP / KNOWN-FAIL`，退出码 0/1/2/3。详见 `scripts/README.md`。
 - **"EGP 构建与单测通过" ≠ "完整 FRR 测试通过"**：EGP 的门禁 `make check-TESTS` 为
-  `PASS: egpd/test_packet`；而完整 `make check` 会跑上游 pytest 套件，其中
-  `tests/isisd/*`、`tests/pimd/*` 需要被本项目禁用的 daemon，实测 14 failed（详情与
-  原始退出码见 `docs/build-fingerprint-20261024.txt` 与 `scripts/README.md`）。
+  `PASS: egpd/test_packet`；完整 `make check` 实测 **14 failed / 514 passed / 5 skipped**
+  （rc=2 原样保留）。14 项失败的**逐条证据**（每个测试自己的异常文本）在
+  `docs/known-failures.md`，结论是"被 `--disable` 的 isisd/pimd 缺少可执行文件"；
+  **未做**"启用这两个 daemon 的对照构建"，所以这是"证据支持"而不是"已证明无关"。
 - `lab/egp/` 已完成参数化（S5）：无硬编码个人路径、无私有镜像，
   `lab.env.example` 集中管理参数，容器内固定挂载路径在 `lab/README.md` 中文档化。
   集成测试 13/13 在容器内实跑通过（见 `docs/HISTORY.md` 的 S5 记录）。
-- 已构建好的实机产物在 `<实验机 B>:/opt/historic-routing/egp-27f287be9`（`sbin/egpd`、
+- **验证边界**：构建与实验在 **RHEL 10.1（x86_64, gcc 14.4.1, podman 5.6）** 上真实复现过，
+  包括"干净目录 + 全新构建根"的一次完整跑通；**未在第二台机器/其他发行版验证**，
+  因此不声称跨发行版兼容。
+- 已构建好的实机产物在 `<实验机>:/opt/historic-routing/egp-27f287be9`（`sbin/egpd`、
   `sbin/zebra`、`bin/vtysh`），指纹见 `docs/build-fingerprint-20261024.txt`。
   原 fork 的已验证树（tag `egp-verified-20261024`）作为历史对照保留。
 
