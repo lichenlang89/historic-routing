@@ -51,6 +51,53 @@ EOF
 }
 
 # ---------- 安全：只允许操作本实验的资源 ----------
+ipv4_ok() {
+	[ "$(printf '%s' "$1" | grep -cE '^([0-9]{1,3}\.){3}[0-9]{1,3}$')" = 1 ] || return 1
+	local o
+	for o in $(printf '%s' "$1" | tr '.' ' '); do
+		[ "$((10#$o))" -le 255 ] || return 1
+	done
+	return 0
+}
+
+abs_path_ok() {
+	case "$1" in
+		/) return 1 ;;
+		/*) ;;
+		*) return 1 ;;
+	esac
+	return 0
+}
+
+# 参数白名单校验：拒绝空值、非法字符、危险路径（每个命令入口都会调）
+check_params() {
+	[ -n "${LAB_IMAGE:-}" ] && [[ "$LAB_IMAGE" =~ ^[A-Za-z0-9._/:@-]+$ ]] \
+		|| die "LAB_IMAGE 非法: '${LAB_IMAGE:-}'"
+	[[ "${LAB_NAME_PREFIX:-}" =~ ^[a-z0-9][a-z0-9-]*$ ]] \
+		|| die "LAB_NAME_PREFIX 只允许 [a-z0-9-] 且不能以 - 开头: '${LAB_NAME_PREFIX:-}'"
+	[[ "${LAB_NET:-}" =~ ^[A-Za-z0-9][A-Za-z0-9_.-]*$ ]] \
+		|| die "LAB_NET 非法（这会作为 podman 网络名）: '${LAB_NET:-}'"
+	[[ "${LAB_SUBNET:-}" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}/[0-9]{1,2}$ ]] \
+		|| die "LAB_SUBNET 不是 CIDR: '${LAB_SUBNET:-}'"
+	ipv4_ok "${LAB_IP1:-}" || die "LAB_IP1 不是合法 IPv4: '${LAB_IP1:-}'"
+	ipv4_ok "${LAB_IP2:-}" || die "LAB_IP2 不是合法 IPv4: '${LAB_IP2:-}'"
+	[ "$LAB_IP1" != "$LAB_IP2" ] || die "LAB_IP1 与 LAB_IP2 不能相同: $LAB_IP1"
+	abs_path_ok "${LAB_PREFIX:-}" || die "LAB_PREFIX 必须是绝对路径且不是 /: '${LAB_PREFIX:-}'"
+	abs_path_ok "${LAB_MOUNT:-}"  || die "LAB_MOUNT 必须是绝对路径且不是 /: '${LAB_MOUNT:-}'"
+	abs_path_ok "${LAB_RUNDIR:-}" || die "LAB_RUNDIR 必须是绝对路径且不是 /: '${LAB_RUNDIR:-}'"
+	ipv4_ok "${LAB_NET1:-}" || die "LAB_NET1 不是合法 IPv4: '${LAB_NET1:-}'"
+	ipv4_ok "${LAB_NET2:-}" || die "LAB_NET2 不是合法 IPv4: '${LAB_NET2:-}'"
+	local a
+	for a in "${LAB_AS1:-}" "${LAB_AS2:-}"; do
+		[[ "$a" =~ ^[0-9]+$ ]] && [ "$a" -ge 1 ] && [ "$a" -le 65535 ] \
+			|| die "AS 号必须是 1..65535: '$a'"
+	done
+	[[ "${LAB_UDP_PORT:-}" =~ ^[0-9]+$ ]] && [ "$LAB_UDP_PORT" -ge 1 ] && [ "$LAB_UDP_PORT" -le 65535 ] \
+		|| die "LAB_UDP_PORT 必须是 1..65535: '${LAB_UDP_PORT:-}'"
+	[[ "${LAB_TIMERS:-}" =~ ^[0-9]+\ [0-9]+$ ]] || die "LAB_TIMERS 需形如 '2 6': '${LAB_TIMERS:-}'"
+	return 0
+}
+
 assert_our_container() {
 	case "$1" in
 		"$R1"|"$R2") ;;
@@ -182,6 +229,9 @@ cmd_up() {
 	check_conflicts
 	probe_container
 
+	# 从这里开始会创建资源：中途失败要提示怎么清理，避免留下半成品
+	trap 'printf "[%s] lab   WARN  up 未完成；执行 %s down 清理已创建的网络/容器\n" "$(date -u +%H:%M:%SZ)" "$0" >&2' ERR
+
 	mkdir -p "$LOG_DIR"
 	log "创建实验网络 $LAB_NET（$LAB_SUBNET）"
 	podman network create "$LAB_NET" --subnet "$LAB_SUBNET" >/dev/null
@@ -207,6 +257,7 @@ cmd_up() {
 	setup_router 2 "$R2" "$LAB_IP2" "$LAB_AS2" "$LAB_NET2" "$LAB_HOST2" "$LAB_IP1" "$LAB_AS1"
 
 	if wait_neighbors; then
+		trap - ERR
 		log "实验就绪：$0 status / $0 test / $0 vty 1"
 	else
 		cmd_status || true
@@ -292,18 +343,24 @@ cmd_env() {
 	echo "AS: $LAB_AS1 / $LAB_AS2  timers=${LAB_TIMERS}"
 	echo "宣告: $LAB_NET1($LAB_HOST1)  $LAB_NET2($LAB_HOST2)"
 	echo "LAB_RUNDIR=$LAB_RUNDIR"
+	# 软校验：env 只报告，不因为参数非法而拒绝打印（方便排查）
+	if ( check_params ) >/dev/null 2>&1; then
+		echo "参数校验: OK"
+	else
+		echo "参数校验: 有非法项（其它命令会拒绝执行；单独跑一次 check 看原因）"
+	fi
 }
 
 cmd="${1:-}"
 [ $# -gt 0 ] && shift
 case "$cmd" in
-	build)  cmd_build ;;
-	up)     cmd_up ;;
-	status) cmd_status ;;
-	vty)    cmd_vty "$@" ;;
-	exec)   cmd_exec "$@" ;;
-	test)   cmd_test ;;
-	down)   cmd_down ;;
+	build)  check_params; cmd_build ;;
+	up)     check_params; cmd_up ;;
+	status) check_params; cmd_status ;;
+	vty)    check_params; cmd_vty "$@" ;;
+	exec)   check_params; cmd_exec "$@" ;;
+	test)   check_params; cmd_test ;;
+	down)   check_params; cmd_down ;;
 	env)    cmd_env ;;
 	''|-h|--help|help) usage ;;
 	*) usage; die "未知命令: $cmd" ;;

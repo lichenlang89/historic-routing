@@ -68,7 +68,7 @@ cd lab/egp
 | `--init` | 容器 PID 1 用 podman 的 init 回收子进程；否则 SIGKILL 掉的 daemon 会以僵尸态留在进程表，使"进程是否在跑"的判断失真 |
 | `--security-opt label=disable` | RHEL 系 SELinux 下允许容器内挂载与 raw socket |
 | `-v $LAB_PREFIX:/build/prefix:ro` | 用同一棵树的产物；镜像里没有 FRR 二进制 |
-| `--tmpfs .../var`、`.../run` | 前缀是只读的，而 zebra 启动时要 `mkdir $(localstatedir)/lib/frr`、`$(runstatedir)/frr` |
+| `--tmpfs .../var`、`.../run` | 给 zebra 提供可写的 state/run 目录。前缀是只读挂载，所以先在宿主侧建空目录当作挂载点，再用 tmpfs 盖住。注意 zebra 会打印 `failed to mkdir "<构建期前缀>/var/lib/frr"` 警告——二进制里写死的是 `--prefix` 路径，容器里挂载点是 `/build/prefix`；**这只是警告，不影响启动与装路由** |
 
 ## 安全边界
 
@@ -104,7 +104,7 @@ cd lab/egp
    （`lib/log.c` 的 `proto_redistnum` 认识 `"egp"`），本项目默认不启用它。
    测试与 `status` 一律用 `show ip route json` 或 `show ip route` 文本里的 `G` 行。
    若要让该命令可用，构建时加 `scripts/build.sh --with-optional`。
-2. **只在当前开发机（<实验机 B>, RHEL 10.1 + podman 5.6）验证过**。
+2. **只在当前开发机（RHEL 10.1 + podman 5.6）验证过**。
    已在不改变镜像/前缀的前提下换目录、换容器名、换网段跑通，
    但尚未在"全新机器"上验证（见 `docs/HISTORY.md` 的 S5 记录）。
 3. 实验网段与 stub 网段都是文档化值；同时开两套实验时记得改
