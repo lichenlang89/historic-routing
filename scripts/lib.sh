@@ -9,10 +9,23 @@ set -Eeuo pipefail
 HR_SCRIPT="${HR_SCRIPT:-$(basename "$0")}"
 HR_REPO_ROOT="${HR_REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 HR_LOG_FILE="${HR_LOG_FILE:-}"
+HR_LOG_STARTED=0
+
+# 把本脚本的 stdout/stderr 同时写入日志文件。可重复调用（幂等）。
+# 调用方必须在设好 HR_LOG_FILE 之后再调它，否则没有日志。
+hr_log_start() {
+	local f="${1:-$HR_LOG_FILE}"
+	[ -n "$f" ] || return 0
+	[ "$HR_LOG_STARTED" = "1" ] && return 0
+	mkdir -p "$(dirname "$f")"
+	exec > >(tee -a "$f") 2>&1
+	HR_LOG_STARTED=1
+	HR_LOG_FILE="$f"
+	echo "===== 日志文件: $f ====="
+}
 
 if [ -n "$HR_LOG_FILE" ]; then
-	mkdir -p "$(dirname "$HR_LOG_FILE")"
-	exec > >(tee -a "$HR_LOG_FILE") 2>&1
+	hr_log_start
 fi
 
 _ts() { date -u +%H:%M:%SZ; }

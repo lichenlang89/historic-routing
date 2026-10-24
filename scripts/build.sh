@@ -60,6 +60,9 @@ FRR_BUILD="$HR_BUILD_ROOT/frr-build"
 mkdir -p "$PREFIX"
 PREFIX="$(cd "$PREFIX" && pwd)"
 
+# 日志从这里开始（必须在 HR_LOG_FILE 确定之后调用）
+hr_log_start "$HR_LOG_FILE"
+
 log "构建根目录 : $HR_BUILD_ROOT"
 log "源码目录   : $FRR_SRC"
 log "构建目录   : $FRR_BUILD"
@@ -84,25 +87,25 @@ log "========== [1/9] 获取固定基线 FRR"
 FETCH_ARGS=(--dir "$FRR_SRC")
 # --reuse-source 时不加 --force：提交不一致就报错，而不是悄悄删掉重建
 [ "$REUSE" = 1 ] || FETCH_ARGS+=(--force)
-HR_SCRIPT=fetch-frr.sh HR_LOG_FILE="$HR_LOG_FILE.step" \
+HR_SCRIPT=fetch-frr.sh HR_LOG_FILE="" \
 	"$HR_REPO_ROOT/scripts/fetch-frr.sh" "${FETCH_ARGS[@]}" \
-	|| { hr_tail_log "$HR_LOG_FILE.step" 30 >&2; die "获取源码失败"; }
+	|| { hr_tail_log "$HR_LOG_FILE" 30 >&2; die "获取源码失败"; }
 hr_read_baseline
 
 # ---------- 2. 打补丁 ----------
 log "========== [2/9] 应用 FRR 适配补丁"
 PATCH_RECORD="$HR_BUILD_ROOT/logs/patches-applied.txt"
-HR_SCRIPT=apply-patches.sh HR_LOG_FILE="$HR_LOG_FILE.step" HR_WITH_OPTIONAL="$HR_WITH_OPTIONAL" \
+HR_SCRIPT=apply-patches.sh HR_LOG_FILE="" HR_WITH_OPTIONAL="$HR_WITH_OPTIONAL" \
 	"$HR_REPO_ROOT/scripts/apply-patches.sh" --frr "$FRR_SRC" --record "$PATCH_RECORD" \
-	|| { hr_tail_log "$HR_LOG_FILE.step" 40 >&2; die "补丁应用失败"; }
+	|| { hr_tail_log "$HR_LOG_FILE" 40 >&2; die "补丁应用失败"; }
 
 # ---------- 3. 集成源码 ----------
 log "========== [3/9] 集成协议源码"
 INTEGRATE_MANIFEST="$HR_BUILD_ROOT/logs/integration-manifest.txt"
-HR_SCRIPT=integrate-sources.sh HR_LOG_FILE="$HR_LOG_FILE.step" HR_BUILD_ROOT="$HR_BUILD_ROOT" \
+HR_SCRIPT=integrate-sources.sh HR_LOG_FILE="" HR_BUILD_ROOT="$HR_BUILD_ROOT" \
 	"$HR_REPO_ROOT/scripts/integrate-sources.sh" --frr "$FRR_SRC" --protocols "egp" \
 	--manifest "$INTEGRATE_MANIFEST" \
-	|| { hr_tail_log "$HR_LOG_FILE.step" 40 >&2; die "源码集成失败"; }
+	|| { hr_tail_log "$HR_LOG_FILE" 40 >&2; die "源码集成失败"; }
 
 # ---------- 4. bootstrap ----------
 log "========== [4/9] 生成构建系统（bootstrap）"
@@ -204,7 +207,7 @@ if [ "$SKIP_CHECKS" = 0 ]; then
 	rc=$?
 	if [ "$rc" -ne 0 ]; then
 		hr_tail_log "$HR_BUILD_ROOT/logs/make-check.log" 60 >&2
-		[ -f "$FRR_BUILD/test-suite.log" ] && hr_tail_log "$FRR_BUILD/test-suite.log" 40 >&2
+		if [ -f "$FRR_BUILD/test-suite.log" ]; then hr_tail_log "$FRR_BUILD/test-suite.log" 40 >&2; fi
 		die "make check 失败（rc=$rc）"
 	fi
 	CHECK_RUN=$(grep -cE '^(PASS|FAIL|SKIP):' "$HR_BUILD_ROOT/logs/make-check.log" || true)
@@ -241,9 +244,9 @@ fi
 # ---------- 9. 安装 + 指纹 ----------
 log "========== [9/9] 安装与指纹"
 INSTALL_MANIFEST="$HR_BUILD_ROOT/logs/install-manifest.txt"
-HR_SCRIPT=install.sh HR_LOG_FILE="$HR_LOG_FILE.step" "$HR_REPO_ROOT/scripts/install.sh" \
+HR_SCRIPT=install.sh HR_LOG_FILE="" "$HR_REPO_ROOT/scripts/install.sh" \
 	--build-dir "$FRR_BUILD" --prefix "$PREFIX" --manifest "$INSTALL_MANIFEST" \
-	|| { hr_tail_log "$HR_LOG_FILE.step" 40 >&2; die "安装失败"; }
+	|| { hr_tail_log "$HR_LOG_FILE" 40 >&2; die "安装失败"; }
 
 FP="$HR_BUILD_ROOT/fingerprint.txt"
 {
