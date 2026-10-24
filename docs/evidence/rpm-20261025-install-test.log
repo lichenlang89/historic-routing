@@ -1,18 +1,27 @@
 # S8-A 安装 / 运行 / 升级 / 卸载实测日志（真实输出）
+# 被测包: historic-routing-{runtime,egp}-0.1.1-0.1.dev2b2c681.el10.x86_64.rpm
 # 环境: RHEL 10.1 x86_64（唯一一台干净测试机；未做跨机器复现）
 # 顺序: 清理前缀 → 装 0.1 → verify-rpm.sh（10 项）→ soname 命名空间 → 文件交集（应为 0）
 #       → systemd 起 zebra+egpd → EGP 双路由器 13 项 → 升级 0.2 → 降级 0.1 → 卸载
-被测包: historic-routing-runtime-0.1.1-0.1.devb6d9425.el10.x86_64.rpm / historic-routing-egp-0.1.1-0.1.devb6d9425.el10.x86_64.rpm / historic-routing-runtime-0.1.1-0.2.devb6d9425.el10.x86_64.rpm / historic-routing-egp-0.1.1-0.2.devb6d9425.el10.x86_64.rpm
+被测包: historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64.rpm / historic-routing-egp-0.1.1-0.1.dev2b2c681.el10.x86_64.rpm / historic-routing-runtime-0.1.1-0.2.dev2b2c681.el10.x86_64.rpm / historic-routing-egp-0.1.1-0.2.dev2b2c681.el10.x86_64.rpm
 
 ########## 0. 清理上一轮的残留（仅本项目前缀） ##########
 清理前:
+/opt/historic-routing/27f287be9
+/opt/historic-routing/27f287be9/run
+/opt/historic-routing/27f287be9/run/frr
+/opt/historic-routing/27f287be9/run/frr/zserv.api
+/opt/historic-routing/27f287be9/run/frr/zebra.pid
+/opt/historic-routing/27f287be9/run/frr/egpd.pid
+/opt/historic-routing/27f287be9/run/frr/egpd.vty
+/opt/historic-routing/27f287be9/run/egpd.log
 清理后: 已删除
 
 ########## 1. 产物指纹 ##########
-315e28d4304899e251417282bfaa84cfa4820d7e1c03bae533e908a6eb550d85  /root/hr-s8-rpm/RPMS/x86_64/historic-routing-runtime-0.1.1-0.1.devb6d9425.el10.x86_64.rpm
-05653a203cf61ec6f9987e02ee5b0feabd3b0e761fe5b16c0c7d9feef0b5bcb3  /root/hr-s8-rpm/RPMS/x86_64/historic-routing-egp-0.1.1-0.1.devb6d9425.el10.x86_64.rpm
--rw-r--r--. 1 root root   23117 Oct 24 19:18 /root/hr-s8-rpm/RPMS/x86_64/historic-routing-egp-0.1.1-0.1.devb6d9425.el10.x86_64.rpm
--rw-r--r--. 1 root root 1794210 Oct 24 19:18 /root/hr-s8-rpm/RPMS/x86_64/historic-routing-runtime-0.1.1-0.1.devb6d9425.el10.x86_64.rpm
+acd1a4618b2cf6f23ef141245ad92bb00601166983df85397e0a425d4b0e150b  /root/hr-s8-rpm/RPMS/x86_64/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64.rpm
+a1b4234241b1da328f0a2fe22a52fb470608aa57c26474fc21adfc5757d30ac8  /root/hr-s8-rpm/RPMS/x86_64/historic-routing-egp-0.1.1-0.1.dev2b2c681.el10.x86_64.rpm
+-rw-r--r--. 1 root root   23118 Oct 24 19:40 /root/hr-s8-rpm/RPMS/x86_64/historic-routing-egp-0.1.1-0.1.dev2b2c681.el10.x86_64.rpm
+-rw-r--r--. 1 root root 1793796 Oct 24 19:40 /root/hr-s8-rpm/RPMS/x86_64/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64.rpm
 --- runtime 依赖里的 libfrr（应为 0）
 0
 --- runtime 提供的 libfrr（应为 0）
@@ -20,19 +29,19 @@
 
 ########## 2. 干净安装 ##########
 Installed:
-  historic-routing-egp-0.1.1-0.1.devb6d9425.el10.x86_64                         
-  historic-routing-runtime-0.1.1-0.1.devb6d9425.el10.x86_64                     
+  historic-routing-egp-0.1.1-0.1.dev2b2c681.el10.x86_64                         
+  historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64                     
 
 Complete!
-historic-routing-runtime-0.1.1-0.1.devb6d9425.el10.x86_64
-historic-routing-egp-0.1.1-0.1.devb6d9425.el10.x86_64
+historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64
+historic-routing-egp-0.1.1-0.1.dev2b2c681.el10.x86_64
 
 ########## 3. 验收脚本（10 项） ##########
 == RPM 安装验收（prefix=/opt/historic-routing/27f287be9）
 主机: <实验机> Red Hat Enterprise Linux 10.1 (Coughlan) x86_64
 
-PASS P1 两包已安装且版本一致  0.1.1-0.1.devb6d9425.el10
-PASS P2 ABI 绑定一致                historic-routing-abi=b6d9425-27f287be9
+PASS P1 两包已安装且版本一致  0.1.1-0.1.dev2b2c681.el10
+PASS P2 ABI 绑定一致                historic-routing-abi=2b2c681-27f287be9
 PASS P3 rpm -V 无差异                
 PASS P4 关键文件齐备              zebra/vtysh/egpd/libfrr
 PASS P5 RUNPATH 为 $ORIGIN 相对路径 $ORIGIN/../lib
@@ -65,24 +74,24 @@ active
 停止后: zebra=inactive egpd=inactive
 
 ########## 7. EGP 双路由器实验（最终包前缀） ##########
-[23:24:31Z] lab   两端 EGP 邻居均已 Up（约 7s）
-[23:24:31Z] lab   实验就绪：./lab.sh status / ./lab.sh test / ./lab.sh vty 1
+[23:45:59Z] lab   两端 EGP 邻居均已 Up（约 7s）
+[23:45:59Z] lab   实验就绪：./lab.sh status / ./lab.sh test / ./lab.sh vty 1
 汇总: 13 通过 / 0 失败 / 共 13 项
-[23:25:14Z] lab   清理完成（本实验资源已全部移除）
+[23:46:41Z] lab   清理完成（本实验资源已全部移除）
 
 ########## 8. 升级到 0.2 再降回 0.1（最终包） ##########
 Upgraded:
-  historic-routing-egp-0.1.1-0.2.devb6d9425.el10.x86_64                         
-  historic-routing-runtime-0.1.1-0.2.devb6d9425.el10.x86_64                     
+  historic-routing-egp-0.1.1-0.2.dev2b2c681.el10.x86_64                         
+  historic-routing-runtime-0.1.1-0.2.dev2b2c681.el10.x86_64                     
 Complete!
-historic-routing-runtime-0.1.1-0.2.devb6d9425.el10.x86_64
+historic-routing-runtime-0.1.1-0.2.dev2b2c681.el10.x86_64
 
 合计: PASS=10 FAIL=0 SKIP=0
 Downgraded:
-  historic-routing-egp-0.1.1-0.1.devb6d9425.el10.x86_64                         
-  historic-routing-runtime-0.1.1-0.1.devb6d9425.el10.x86_64                     
+  historic-routing-egp-0.1.1-0.1.dev2b2c681.el10.x86_64                         
+  historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64                     
 Complete!
-historic-routing-runtime-0.1.1-0.1.devb6d9425.el10.x86_64
+historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64
 
 ########## 9. 卸载并检查残留 ##########
 rpm -q: package historic-routing-runtime is not installed package historic-routing-egp is not installed 

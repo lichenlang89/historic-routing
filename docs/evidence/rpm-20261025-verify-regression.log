@@ -1,27 +1,27 @@
-# S8-A 回归：S7 的 scripts/verify.sh --all（同一提交 b6d9425）
+# S8-A 回归：S7 的 scripts/verify.sh --all（同一提交 2b2c681）
 # 说明: build.sh / install.sh 增加了 --destdir（打包用），这里验证非打包路径未回归。
 #       构建源码同样通过 HR_FRR_REPO 本地镜像传输（提交与补丁哈希强制校验）。
-[23:25:25Z] verify.sh              ===== 日志文件: /root/hr-s8-verify/logs/verify.log =====
-[23:25:25Z] verify.sh              模式       : all
-[23:25:25Z] verify.sh              构建根目录 : /root/hr-s8-verify
-[23:25:25Z] verify.sh              安装前缀   : /root/hr-s8-verify/prefix
-[23:25:25Z] verify.sh              并行度     : 4
-[23:25:25Z] verify.sh              协议       : egp 
-[23:25:25Z] verify.sh              ========== [A] 仓库完整性
+[23:46:51Z] verify.sh              ===== 日志文件: /root/hr-s8-verify/logs/verify.log =====
+[23:46:51Z] verify.sh              模式       : all
+[23:46:51Z] verify.sh              构建根目录 : /root/hr-s8-verify
+[23:46:51Z] verify.sh              安装前缀   : /root/hr-s8-verify/prefix
+[23:46:51Z] verify.sh              并行度     : 4
+[23:46:51Z] verify.sh              协议       : egp 
+[23:46:51Z] verify.sh              ========== [A] 仓库完整性
 [PASS      ] A1 BASELINE                        FRR_COMMIT=27f287be9210… (10.9.0-dev)
 [PASS      ] A2 补丁 SHA256                   5 个补丁文件全部匹配 patches/frr/SHA256SUMS
 [PASS      ] A3 协议源码 SHA256             7 个文件与迁移基线一致
 [PASS      ] A6 多协议资源分配           架构检查通过（1 个协议，0 个冲突）
 [PASS      ] A5 敏感信息扫描              无私钥块/令牌/口令赋值命中（.sh .py .md .c .h .am .patch .example .yml）
-[23:25:25Z] verify.sh              ========== [B] 构建与产物
-[23:25:25Z] verify.sh              执行 scripts/build.sh（真实构建）
+[23:46:52Z] verify.sh              ========== [B] 构建与产物
+[23:46:52Z] verify.sh              执行 scripts/build.sh（真实构建）
 [PASS      ] B1 构建                          build.sh 全流程成功（fetch→patch→integrate→configure→make→单测→check→dist→install→指纹）
 [PASS      ] B2 产物与依赖                 egp daemon + zebra + vtysh + libfrr 均在，ldd 全部可解析
 [PASS      ] B3 产物与指纹一致           每个二进制 SHA256 都与 fingerprint.txt 相符（egp daemon/zebra/vtysh）
 [PASS      ] B4 路由类型                    ZEBRA_ROUTE_EGP=32, ZEBRA_ROUTE_ALL=33, MAX=34（登记顺序编号）
 [PASS      ] B5 单元测试                    egp 的 test_packet 现场执行通过（1 个测试程序）
 [PASS      ] B6 make check-TESTS                PASS: egpd/test_packet（TOTAL=1 PASS=1 FAIL=0）
-14 项失败：KNOWN=14 UNCLASSIFIED=0（14 failed / 514 passed / 5 skipped in 15.67s）
+14 项失败：KNOWN=14 UNCLASSIFIED=0（14 failed / 514 passed / 5 skipped in 16.03s）
   [KNOWN] tests/isisd/test_fuzz_isis_tlv.py::TestFuzzIsisTLV::test_exit_cleanly :: FileNotFoundError: [Errno 2] No such file or directory: 'isisd/test_fuzz_isis_tlv'
   [KNOWN] tests/isisd/test_isis_lspdb.py::TestIsisLSPDB::test_exit_cleanly :: FileNotFoundError: [Errno 2] No such file or directory: 'isisd/test_isis_lspdb'
   [KNOWN] tests/isisd/test_isis_remove_excess_adjs.py::TestIsisRemoveExcessAdjs::test_exit_cleanly :: FileNotFoundError: [Errno 2] No such file or directory: 'isisd/test_isis_remove_excess_adjs'
@@ -36,14 +36,14 @@
   [KNOWN] tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_sgrpt_prune_same_record_as_starg_join_OK :: AttributeError: 'TestPimJpEncode' object has no attribute 'testresults'
   [KNOWN] tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_sgrpt_prune_overflow_OK :: AttributeError: 'TestPimJpEncode' object has no attribute 'testresults'
   [KNOWN] tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_exit_cleanly_2 :: AttributeError: 'TestPimJpEncode' object has no attribute 'testresults'
-[KNOWN-FAIL] B7 完整 make check               原始 rc=2 保留；14 项失败的直接证据都是「被 --disable 的模块缺少可执行文件」，逐条见 docs/known-failures.md（14 failed, 514 passed, 5 skipped in 15.67s）
+[KNOWN-FAIL] B7 完整 make check               原始 rc=2 保留；14 项失败的直接证据都是「被 --disable 的模块缺少可执行文件」，逐条见 docs/known-failures.md（14 failed, 514 passed, 5 skipped in 16.03s）
 [PASS      ] B8 make dist                       frr-10.9.0-dev.tar.gz 8.1M，egp 的源码与 automake 片段齐全
 [PASS      ] A4 补丁顺序应用              4 个补丁在 27f287be9210 上顺序 apply 成功，改动 12 个文件
-[23:30:44Z] verify.sh              ========== [C] 实验环境
+[23:51:55Z] verify.sh              ========== [C] 实验环境
 [PASS      ] C0 实验前置                    podman 5.6.0，镜像 localhost/historic-routing-lab:egp 已存在
 [PASS      ] C0b 最小权限 A/B               无 SYS_ADMIN 时 privs_init 失败、加上后正常启动 → 最小集是 NET_ADMIN+NET_RAW+SYS_ADMIN（docs/evidence/sys-admin-ab.txt）
 [PASS      ] C1 实验启动                    两端 EGP 邻居均已 Up（约 7s）
-[PASS      ] C2 重复 up 拒绝                第二次 up 被拒绝（rc=1）：[23:31:04Z] lab   FAIL 容器 egp-lab-r1 已存在；先执行 ./lab.sh down，或改 LAB_NAME_PREFIX
+[PASS      ] C2 重复 up 拒绝                第二次 up 被拒绝（rc=1）：[23:52:15Z] lab   FAIL 容器 egp-lab-r1 已存在；先执行 ./lab.sh down，或改 LAB_NAME_PREFIX
 [PASS      ] C3 集成测试                    汇总: 13 通过 / 0 失败 / 共 13 项（12 项 + 收尾校验，逐项断言真实状态）
 [PASS      ] C4 异常中断后清理           先 podman kill 掉一个容器，down 仍成功（rc=0）
 [PASS      ] C5 清理验证                    无实验容器/网络、无 zebra/egpd 进程、宿主机无 10/8 与 172.16/16 路由
@@ -62,16 +62,16 @@ PASS  21   KNOWN-FAIL   1   SKIP   0   FAIL   0
 [PASS      ] B4 路由类型                    ZEBRA_ROUTE_EGP=32, ZEBRA_ROUTE_ALL=33, MAX=34（登记顺序编号）
 [PASS      ] B5 单元测试                    egp 的 test_packet 现场执行通过（1 个测试程序）
 [PASS      ] B6 make check-TESTS                PASS: egpd/test_packet（TOTAL=1 PASS=1 FAIL=0）
-[KNOWN-FAIL] B7 完整 make check               原始 rc=2 保留；14 项失败的直接证据都是「被 --disable 的模块缺少可执行文件」，逐条见 docs/known-failures.md（14 failed, 514 passed, 5 skipped in 15.67s）
+[KNOWN-FAIL] B7 完整 make check               原始 rc=2 保留；14 项失败的直接证据都是「被 --disable 的模块缺少可执行文件」，逐条见 docs/known-failures.md（14 failed, 514 passed, 5 skipped in 16.03s）
 [PASS      ] B8 make dist                       frr-10.9.0-dev.tar.gz 8.1M，egp 的源码与 automake 片段齐全
 [PASS      ] A4 补丁顺序应用              4 个补丁在 27f287be9210 上顺序 apply 成功，改动 12 个文件
 [PASS      ] C0 实验前置                    podman 5.6.0，镜像 localhost/historic-routing-lab:egp 已存在
 [PASS      ] C0b 最小权限 A/B               无 SYS_ADMIN 时 privs_init 失败、加上后正常启动 → 最小集是 NET_ADMIN+NET_RAW+SYS_ADMIN（docs/evidence/sys-admin-ab.txt）
 [PASS      ] C1 实验启动                    两端 EGP 邻居均已 Up（约 7s）
-[PASS      ] C2 重复 up 拒绝                第二次 up 被拒绝（rc=1）：[23:31:04Z] lab FAIL 容器 egp-lab-r1 已存在；先执行 ./lab.sh down，或改 LAB_NAME_PREFIX
+[PASS      ] C2 重复 up 拒绝                第二次 up 被拒绝（rc=1）：[23:52:15Z] lab FAIL 容器 egp-lab-r1 已存在；先执行 ./lab.sh down，或改 LAB_NAME_PREFIX
 [PASS      ] C3 集成测试                    汇总: 13 通过 / 0 失败 / 共 13 项（12 项 + 收尾校验，逐项断言真实状态）
 [PASS      ] C4 异常中断后清理           先 podman kill 掉一个容器，down 仍成功（rc=0）
 [PASS      ] C5 清理验证                    无实验容器/网络、无 zebra/egpd 进程、宿主机无 10/8 与 172.16/16 路由
 [PASS      ] C6 重复 down 幂等              资源已不存在时 down 仍返回 0
-[23:31:47Z] verify.sh              完整日志: /root/hr-s8-verify/logs/verify.log
-[23:31:47Z] verify.sh              结果: PASS（21 项通过，1 项 KNOWN-FAIL）
+[23:52:59Z] verify.sh              完整日志: /root/hr-s8-verify/logs/verify.log
+[23:52:59Z] verify.sh              结果: PASS（21 项通过，1 项 KNOWN-FAIL）
