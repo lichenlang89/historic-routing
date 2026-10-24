@@ -385,8 +385,12 @@ FP="$HR_BUILD_ROOT/fingerprint.txt"
 {
 	echo "# historic-routing build fingerprint"
 	echo "GENERATED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-	echo "REPO_COMMIT=$(git -C "$HR_REPO_ROOT" rev-parse HEAD 2>/dev/null || echo 'no-git')"
+	_src_commit="$(git -C "$HR_REPO_ROOT" rev-parse HEAD 2>/dev/null || echo '')"
+	[ -n "$_src_commit" ] || _src_commit="${HR_SOURCE_COMMIT:-unknown}"
+	echo "REPO_COMMIT=$_src_commit"
+	echo "REPO_COMMIT_SOURCE=$( [ -n "$HR_SOURCE_COMMIT" ] && echo env || echo git )"
 	echo "FRR_REPO=$FRR_REPO"
+	if [ -n "${HR_FRR_REPO:-}" ]; then echo "FRR_REPO_EFFECTIVE=$HR_FRR_REPO"; else echo "FRR_REPO_EFFECTIVE=$FRR_REPO"; fi
 	echo "FRR_COMMIT=$FRR_COMMIT"
 	echo "FRR_DESCRIBE=$FRR_DESCRIBE"
 	echo "FRR_SRC_TREE_DIRTY=$(git -C "$FRR_SRC" status --porcelain | wc -l)"

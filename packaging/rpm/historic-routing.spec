@@ -86,6 +86,8 @@ historic-routing 的 EGP（RFC 904）守护进程 egpd。这是实验性的 stub
 %build
 %{?set_build_flags}
 export RPM_ARCH=%{_arch}
+# 让 build.sh 的指纹记录真实源码提交（tarball 里没有 .git）
+export HR_SOURCE_COMMIT=%{hr_git}
 test -x scripts/build.sh || { echo "源码不完整：缺 scripts/build.sh" >&2; exit 1; }
 # 可选：源码传输来源覆盖（离线/镜像构建）。内容仍由固定提交 + 补丁 SHA256 校验。
 if [ -n "%{?hr_frr_repo}" ]; then
@@ -253,6 +255,6 @@ systemctl daemon-reload >/dev/null 2>&1 || :
 %{_unitdir}/historic-routing-egpd.service
 
 %changelog
-* Sun Oct 25 2026 Chenlang Li <Cc1580155hsg@163.com> - 0.1.1-0.1.dev2262b0e
+* Sun Oct 25 2026 Chenlang Li <Cc1580155hsg@163.com> - %{hr_version}-%{hr_release}
 - Development build (NOT released): RPM packaging for RHEL 10.1 x86_64
 - runtime: libfrr + zebra + vtysh; egp: egpd; isolated under /opt/historic-routing
