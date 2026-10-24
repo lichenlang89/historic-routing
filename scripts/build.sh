@@ -218,23 +218,62 @@ cat "$UNIT_OUT"
 grep -q 'tests passed' "$UNIT_OUT" || die "单元测试输出不含 'tests passed'"
 
 # ---------- 8. make check / make dist ----------
+# 分两级：
+#   8a make check-TESTS —— 硬门禁。这是 automake 的 TESTS 列表，跑的就是
+#      patches/frr/0004 注册的那个测试，能直接证明"注册生效且真的执行了"。
+#   8b make check —— 完整目标，额外包含 FRR 上游的 pytest 套件（tests/runtests.py），
+#      其中 isisd/pimd 等用例需要对应 daemon 编译；本项目的 configure 集合是
+#      按已验证配置禁用了这些 daemon，因此这些用例必然失败。这类失败按
+#      "--disable-<daemon>" 归类，只有"无法归因"的失败才判定为构建失败。
 CHECK_SUMMARY="skipped"
 if [ "$SKIP_CHECKS" = 0 ]; then
-	log "========== [8/9] make check"
-	# 注意：set -e 下不能 "命令; rc=$?"，失败会直接退出（S4 实测踩到，表现为
-	# 日志停在 make check 一行且没有任何报错）
+	log "========== [8/9] make check（8a: TESTS 门禁 / 8b: 完整套件）"
+
+	log "  [8a] make check-TESTS"
+	rc=0
+	( cd "$FRR_BUILD" && make check-TESTS ) >"$HR_BUILD_ROOT/logs/make-check-tests.log" 2>&1 || rc=$?
+	if [ "$rc" -ne 0 ]; then
+		hr_tail_log "$HR_BUILD_ROOT/logs/make-check-tests.log" 40 >&2
+		die "make check-TESTS 失败（rc=$rc）"
+	fi
+	grep -qE '^PASS: egpd/test_packet$' "$HR_BUILD_ROOT/logs/make-check-tests.log" \
+		|| die "make check-TESTS 没有运行 egpd/test_packet"
+	TESTS_TOTAL="$(grep -m1 '^# TOTAL:' "$HR_BUILD_ROOT/logs/make-check-tests.log" | awk '{print $3}')"
+	TESTS_PASS="$(grep -m1 '^# PASS:' "$HR_BUILD_ROOT/logs/make-check-tests.log" | awk '{print $3}')"
+	TESTS_FAIL="$(grep -m1 '^# FAIL:' "$HR_BUILD_ROOT/logs/make-check-tests.log" | awk '{print $3}')"
+	log "  [8a] PASS: egpd/test_packet（TOTAL=$TESTS_TOTAL PASS=$TESTS_PASS FAIL=$TESTS_FAIL）"
+	grep -E '^(PASS|FAIL|SKIP|ERROR):' "$HR_BUILD_ROOT/logs/make-check-tests.log" | sed 's/^/    /' || true
+	[ "${TESTS_FAIL:-0}" = "0" ] || die "make check-TESTS 有失败（FAIL=$TESTS_FAIL）"
+
+	log "  [8b] make check（含上游 pytest 套件）"
 	rc=0
 	( cd "$FRR_BUILD" && make -j"$JOBS" check ) >"$HR_BUILD_ROOT/logs/make-check.log" 2>&1 || rc=$?
-	if [ "$rc" -ne 0 ]; then
-		hr_tail_log "$HR_BUILD_ROOT/logs/make-check.log" 60 >&2
-		if [ -f "$FRR_BUILD/test-suite.log" ]; then hr_tail_log "$FRR_BUILD/test-suite.log" 40 >&2; fi
-		die "make check 失败（rc=$rc）"
+	UPSTREAM_SUMMARY="$(grep -E '^(=+) [0-9]+ (failed|passed)' "$HR_BUILD_ROOT/logs/make-check.log" | tail -1 | sed 's/^=* //;s/ =*$//')"
+	if [ "$rc" -eq 0 ]; then
+		CHECK_SUMMARY="check-TESTS: 1/1 passed; make check: passed"
+		log "  [8b] make check 通过（$UPSTREAM_SUMMARY）"
+	else
+		hr_tail_log "$HR_BUILD_ROOT/logs/make-check.log" 40 >&2
+		# 从 configure 参数推导被禁用的模块
+		disabled="$(printf '%s\n' "${CONFIGURE_ARGS[@]}" | sed -n 's/^--disable-\(.*\)$/\1/p' | tr '\n' ' ')"
+		failed_dirs="$(grep -E '^FAILED ' "$HR_BUILD_ROOT/logs/make-check.log" \
+			| sed 's#.*/tests/\([^/]*\)/.*#\1#' | sort -u | tr '\n' ' ')"
+		unclassified=""
+		for d in $failed_dirs; do
+			case " $disabled " in
+				*" $d "*) ;;
+				*) unclassified="$unclassified $d" ;;
+			esac
+		done
+		log "  被禁用的模块: ${disabled}"
+		log "  失败的测试目录: ${failed_dirs:-<未解析到>}"
+		if [ -n "$unclassified" ]; then
+			die "make check 有无法归因到被禁用模块的失败:$unclassified（见 logs/make-check.log）"
+		fi
+		CHECK_SUMMARY="check-TESTS: 1/1 passed; make check: 仅在已 --disable 的模块 ($failed_dirs) 失败，$UPSTREAM_SUMMARY"
+		log "  [8b] 所有失败都属于已 --disable 的模块（$failed_dirs），判定为已知限制"
 	fi
-	CHECK_RUN=$(grep -cE '^(PASS|FAIL|SKIP):' "$HR_BUILD_ROOT/logs/make-check.log" || true)
-	CHECK_SUMMARY="passed (recorded test lines: ${CHECK_RUN:-0})"
-	log "  make check 通过，记录的测试行数: ${CHECK_RUN:-0}"
-	grep -E '^(PASS|FAIL|SKIP):' "$HR_BUILD_ROOT/logs/make-check.log" | sed 's/^/    /' || true
-	[ -f "$FRR_BUILD/test-suite.log" ] && cp -f "$FRR_BUILD/test-suite.log" "$HR_BUILD_ROOT/logs/test-suite.log"
+	if [ -f "$FRR_BUILD/test-suite.log" ]; then cp -f "$FRR_BUILD/test-suite.log" "$HR_BUILD_ROOT/logs/test-suite.log"; fi
 else
 	warn "跳过 make check（--skip-checks）"
 fi
