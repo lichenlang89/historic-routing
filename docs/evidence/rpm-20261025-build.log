@@ -1,26 +1,26 @@
 # S8-A rpmbuild 完整日志（真实输出）
-# 命令: ./scripts/package-rpm.sh --git-sha 2262b0e5e8… --topdir /root/hr-s8-rpm
-#         --frr-repo file:///root/frr-mirror.git
-# 说明: %build 里真跑 scripts/build.sh（fetch → patch → 集成 → configure → make →
-#       egpd/test_packet → make check → make dist → 暂存安装），不是把已有目录压包。
-[22:33:54Z] package-rpm.sh         源码提交 : 2262b0e5e8f75896807f6470d6c967bd79c873ea
-[22:33:54Z] package-rpm.sh         FRR 基线 : 27f287be9210d4024a140486b7b8ddd5eb41fe04
-[22:33:54Z] package-rpm.sh         版本     : 0.1.1-0.1.dev2262b0e%{?dist}（开发验证构建，不是发布版本）
-[22:33:54Z] package-rpm.sh         rpmbuild : /root/hr-s8-rpm
-[22:33:54Z] package-rpm.sh         源码 tarball: historic-routing-0.1.1.tar.gz e0427fad537b0e09… 132K
-[22:33:54Z] package-rpm.sh         SPEC/units 已就位
-[22:33:54Z] package-rpm.sh         开始 rpmbuild -bb（%build 会从固定 FRR 基线完整构建，约几分钟）
-[22:33:54Z] package-rpm.sh         QA_RPATHS=17
-[22:33:54Z] package-rpm.sh         FRR 源码来源覆盖为 file:///root/frr-mirror.git（提交与补丁哈希仍强制校验）
-[22:39:11Z] package-rpm.sh         rpmbuild 成功（日志: /root/hr-s8-rpm/build.log）
+# 命令: ./scripts/package-rpm.sh --topdir /root/hr-s8-rpm --frr-repo file:///root/frr-mirror.git
+# 说明: 从 git clone 的干净工作树开始；%build 里真跑 scripts/build.sh
+#       （fetch 固定 FRR 提交 → 应用补丁 → 集成协议源码 → configure → make →
+#        egpd/test_packet → make check → make dist → 暂存安装），不是压包。
+[23:13:22Z] package-rpm.sh         源码提交 : b6d9425bab4273681adf47c1790d8f0bd7c892c3
+[23:13:22Z] package-rpm.sh         FRR 基线 : 27f287be9210d4024a140486b7b8ddd5eb41fe04
+[23:13:22Z] package-rpm.sh         版本     : 0.1.1-0.1.devb6d9425%{?dist}（开发验证构建，不是发布版本）
+[23:13:22Z] package-rpm.sh         rpmbuild : /root/hr-s8-rpm
+[23:13:23Z] package-rpm.sh         源码 tarball: historic-routing-0.1.1.tar.gz 96a55ea9b91d7577… 136K
+[23:13:23Z] package-rpm.sh         SPEC/units 已就位
+[23:13:23Z] package-rpm.sh         开始 rpmbuild -bb（%build 会从固定 FRR 基线完整构建，约几分钟）
+[23:13:23Z] package-rpm.sh         QA_RPATHS=17
+[23:13:23Z] package-rpm.sh         FRR 源码来源覆盖为 file:///root/frr-mirror.git（提交与补丁哈希仍强制校验）
+[23:18:42Z] package-rpm.sh         rpmbuild 成功（日志: /root/hr-s8-rpm/build.log）
 
-================ historic-routing-egp-0.1.1-0.1.dev2262b0e.el10.x86_64.rpm
+================ historic-routing-egp-0.1.1-0.1.devb6d9425.el10.x86_64.rpm
 大小   : 24K
-SHA256 : 51be46f74158c1566474fce98d95e39ab4edabc267ef6609c9da4b43a9d783aa
+SHA256 : 05653a203cf61ec6f9987e02ee5b0feabd3b0e761fe5b16c0c7d9feef0b5bcb3
 ---- rpm -qpR（依赖）
-  config(historic-routing-egp) = 0.1.1-0.1.dev2262b0e.el10
-  historic-routing-abi = 2262b0e-27f287be9
-  historic-routing-runtime(x86-64) = 0.1.1-0.1.dev2262b0e.el10
+  config(historic-routing-egp) = 0.1.1-0.1.devb6d9425.el10
+  historic-routing-abi = b6d9425-27f287be9
+  historic-routing-runtime(x86-64) = 0.1.1-0.1.devb6d9425.el10
   libc.so.6()(64bit)
   libc.so.6(GLIBC_2.17)(64bit)
   libc.so.6(GLIBC_2.2.5)(64bit)
@@ -48,15 +48,15 @@ SHA256 : 51be46f74158c1566474fce98d95e39ab4edabc267ef6609c9da4b43a9d783aa
   /usr/share/doc/historic-routing-egp
   /usr/share/doc/historic-routing-egp/README.md
 
-================ historic-routing-runtime-0.1.1-0.1.dev2262b0e.el10.x86_64.rpm
+================ historic-routing-runtime-0.1.1-0.1.devb6d9425.el10.x86_64.rpm
 大小   : 1.8M
-SHA256 : 04dcdc7701931153c8b71eadb262fb957ff34653a4c5651af2a2691c84574a7d
+SHA256 : 315e28d4304899e251417282bfaa84cfa4820d7e1c03bae533e908a6eb550d85
 ---- rpm -qpR（依赖）
   /bin/sh
   /bin/sh
   /bin/sh
   /bin/sh
-  config(historic-routing-runtime) = 0.1.1-0.1.dev2262b0e.el10
+  config(historic-routing-runtime) = 0.1.1-0.1.devb6d9425.el10
   libatomic.so.1()(64bit)
   libcap.so.2()(64bit)
   libcrypt.so.2()(64bit)
@@ -139,12 +139,13 @@ configuration:
     /etc/xdg/rpmlint/scoring.toml
     /etc/xdg/rpmlint/users-groups.toml
     /etc/xdg/rpmlint/warn-on-functions.toml
-rpmlintrc: [PosixPath('/root/hr-s8/packaging/rpm/rpmlintrc')]
+rpmlintrc: [PosixPath('/root/hr-s8d/packaging/rpm/rpmlintrc')]
 checks: 30, packages: 2
 
- 2 packages and 0 specfiles checked; 0 errors, 0 warnings, 57 filtered, 0 badness; has taken 0.9 s 
+historic-routing-runtime.x86_64: W: incoherent-version-in-changelog 0.1.1-0.1.dev2262b0e ['0.1.1-0.1.devb6d9425.el10', '0.1.1-0.1.devb6d9425']
+ 2 packages and 0 specfiles checked; 0 errors, 1 warnings, 57 filtered, 0 badness; has taken 0.8 s 
 (rpmlint 退出码 0；上面的 warning 逐条在报告里说明)
 
-[22:39:12Z] package-rpm.sh         RPM 目录: /root/hr-s8-rpm/RPMS
-/root/hr-s8-rpm/RPMS/x86_64/historic-routing-egp-0.1.1-0.1.dev2262b0e.el10.x86_64.rpm
-/root/hr-s8-rpm/RPMS/x86_64/historic-routing-runtime-0.1.1-0.1.dev2262b0e.el10.x86_64.rpm
+[23:18:43Z] package-rpm.sh         RPM 目录: /root/hr-s8-rpm/RPMS
+/root/hr-s8-rpm/RPMS/x86_64/historic-routing-egp-0.1.1-0.1.devb6d9425.el10.x86_64.rpm
+/root/hr-s8-rpm/RPMS/x86_64/historic-routing-runtime-0.1.1-0.1.devb6d9425.el10.x86_64.rpm

@@ -1,44 +1,46 @@
 # S8-A RPM 产物与检查记录（真实输出，未编辑）
-# 生成: 2026-10-25 (UTC 2026-10-24T22:55Z) / RHEL 10.1 x86_64 / rpm 4.19.1.1
-# 说明: 本文件由 scripts/package-rpm.sh 的产物 + rpm/rpmlint 命令输出直接拼接，
-#       源码提交 2262b0e5e8f75896807f6470d6c967bd79c873ea，FRR 基线 27f287be92…
-#       版本 0.1.1-0.1.dev2262b0e.el10 = 开发验证构建（未发布）。
+# 源码提交: b6d9425bab4273681adf47c1790d8f0bd7c892c3（git clone 后 git archive 出 tarball）
+# 版本: 0.1.1-0.1.devb6d9425.el10 = 开发验证构建（未发布）
+# 环境: RHEL 10.1 x86_64 / rpm 4.19.1.1 / rpmlint 2.8.0
 historic-routing RPM 产物（S8-A 开发验证构建，未发布）
-构建主机: <实验机> x86_64 / Red Hat Enterprise Linux 10.1 (Coughlan) / rpm 4.19.1.1
-构建时间(UTC): 2026-10-24T22:55:14Z
+构建主机: <实验机> | Red Hat Enterprise Linux 10.1 (Coughlan) | x86_64 | rpm 4.19.1.1 | rpmlint 
+源码: git clone 自本仓库提交 b6d9425bab4273681adf47c1790d8f0bd7c892c3（工作树干净，git archive 出 tarball）
+生成时间(UTC): 2026-10-24T23:33:49Z
 
 == 文件名 / 大小 / SHA256
-04dcdc7701931153c8b71eadb262fb957ff34653a4c5651af2a2691c84574a7d  /root/hr-s8-rpm/RPMS/x86_64/historic-routing-runtime-0.1.1-0.1.dev2262b0e.el10.x86_64.rpm
-51be46f74158c1566474fce98d95e39ab4edabc267ef6609c9da4b43a9d783aa  /root/hr-s8-rpm/RPMS/x86_64/historic-routing-egp-0.1.1-0.1.dev2262b0e.el10.x86_64.rpm
-/root/hr-s8-rpm/RPMS/x86_64/historic-routing-runtime-0.1.1-0.1.dev2262b0e.el10.x86_64.rpm 1793431 bytes
-/root/hr-s8-rpm/RPMS/x86_64/historic-routing-egp-0.1.1-0.1.dev2262b0e.el10.x86_64.rpm 23118 bytes
+315e28d4304899e251417282bfaa84cfa4820d7e1c03bae533e908a6eb550d85  /root/hr-s8-rpm/RPMS/x86_64/historic-routing-runtime-0.1.1-0.1.devb6d9425.el10.x86_64.rpm
+05653a203cf61ec6f9987e02ee5b0feabd3b0e761fe5b16c0c7d9feef0b5bcb3  /root/hr-s8-rpm/RPMS/x86_64/historic-routing-egp-0.1.1-0.1.devb6d9425.el10.x86_64.rpm
+/root/hr-s8-rpm/RPMS/x86_64/historic-routing-runtime-0.1.1-0.1.devb6d9425.el10.x86_64.rpm 1794210 bytes
+/root/hr-s8-rpm/RPMS/x86_64/historic-routing-egp-0.1.1-0.1.devb6d9425.el10.x86_64.rpm 23117 bytes
+
+== 升级测试用包（同一提交，Release 提升）
+79466ee441daf7b608a14caba93b7eb4a1f953dd1f0f36e185709d7b098549b9  /root/hr-s8-rpm-up/RPMS/x86_64/historic-routing-runtime-0.1.1-0.2.devb6d9425.el10.x86_64.rpm
+/root/hr-s8-rpm-up/RPMS/x86_64/historic-routing-runtime-0.1.1-0.2.devb6d9425.el10.x86_64.rpm 1794430 bytes
 
 == rpm -qpi（头部摘要）
 Name        : historic-routing-runtime
 Version     : 0.1.1
-Release     : 0.1.dev2262b0e.el10
+Release     : 0.1.devb6d9425.el10
 Architecture: x86_64
 Install Date: (not installed)
 Group       : Unspecified
-Size        : 10364847
+Size        : 10367166
 License     : GPL-2.0-or-later
 Signature   : (none)
-Source RPM  : historic-routing-runtime-0.1.1-0.1.dev2262b0e.el10.src.rpm
-Build Date  : Sat 24 Oct 2026 06:33:54 PM EDT
+Source RPM  : historic-routing-runtime-0.1.1-0.1.devb6d9425.el10.src.rpm
 
 Name        : historic-routing-egp
 Version     : 0.1.1
-Release     : 0.1.dev2262b0e.el10
+Release     : 0.1.devb6d9425.el10
 Architecture: x86_64
 Install Date: (not installed)
 Group       : Unspecified
 Size        : 39712
 License     : GPL-2.0-or-later
 Signature   : (none)
-Source RPM  : historic-routing-runtime-0.1.1-0.1.dev2262b0e.el10.src.rpm
-Build Date  : Sat 24 Oct 2026 06:33:54 PM EDT
+Source RPM  : historic-routing-runtime-0.1.1-0.1.devb6d9425.el10.src.rpm
 
-== rpm -qpl（runtime）
+== rpm -qpl（runtime，35 项）
 /opt/historic-routing/27f287be9
 /opt/historic-routing/27f287be9/RPM-BUILD-INFO.txt
 /opt/historic-routing/27f287be9/bin
@@ -94,7 +96,7 @@ Build Date  : Sat 24 Oct 2026 06:33:54 PM EDT
 /bin/sh
 /bin/sh
 /bin/sh
-config(historic-routing-runtime) = 0.1.1-0.1.dev2262b0e.el10
+config(historic-routing-runtime) = 0.1.1-0.1.devb6d9425.el10
 libatomic.so.1()(64bit)
 libc.so.6()(64bit)
 libc.so.6(GLIBC_2.14)(64bit)
@@ -132,9 +134,9 @@ rpmlib(PayloadIsZstd) <= 5.4.18-1
 rtld(GNU_HASH)
 
 == rpm -qpR（egp）
-config(historic-routing-egp) = 0.1.1-0.1.dev2262b0e.el10
-historic-routing-abi = 2262b0e-27f287be9
-historic-routing-runtime(x86-64) = 0.1.1-0.1.dev2262b0e.el10
+config(historic-routing-egp) = 0.1.1-0.1.devb6d9425.el10
+historic-routing-abi = b6d9425-27f287be9
+historic-routing-runtime(x86-64) = 0.1.1-0.1.devb6d9425.el10
 libc.so.6()(64bit)
 libc.so.6(GLIBC_2.17)(64bit)
 libc.so.6(GLIBC_2.2.5)(64bit)
@@ -149,30 +151,29 @@ rpmlib(PayloadFilesHavePrefix) <= 4.0-1
 rpmlib(PayloadIsZstd) <= 5.4.18-1
 rtld(GNU_HASH)
 
-== rpm -qp --provides（runtime，节选）
-config(historic-routing-runtime) = 0.1.1-0.1.dev2262b0e.el10
-historic-routing-abi = 2262b0e-27f287be9
-historic-routing-abi-27f287be9 = 2262b0e-27f287be9
-historic-routing-runtime = 0.1.1-0.1.dev2262b0e.el10
-historic-routing-runtime(x86-64) = 0.1.1-0.1.dev2262b0e.el10
+== rpm -qp --provides（runtime，含 abi 提供）
+config(historic-routing-runtime) = 0.1.1-0.1.devb6d9425.el10
+historic-routing-abi = b6d9425-27f287be9
+historic-routing-abi-27f287be9 = b6d9425-27f287be9
+historic-routing-runtime = 0.1.1-0.1.devb6d9425.el10
+historic-routing-runtime(x86-64) = 0.1.1-0.1.devb6d9425.el10
 
-== rpmlint 汇总
-checks: 30, packages: 2
-
- 2 packages and 0 specfiles checked; 0 errors, 0 warnings, 57 filtered, 0 badness; has taken 0.9 s 
+== rpmlint（带 packaging/rpm/rpmlintrc）
+historic-routing-runtime.x86_64: W: incoherent-version-in-changelog 0.1.1-0.1.dev2262b0e ['0.1.1-0.1.devb6d9425.el10', '0.1.1-0.1.devb6d9425']
+ 2 packages and 0 specfiles checked; 0 errors, 1 warnings, 57 filtered, 0 badness; has taken 0.9 s 
 
 == 包内 RPM-BUILD-INFO.txt
 # historic-routing RPM build info
-package_version=0.1.1-0.1.dev2262b0e.el10
-source_commit=2262b0e5e8f75896807f6470d6c967bd79c873ea
+package_version=0.1.1-0.1.devb6d9425.el10
+source_commit=b6d9425bab4273681adf47c1790d8f0bd7c892c3
 frr_commit=27f287be9210d4024a140486b7b8ddd5eb41fe04
-abi=2262b0e-27f287be9
+abi=b6d9425-27f287be9
 prefix=/opt/historic-routing/27f287be9
 build_host=<实验机> x86_64
-built_at=2026-10-24T22:39:03Z
+built_at=2026-10-24T23:18:35Z
 ---- fingerprint.txt ----
 # historic-routing build fingerprint
-GENERATED_AT=2026-10-24T22:39:03Z
+GENERATED_AT=2026-10-24T23:18:35Z
 REPO_COMMIT=no-git
 FRR_REPO=https://github.com/FRRouting/frr
 FRR_COMMIT=27f287be9210d4024a140486b7b8ddd5eb41fe04
@@ -201,11 +202,11 @@ MAKE_RESULT=ok
 EGPD_TEST_PACKET=passed
 MAKE_CHECK_RC=2
 MAKE_CHECK_FAILED_DIRS=isisd pimd 
-MAKE_CHECK_SUMMARY=check-TESTS: 1/1 passed; make check rc=2: 仅在已 --disable 的模块 (isisd pimd ) 失败，14 failed, 514 passed, 5 skipped in 25.80s
+MAKE_CHECK_SUMMARY=check-TESTS: 1/1 passed; make check rc=2: 仅在已 --disable 的模块 (isisd pimd ) 失败，14 failed, 514 passed, 5 skipped in 21.21s
 MAKE_DIST=ok: frr-10.9.0-dev.tar.gz (8.1M), egpd/ 全部文件在内
-PROTOCOL_EGP_BINARY_SHA256=b2ecfa48e71b6f475690c636e059873c2fa539dc59e813f55765a8d99b94af67
-ZEBRA_BINARY_SHA256=76ab2d8c07f8e98202a9e8fa4b61f2bfa72693a837ae4aacc1656b21da34f7e4
-VTYSH_BINARY_SHA256=c0e79f9327f9c7d5355336c10e8948726f7367e95056c3d37c426ae8c3d490a6
+PROTOCOL_EGP_BINARY_SHA256=9e68ae4470a3309a979deb7eddd15c4a2063b13989bdd0d6c0b78faaf38d616d
+ZEBRA_BINARY_SHA256=aa0b42bffab1c47b63753bc36ca8fc51a34ee9899f4535ea734a2ddd66fefbd4
+VTYSH_BINARY_SHA256=c8606a077dc1cfa27a6d1cf939291dfd2d095430ca94f73cf085ba0e4a6246d4
 PROTOCOLS=egp 
 PROTOCOL_EGP_ROUTE_TYPE_ID=32
 PROTOCOL_EGP_DISPLAY_CHAR=G
