@@ -1,0 +1,17 @@
+# zebra 最小权限 A/B（scripts/verify.sh 现场执行）
+时间: 2026-10-24T14:39:37Z
+
+## 只给 NET_ADMIN + NET_RAW
+2026/10/24 14:39:32 ZEBRA: [QYS7B-8K2EV][EC 100663303] failed to mkdir "/root/hr-s6-build/prefix/var/lib/frr": No such file or directory
+2026/10/24 14:39:32 ZEBRA: [QYS7B-8K2EV][EC 100663303] failed to mkdir "/root/hr-s6-build/prefix/run/frr": No such file or directory
+privs_init: initial cap_set_proc failed: Operation not permitted
+Wanted caps: cap_net_admin,cap_net_raw,cap_sys_admin=p
+Have   caps: cap_chown,cap_dac_override,cap_fowner,cap_fsetid,cap_kill,cap_setgid,cap_setuid,cap_setpcap,cap_net_bind_service,cap_net_admin,cap_net_raw,cap_sys_chroot,cap_setfcap=ep
+退出码=1
+
+## 再加 SYS_ADMIN
+2026/10/24 14:39:33 ZEBRA: [QYS7B-8K2EV][EC 100663303] failed to mkdir "/root/hr-s6-build/prefix/var/lib/frr": No such file or directory
+2026/10/24 14:39:33 ZEBRA: [QYS7B-8K2EV][EC 100663303] failed to mkdir "/root/hr-s6-build/prefix/run/frr": No such file or directory
+2026/10/24 14:39:33 ZEBRA: [NFX3B-68SEX] FD Limit set: 1048576 is too large.  Is this intentional?  Consider using --limit-fds. Limiting size to 100000
+2026/10/24 14:39:33 ZEBRA: [QBKSZ-0KHCW][EC 4043309138] Disabling MPLS support (no kernel support)
+退出码=124

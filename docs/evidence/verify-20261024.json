@@ -1,0 +1,27 @@
+{
+  "mode": "all",
+  "counts": {"pass": 20, "known_fail": 1, "skip": 0, "fail": 0},
+  "results": [
+    {"status": "PASS", "name": "A1 BASELINE", "detail": "FRR_COMMIT=27f287be9210… (10.9.0-dev)"},
+    {"status": "PASS", "name": "A2 补丁 SHA256", "detail": "5 个补丁文件全部匹配 patches/frr/SHA256SUMS"},
+    {"status": "PASS", "name": "A3 协议源码 SHA256", "detail": "6 个文件与迁移基线一致"},
+    {"status": "PASS", "name": "A5 敏感信息扫描", "detail": "无私钥块/令牌/口令赋值命中（.sh .py .md .c .h .am .patch .example .yml）"},
+    {"status": "PASS", "name": "B1 构建", "detail": "复用已有构建：指纹与当前 BASELINE/补丁/核心源码一致（未重复编译）"},
+    {"status": "PASS", "name": "B2 产物与依赖", "detail": "egpd/zebra/vtysh/libfrr 均在，ldd 全部可解析"},
+    {"status": "PASS", "name": "B3 产物与指纹一致", "detail": "egpd/zebra/vtysh 三个二进制 SHA256 与 fingerprint.txt 相符"},
+    {"status": "PASS", "name": "B4 路由类型", "detail": "ZEBRA_ROUTE_EGP=32, ZEBRA_ROUTE_MAX=34（与固定基线一致）"},
+    {"status": "PASS", "name": "B5 EGP 单元测试", "detail": "tests passed（egpd/test_packet 现场执行）"},
+    {"status": "PASS", "name": "B6 make check-TESTS", "detail": "PASS: egpd/test_packet（TOTAL=1 PASS=1 FAIL=0）"},
+    {"status": "KNOWN-FAIL", "name": "B7 完整 make check", "detail": "原始 rc=2 保留；14 项失败的直接证据都是「被 --disable 的模块缺少可执行文件」，逐条见 docs/known-failures.md（14 failed, 514 passed, 5 skipped in 16.15s）"},
+    {"status": "PASS", "name": "B8 make dist", "detail": "frr-10.9.0-dev.tar.gz 8.1M，egpd/ 源码与 automake 片段齐全"},
+    {"status": "PASS", "name": "A4 补丁顺序应用", "detail": "4 个补丁在 27f287be9210 上顺序 apply 成功，改动 12 个文件"},
+    {"status": "PASS", "name": "C0 实验前置", "detail": "podman 5.6.0，镜像 localhost/historic-routing-lab:egp 已存在"},
+    {"status": "PASS", "name": "C0b 最小权限 A/B", "detail": "无 SYS_ADMIN 时 privs_init 失败、加上后正常启动 → 最小集是 NET_ADMIN+NET_RAW+SYS_ADMIN（docs/evidence/sys-admin-ab.txt）"},
+    {"status": "PASS", "name": "C1 实验启动", "detail": "两端 EGP 邻居均已 Up（约 7s）"},
+    {"status": "PASS", "name": "C2 重复 up 拒绝", "detail": "第二次 up 被拒绝（rc=1）：[14:39:52Z] lab FAIL 容器 egp-lab-r1 已存在；先执行 ./lab.sh down，或改 LAB_NAME_PREFIX"},
+    {"status": "PASS", "name": "C3 集成测试", "detail": "汇总: 13 通过 / 0 失败 / 共 13 项（12 项 + 收尾校验，逐项断言真实状态）"},
+    {"status": "PASS", "name": "C4 异常中断后清理", "detail": "先 podman kill 掉一个容器，down 仍成功（rc=0）"},
+    {"status": "PASS", "name": "C5 清理验证", "detail": "无实验容器/网络、无 zebra/egpd 进程、宿主机无 10/8 与 172.16/16 路由"},
+    {"status": "PASS", "name": "C6 重复 down 幂等", "detail": "资源已不存在时 down 仍返回 0"}
+  ]
+}
