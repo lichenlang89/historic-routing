@@ -75,9 +75,23 @@ done
 
 # ---- 事后断言 ----
 log "校验补丁效果"
-changed="$(git -C "$FRR" diff --name-only | wc -l)"
-log "被改动文件数: $changed"
-[ "$changed" -ge 13 ] || die "改动文件数为 $changed，少于预期的 13"
+# 期望被改动的文件集合直接由补丁本身推导（不写死数量：
+# 0001-0004 是 12 个文件，加上可选 0005 才是 13 个）
+EXPECTED="$(mktemp)"
+ACTUAL="$(mktemp)"
+for p in "${PATCHES[@]}"; do
+	git -C "$FRR" apply --numstat "$p" | awk '{print $3}'
+done | sort -u > "$EXPECTED"
+git -C "$FRR" diff --name-only | sort -u > "$ACTUAL"
+expected_n=$(wc -l < "$EXPECTED")
+actual_n=$(wc -l < "$ACTUAL")
+log "期望改动文件数: $expected_n，实际: $actual_n"
+if ! diff -u "$EXPECTED" "$ACTUAL"; then
+	rm -f "$EXPECTED" "$ACTUAL"
+	die "被改动的文件集合与补丁不一致"
+fi
+changed="$actual_n"
+rm -f "$EXPECTED" "$ACTUAL"
 
 if git -C "$FRR" status --porcelain | grep -q '^?? egpd/'; then
 	die "补丁里出现了 egpd/ 源码（不应发生）"
