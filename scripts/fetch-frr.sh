@@ -60,9 +60,12 @@ git init -q .
 git remote add origin "$FRR_REPO"
 
 log "尝试浅取单个提交（--depth 1）"
-if ! git fetch -q --depth 1 origin "$FRR_COMMIT" 2>fetch.err; then
+# 错误输出用临时文件：不能写进源码树，否则会让工作树变脏（apply-patches 会拒绝）
+FETCH_ERR="$(mktemp)"
+trap 'rm -f "$FETCH_ERR"' EXIT
+if ! git fetch -q --depth 1 origin "$FRR_COMMIT" 2>"$FETCH_ERR"; then
 	warn "浅取单个提交失败，改为过滤克隆 + 取该提交"
-	cat fetch.err >&2
+	cat "$FETCH_ERR" >&2
 	git fetch -q --filter=blob:none --no-tags origin '+refs/heads/*:refs/remotes/origin/*' \
 		|| die "无法从 $FRR_REPO 获取引用"
 	git fetch -q origin "$FRR_COMMIT" || die "无法获取提交 $FRR_COMMIT"
@@ -72,7 +75,6 @@ git checkout -q --detach FETCH_HEAD 2>/dev/null || git checkout -q --detach "$FR
 cur="$(git rev-parse HEAD)"
 [ "$cur" = "$FRR_COMMIT" ] || die "检出的提交 $cur 与基线 $FRR_COMMIT 不一致"
 [ -z "$(git status --porcelain)" ] || die "检出的工作树不干净"
-rm -f fetch.err
 
 # 基线标记写在 .git/ 里：既不污染工作树（apply-patches 要求工作树干净），
 # 又跟着这棵源码树走，便于排查这棵树是怎么来的。
