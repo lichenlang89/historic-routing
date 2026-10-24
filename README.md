@@ -40,6 +40,10 @@
 - **一条命令验证全部**：`./scripts/verify.sh --all --build-root DIR`
   （仓库完整性 → 构建/测试/产物 → 双路由器实验 → 清理），结果分
   `PASS / FAIL / SKIP / KNOWN-FAIL`，退出码 0/1/2/3。详见 `scripts/README.md`。
+- **多协议共用一套 FRR**（S7）：每个协议只登记自己的资源（路由类型编号、显示码、
+  vtysh 位、daemon 名）并提供一组补丁，`--protocols egp,ggp` 一次构建；
+  `scripts/check-allocations.sh` 检查跨协议冲突。目前**只有 EGP 有代码**，
+  多协议路径用 EGP 单独验证过（见 `docs/ARCHITECTURE.md`「多协议」）。
 - **"EGP 构建与单测通过" ≠ "完整 FRR 测试通过"**：EGP 的门禁 `make check-TESTS` 为
   `PASS: egpd/test_packet`；完整 `make check` 实测 **14 failed / 514 passed / 5 skipped**
   （rc=2 原样保留）。14 项失败的**逐条证据**（每个测试自己的异常文本）在

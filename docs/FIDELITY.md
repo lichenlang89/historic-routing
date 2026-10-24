@@ -96,12 +96,18 @@ CLI 里可见的四个状态（`show ip egp neighbors`）：
 
 ## 6. 已占用的不可再生资源
 
-| 资源 | 已占用 | 说明 |
-| --- | --- | --- |
-| 路由类型编号 | 32 = EGP（`ZEBRA_ROUTE_MAX` = 34） | 由 `lib/route_types.txt` 的插入位置决定；上游若在该位置新增类型会导致编号漂移 |
-| 显示码 | `G` | `show ip route` 里的单字母 |
-| 管理距离 | 140 | zebra 选路优先级 |
-| vtysh 位 | `0x400000` | 上游每加一个 daemon 就可能抢用，rebase 时必须检查 |
+登记处是 `protocols/<name>/PROTOCOL.meta`（机器可读，`scripts/check-allocations.sh` 校验）；
+分配规则见 `docs/ARCHITECTURE.md`「多协议」。
+
+| 资源 | EGP 占用 | 下一个可用的值 | 说明 |
+| --- | --- | --- | --- |
+| 路由类型编号 | **32**（`ZEBRA_ROUTE_ALL`=33、`MAX`=34） | 33（`ALL`/`MAX` 随之后移） | 编号由 `lib/route_types.txt` 的**插入位置**决定；只能追加在已发布协议之后 |
+| 路由类型名字串 | `egp` | 自定，需唯一 | `show ip route <name>` / `proto_redistnum` 用它 |
+| 显示码 | `G` | 任意未被基线占用的字母 | `show ip route` 里的单字母 |
+| 管理距离 | 140 | 141、142…（建议按协议递增） | zebra 选路优先级 |
+| vtysh 位 | `0x400000` | `0x800000` | 保留区间 `0x400000`..`0x3FFFFFF`；上游每加 daemon 都可能抢用 |
+| CLI 节点 | `EGP_NODE` | 任意唯一名 | `lib/command.h`，插在 `NODE_TYPE_MAX` 之前 |
+| daemon 名 | `egpd` | 任意唯一名 | 也是源码目录与可执行文件名 |
 
 ## 7. 后续协议
 

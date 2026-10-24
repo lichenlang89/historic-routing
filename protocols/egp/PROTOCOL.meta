@@ -1,0 +1,56 @@
+# 协议登记表（机器可读）：一个协议在 FRR 里占用的全部"集成资源"。
+#
+# 这是唯一登记处：构建脚本、补丁校验、scripts/check-allocations.sh 都读这个文件，
+# 不允许在脚本里再硬编码协议常量。新增协议时复制本文件到 protocols/<新协议>/PROTOCOL.meta
+# 并改值；分配规则与冲突检查见 docs/ARCHITECTURE.md「多协议」一节。
+#
+# 格式：KEY=VALUE，每行一个；值里不要写 $ ` ; " ' 或换行；不要写行尾注释。
+# 所有键都是必需的（缺一个 check-allocations.sh 会失败）。
+
+# 协议短名，必须与目录名一致
+NAME=egp
+
+# FRR 内的 daemon 名（同时是源码目录 <DAEMON>/ 与可执行文件名）
+DAEMON=egpd
+
+# configure 开关：--enable-<CONFIGURE_ENABLE>
+CONFIGURE_ENABLE=egpd
+
+# automake 条件（AM_CONDITIONAL）
+CONDITIONAL=EGPD
+
+# configure 生成的宏
+HAVE_MACRO=HAVE_EGPD
+
+# 路由类型枚举符号（lib/route_types.txt 第一列）
+ROUTE_TYPE=ZEBRA_ROUTE_EGP
+
+# 路由类型名字串（lib/route_types.txt 第二列，也是 `show ip route <name>` 的解析依据）
+ROUTE_TYPE_NAME=egp
+
+# 显示码（show ip route 的单字母，'A'..'Z'，不能与上游冲突）
+DISPLAY_CHAR=G
+
+# 管理距离（zebra RIB 里的优先级）
+DISTANCE=140
+
+# vtysh 位图符号
+VTYSH_SYMBOL=VTYSH_EGPD
+
+# vtysh 位图取值（十六进制；留空表示"尚未分配"，只允许在未实现协议时使用）
+VTYSH_BIT=0x400000
+
+# CLI 节点枚举符号（lib/command.h）
+CLI_NODE=EGP_NODE
+
+# 本协议的补丁目录（相对仓库根）
+PATCH_DIR=patches/frr/egp
+
+# 协议源码文件名（放在 protocols/<name>/src/ 下）
+SOURCES=egpd.c egp_packet.c egp_packet.h
+
+# 仅用于满足 automake EXTRA_DIST 的附加文件（protocols/<name>/ 或 lab/<name>/ 下）
+EXTRAS=README.md lab.sh test_lab.py
+
+# 单元测试目标（make check-TESTS 里必须出现的 PASS 行）
+TEST_BINARY=egpd/test_packet

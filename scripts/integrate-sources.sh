@@ -27,7 +27,7 @@ usage() {
 EOF
 }
 
-FRR=""; PROTOCOLS="egp"; MANIFEST=""
+FRR=""; PROTOCOLS=""; MANIFEST=""
 while [ $# -gt 0 ]; do
 	case "$1" in
 		--frr)       FRR="${2:?}"; shift 2 ;;
@@ -38,6 +38,8 @@ while [ $# -gt 0 ]; do
 	esac
 done
 [ -n "$FRR" ] || { usage; die "必须指定 --frr"; }
+# 未显式指定时按 HR_PROTOCOLS（默认 egp）走；协议常量全部来自 PROTOCOL.meta
+[ -n "$PROTOCOLS" ] || PROTOCOLS="$(hr_proto_list)"
 
 hr_read_baseline
 [ -n "${HR_BUILD_ROOT:-}" ] || die "HR_BUILD_ROOT 未设置（拒绝在未经校验的路径上操作文件）"
@@ -56,13 +58,14 @@ if [ -n "$MANIFEST" ]; then
 	record "# FRR=$FRR"
 fi
 
-for proto in $PROTOCOLS; do
+for proto in ${PROTOCOLS//,/ }; do
 	src="$HR_REPO_ROOT/protocols/$proto"
 	[ -d "$src" ] || die "找不到协议目录: $src"
-	[ -f "$src/build/${proto}d.subdir.am" ] || die "缺少 $src/build/${proto}d.subdir.am"
+	hr_proto_load "$proto"
 
-	daemon_dir="${proto}d"
+	daemon_dir="$P_DAEMON"
 	target="$FRR/$daemon_dir"
+	[ -f "$src/build/${daemon_dir}.subdir.am" ] || die "缺少 $src/build/${daemon_dir}.subdir.am"
 
 	log "=== 协议 $proto -> $target"
 	hr_safe_rm_rf "$target" "$daemon_dir"
@@ -80,17 +83,18 @@ for proto in $PROTOCOLS; do
 		record "COPY $from -> $to sha256=$a"
 	}
 
-	for f in "$src"/src/*.c "$src"/src/*.h; do
-		[ -e "$f" ] || die "$src/src 下没有任何 .c/.h"
-		copy_verify "$f" "$target/$(basename "$f")"
+	# 只复制登记表里声明的源文件（顺序稳定，也能发现"加了文件忘了登记"）
+	for f in $P_SOURCES; do
+		[ -f "$src/src/$f" ] || die "登记了 $f 但 $src/src/$f 不存在"
+		copy_verify "$src/src/$f" "$target/$f"
 	done
 	copy_verify "$src/tests/test_packet.c" "$target/test_packet.c"
-	copy_verify "$src/build/${proto}d.subdir.am" "$target/subdir.am"
+	copy_verify "$src/build/${daemon_dir}.subdir.am" "$target/subdir.am"
 
 	# EXTRA_DIST 修复：subdir.am 里写了 EXTRA_DIST += egpd/lab.sh egpd/README.md
 	# egpd/test_lab.py，但这三个文件现在在仓库的其它目录。为保持 subdir.am
 	# 逐字节不变（S3 的约束），构建时把它们也放进 FRR 树的 egpd/，让 make dist 能找到。
-	for extra in README.md lab.sh test_lab.py; do
+	for extra in $P_EXTRAS; do
 		if [ -f "$src/$extra" ]; then
 			copy_verify "$src/$extra" "$target/$extra"
 		elif [ -f "$HR_REPO_ROOT/lab/$proto/$extra" ]; then
@@ -100,15 +104,16 @@ for proto in $PROTOCOLS; do
 		fi
 	done
 
-	# 清空后必须恰好是预期文件集合，多一个少一个都算失败
-	expect=$(printf '%s\n' egpd.c egp_packet.c egp_packet.h test_packet.c subdir.am README.md lab.sh test_lab.py | sort)
+	# 清空后必须恰好是预期文件集合，多一个少一个都算失败（集合来自登记表）
+	expect=$(printf '%s\n' $P_SOURCES test_packet.c subdir.am $P_EXTRAS | sort)
 	actual=$( (cd "$target" && ls -1) | sort)
 	if [ "$expect" != "$actual" ]; then
 		echo "期望:"; echo "$expect"; echo "实际:"; echo "$actual" >&2
 		die "$target 的文件集合与预期不符"
 	fi
-	log "  文件集合校验通过（8 个）"
-	record "TARGET $target files=8"
+	expect_n=$(printf '%s\n' "$expect" | wc -l)
+	log "  文件集合校验通过（$expect_n 个）"
+	record "TARGET $target files=$expect_n"
 done
 
 log "源码集成完成"

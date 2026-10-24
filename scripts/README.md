@@ -10,7 +10,8 @@
 ./scripts/verify.sh --all --build-root /root/hr-build
 ```
 
-三种模式：`--build-only`（A+B）、`--lab-only`（A+C）、`--all`（默认）。
+三种模式：`--build-only`（A+B）、`--lab-only`（A+C）、`--all`（默认）；
+`--protocols egp,ggp` 可指定协议集合（默认 `egp`）。
 每行结果是四种状态之一：`PASS` / `FAIL` / `SKIP`（写明原因）/ `KNOWN-FAIL`（写明逐条证据）。
 退出码：`0` 通过、`1` 有 FAIL、`2` 用法/环境错误、`3` 有 SKIP（= 验证不完整）。
 
@@ -20,7 +21,8 @@
 | A2 | 补丁 SHA256 | `patches/frr/SHA256SUMS` |
 | A3 | 协议源码 SHA256 | `protocols/egp/evidence/SOURCES.sha256` |
 | A4 | 补丁在固定基线上顺序可应用 | 在一次性 `git worktree` 里真打 0001–0004，不动 `frr-src` |
-| A5 | 敏感信息扫描 | 私钥/令牌/`sshpass`/口令模式 |
+| A5 | 敏感信息扫描 | 私钥/令牌/口令赋值 |
+| A6 | 多协议资源分配 | `scripts/check-allocations.sh`：路由类型/显示码/vtysh 位/daemon 名不重复，且补丁与 `PROTOCOL.meta` 一致 |
 | B1 | 构建 | 指纹与当前基线/补丁/核心源码一致则**复用、不重复编译**，否则调 `build.sh` |
 | B2 | 产物与依赖 | 三个二进制 + `libfrr.so.0` 存在，`ldd` 无 `not found` |
 | B3 | 产物与指纹一致 | 二进制 SHA256 与 `fingerprint.txt` 相符（证明用的就是这次构建） |
@@ -38,7 +40,17 @@
 | C5 | 清理验证 | 无残留容器/网络/进程/宿主机路由 |
 | C6 | 重复 `down` 幂等 | 资源不存在时仍返回 0 |
 
-产出：`<build-root>/logs/verify.log`（全量日志）、`known-failures.tsv`、
+## 多协议资源检查
+
+```sh
+./scripts/check-allocations.sh            # 只查登记与补丁的一致性
+./scripts/check-allocations.sh --frr DIR  # 再与固定基线比对（显示码/类型/vtysh 位是否被上游占用）
+```
+
+它读 `protocols/*/PROTOCOL.meta`，检查 12 类资源跨协议唯一、vtysh 位在保留区间且是 2 的幂、
+补丁内容与登记一致、源码/automake/测试文件齐全；有 `--frr` 时还能发现上游抢用。
+
+产出：`<build-root>/logs/verify.log`（全量日志）、`logs/allocations.log`、`known-failures.tsv`、
 `docs/known-failures.md`（自动生成，逐条失败证据）、`docs/evidence/sys-admin-ab.txt`（能力 A/B 原始输出）；
 `--json FILE` 另存机器可读结果。
 
@@ -79,7 +91,8 @@
 | `--jobs N` | 并行度，默认 `nproc` |
 | `--build-root DIR` | 构建根目录，默认 `<repo>/build`；`frr-src/`、`frr-build/`、`logs/` 都在其下 |
 | `--prefix DIR` | 安装前缀，默认 `<build-root>/prefix` |
-| `--with-optional` | 额外应用 `0005`（`redistribute egp`），默认不启用 |
+| `--protocols LIST` | 要构建的协议（逗号分隔），默认 `egp`；每个协议按登记顺序应用 `patches/frr/<name>/` |
+| `--with-optional` | 额外应用每个协议的 `0005`（`redistribute <proto>`），默认不启用 |
 | `--reuse-source` | 复用 `<build-root>/frr-src`；提交不符或工作树脏则报错（不自动删） |
 | `--skip-checks` | 跳过 make check（会写进指纹，不推荐） |
 | `--skip-dist` | 跳过 make dist |
@@ -88,6 +101,7 @@
 ## 单独使用
 
 ```sh
+scripts/check-allocations.sh [--frr /root/hr-build/frr-src]
 scripts/fetch-frr.sh         --dir /root/hr-build/frr-src [--force]
 scripts/apply-patches.sh     --frr /root/hr-build/frr-src [--with-optional] [--record FILE]
 scripts/integrate-sources.sh --frr /root/hr-build/frr-src [--protocols egp] [--manifest FILE]

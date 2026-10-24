@@ -29,6 +29,7 @@ SKIP_DIST=0
 KEEP_LAB=0
 CAP_AUDIT=1
 JSON_OUT=""
+PROTOCOLS="${HR_PROTOCOLS:-egp}"
 
 usage() {
 	cat <<'EOF'
@@ -42,6 +43,7 @@ usage() {
 选项:
   --build-root DIR   构建根目录（默认 <repo>/build）
   --prefix DIR       安装前缀（默认 <build-root>/prefix）
+  --protocols LIST   要构建/校验的协议（逗号分隔，默认 egp）
   --jobs N           并行度（默认 nproc）
   --force-build      忽略已有指纹，强制重新构建
   --skip-full-check  跳过完整 make check（记 SKIP 并说明原因）
@@ -62,6 +64,7 @@ while [ $# -gt 0 ]; do
 		--all)             MODE=all;   shift ;;
 		--build-root)      BUILD_ROOT="${2:?}"; shift 2 ;;
 		--prefix)          PREFIX="${2:?}"; shift 2 ;;
+		--protocols)       PROTOCOLS="${2:?}"; shift 2 ;;
 		--jobs)            JOBS="${2:?}"; shift 2 ;;
 		--force-build)     FORCE_BUILD=1; shift ;;
 		--skip-full-check) SKIP_FULL_CHECK=1; shift ;;
@@ -92,6 +95,12 @@ log "模式       : $MODE"
 log "构建根目录 : $HR_BUILD_ROOT"
 log "安装前缀   : $PREFIX"
 log "并行度     : $JOBS"
+# --protocols 的值必须先落到 HR_PROTOCOLS（hr_proto_list 读的是它），否则参数会被静默忽略
+HR_PROTOCOLS="$PROTOCOLS"
+PROTOS="$(hr_proto_list)"
+[ -n "$PROTOS" ] || { echo "--protocols 解析结果为空" >&2; exit 2; }
+export HR_PROTOCOLS="$PROTOS"
+log "协议       : $(printf '%s ' $PROTOS)"
 
 # ---------------- 结果收集 ----------------
 ROWS=()
@@ -151,7 +160,24 @@ phase_repo() {
 
 	# A4 放在源码树就绪之后（见主流程 verify_a4）：干净目录首次运行时还没有 frr-src
 
+	verify_allocations
 	verify_secret_scan
+}
+
+# A6：多协议资源分配检查（路由类型/显示码/vtysh 位/daemon 名不许重复，且与补丁一致）
+verify_allocations() {
+	local out="$HR_BUILD_ROOT/logs/allocations.log" rc=0
+	if [ -d "$FRR_SRC/.git" ]; then
+		"$HR_REPO_ROOT/scripts/check-allocations.sh" --frr "$FRR_SRC" >"$out" 2>&1 || rc=$?
+	else
+		"$HR_REPO_ROOT/scripts/check-allocations.sh" >"$out" 2>&1 || rc=$?
+	fi
+	if [ "$rc" = 0 ]; then
+		rec_pass "A6 多协议资源分配" "$(grep -m1 '^汇总:' "$out" | sed 's/^汇总: //' || echo 通过)"
+	else
+		rec_fail "A6 多协议资源分配" "$(grep -E '^\[FAIL\]' "$out" | head -3 | tr '\n' ' ')"
+	fi
+	return 0
 }
 
 verify_patch_replay() {
@@ -162,7 +188,7 @@ verify_patch_replay() {
 		rec_fail "A4 补丁顺序应用" "git worktree add 失败（无法在 ${FRR_COMMIT:0:12} 上建临时工作树）"
 		return 0
 	fi
-	for p in "$HR_REPO_ROOT"/patches/frr/000[1-4]-*.patch; do
+	while IFS= read -r p; do
 		n=$((n + 1))
 		if ! git -C "$wt/tree" apply --check "$p" >>"$HR_LOG_FILE" 2>&1 \
 			|| ! git -C "$wt/tree" apply "$p" >>"$HR_LOG_FILE" 2>&1; then
@@ -171,7 +197,7 @@ verify_patch_replay() {
 			rm -rf -- "$wt"
 			return 0
 		fi
-	done
+	done < <(hr_patch_list)
 	changed="$(git -C "$wt/tree" diff --numstat | wc -l)"
 	rec_pass "A4 补丁顺序应用" "$n 个补丁在 ${FRR_COMMIT:0:12} 上顺序 apply 成功，改动 $changed 个文件"
 	git -C "$FRR_SRC" worktree remove --force "$wt/tree" >>"$HR_LOG_FILE" 2>&1 || rm -rf -- "$wt/tree"
@@ -209,19 +235,22 @@ verify_secret_scan() {
 fp_matches_current() {
 	[ -f "$FP" ] || return 1
 	[ "$(fp_get FRR_COMMIT)" = "$FRR_COMMIT" ] || return 1
-	local p base f src
-	for p in "$HR_REPO_ROOT"/patches/frr/000[1-4]-*.patch; do
+	local p base f src proto
+	while IFS= read -r p; do
 		base="$(basename "$p")"
 		[ "$(fp_get "PATCH_${base} sha256")" = "$(hr_sha256 "$p")" ] || { log "  指纹不匹配: $base"; return 1; }
-	done
-	for f in egpd.c egp_packet.c egp_packet.h; do
-		src="$HR_REPO_ROOT/protocols/egp/src/$f"
-		[ "$(fp_get "PROTO_SRC_${f}_SHA256")" = "$(hr_sha256 "$src")" ] || { log "  指纹不匹配: $f"; return 1; }
-	done
-	for f in test_packet.c egpd.subdir.am; do
-		src="$HR_REPO_ROOT/protocols/egp/tests/$f"
-		[ -f "$src" ] || src="$HR_REPO_ROOT/protocols/egp/build/$f"
-		[ "$(fp_get "PROTO_SRC_${f}_SHA256")" = "$(hr_sha256 "$src")" ] || { log "  指纹不匹配: $f"; return 1; }
+	done < <(hr_patch_list)
+	for proto in $PROTOS; do
+		hr_proto_load "$proto"
+		for f in $P_SOURCES; do
+			src="$HR_REPO_ROOT/protocols/$proto/src/$f"
+			[ "$(fp_get "PROTO_SRC_${f}_SHA256")" = "$(hr_sha256 "$src")" ] || { log "  指纹不匹配: $f"; return 1; }
+		done
+		for f in test_packet.c "$P_DAEMON.subdir.am"; do
+			src="$HR_REPO_ROOT/protocols/$proto/tests/$f"
+			[ -f "$src" ] || src="$HR_REPO_ROOT/protocols/$proto/build/$f"
+			[ "$(fp_get "PROTO_SRC_${f}_SHA256")" = "$(hr_sha256 "$src")" ] || { log "  指纹不匹配: $f"; return 1; }
+		done
 	done
 	return 0
 }
@@ -247,9 +276,14 @@ phase_build() {
 		rec_pass "B1 构建" "复用已有构建：指纹与当前 BASELINE/补丁/核心源码一致（未重复编译）"
 	fi
 
-	local b missing="" bad=""
-	for b in sbin/egpd sbin/zebra bin/vtysh; do
-		[ -x "$PREFIX/$b" ] || missing="$missing $b"
+	local b missing="" bad="" wants=""
+	for proto in $PROTOS; do
+		hr_proto_load "$proto"
+		wants="$wants sbin/$P_DAEMON:PROTOCOL_${P_NAME^^}_BINARY_SHA256"
+	done
+	wants="sbin/zebra:ZEBRA_BINARY_SHA256 bin/vtysh:VTYSH_BINARY_SHA256 $wants"
+	for w in $wants; do
+		[ -x "$PREFIX/${w%%:*}" ] || missing="$missing ${w%%:*}"
 	done
 	if ! find "$PREFIX" -maxdepth 3 -name 'libfrr.so.0' -print -quit 2>/dev/null | grep -q .; then
 		missing="$missing libfrr.so.0"
@@ -258,38 +292,48 @@ phase_build() {
 		rec_fail "B2 产物与依赖" "前缀缺少:$missing"
 		return 0
 	fi
-	for b in sbin/egpd sbin/zebra bin/vtysh; do
-		if LD_LIBRARY_PATH="$PREFIX/lib:$PREFIX/lib64:$PREFIX/lib/frr" ldd "$PREFIX/$b" 2>/dev/null | grep -q 'not found'; then
-			bad="$bad $b"
+	for w in $wants; do
+		if LD_LIBRARY_PATH="$PREFIX/lib:$PREFIX/lib64:$PREFIX/lib/frr" ldd "$PREFIX/${w%%:*}" 2>/dev/null | grep -q 'not found'; then
+			bad="$bad ${w%%:*}"
 		fi
 	done
 	if [ -z "$bad" ]; then
-		rec_pass "B2 产物与依赖" "egpd/zebra/vtysh/libfrr 均在，ldd 全部可解析"
+		rec_pass "B2 产物与依赖" "$(printf '%s ' $PROTOS)daemon + zebra + vtysh + libfrr 均在，ldd 全部可解析"
 	else
 		rec_fail "B2 产物与依赖" "依赖缺失:$bad"
 	fi
 
-	local f key path want got mismatch=""
-	for f in EGPD_BINARY_SHA256:sbin/egpd ZEBRA_BINARY_SHA256:sbin/zebra VTYSH_BINARY_SHA256:bin/vtysh; do
-		key="${f%%:*}"
-		path="${f#*:}"
+	local w key path want got mismatch=""
+	for w in $wants; do
+		path="${w%%:*}"; key="${w##*:}"
 		want="$(fp_get "$key")"
 		got="$(hr_sha256 "$PREFIX/$path")"
 		if [ -z "$want" ] || [ "$want" != "$got" ]; then mismatch="$mismatch $path"; fi
 	done
 	if [ -z "$mismatch" ]; then
-		rec_pass "B3 产物与指纹一致" "egpd/zebra/vtysh 三个二进制 SHA256 与 fingerprint.txt 相符"
+		rec_pass "B3 产物与指纹一致" "每个二进制 SHA256 都与 fingerprint.txt 相符（$(printf '%s ' $PROTOS)daemon/zebra/vtysh）"
 	else
 		rec_fail "B3 产物与指纹一致" "指纹不符:$mismatch"
 	fi
 
-	local rt="$FRR_BUILD/lib/route_types.h"
+	local rt="$FRR_BUILD/lib/route_types.h" id exp=32 all_id max_id
 	if [ -f "$rt" ]; then
-		if grep -qE '^#define ZEBRA_ROUTE_EGP[[:space:]]+32$' "$rt" \
-			&& grep -qE '^#define ZEBRA_ROUTE_MAX[[:space:]]+34$' "$rt"; then
-			rec_pass "B4 路由类型" "ZEBRA_ROUTE_EGP=32, ZEBRA_ROUTE_MAX=34（与固定基线一致）"
+		local okk=1 detail=""
+		for proto in $PROTOS; do
+			hr_proto_load "$proto"
+			id="$(awk '/^#define '"$P_ROUTE_TYPE"'[[:space:]]/{print $3}' "$rt")"
+			detail="$detail $P_ROUTE_TYPE=$id"
+			[ "$id" = "$exp" ] || okk=0
+			exp=$((exp + 1))
+		done
+		all_id="$(awk '/^#define ZEBRA_ROUTE_ALL[[:space:]]/{print $3}' "$rt")"
+		max_id="$(awk '/^#define ZEBRA_ROUTE_MAX[[:space:]]/{print $3}' "$rt")"
+		[ "$all_id" = "$exp" ] || okk=0
+		[ "$max_id" = "$((exp + 1))" ] || okk=0
+		if [ "$okk" = 1 ]; then
+			rec_pass "B4 路由类型" "$(printf '%s' "$detail" | sed 's/^ //'), ZEBRA_ROUTE_ALL=$all_id, MAX=$max_id（登记顺序编号）"
 		else
-			rec_fail "B4 路由类型" "$(grep -E 'ZEBRA_ROUTE_(EGP|MAX)' "$rt" || true)"
+			rec_fail "B4 路由类型" "编号与登记顺序不符：$(printf '%s' "$detail" | sed 's/^ //'), ALL=$all_id, MAX=$max_id"
 		fi
 	else
 		rec_skip "B4 路由类型" "没有 $rt（构建树不在本机）"
@@ -310,26 +354,36 @@ phase_build() {
 }
 
 verify_unit_test() {
-	local out="$HR_BUILD_ROOT/logs/verify-unit-test.log" rc=0
-	( cd "$FRR_BUILD" && make egpd/test_packet && ./egpd/test_packet ) >"$out" 2>&1 || rc=$?
-	if [ "$rc" = 0 ] && grep -q 'tests passed' "$out"; then
-		rec_pass "B5 EGP 单元测试" "$(grep -o '[0-9]* tests passed' "$out" | head -1)（egpd/test_packet 现场执行）"
+	local out="$HR_BUILD_ROOT/logs/verify-unit-test.log" rc=0 proto
+	: > "$out"
+	for proto in $PROTOS; do
+		hr_proto_load "$proto"
+		( cd "$FRR_BUILD" && make "$P_TEST_BINARY" && "./$P_TEST_BINARY" ) >>"$out" 2>&1 || rc=$?
+		grep -q 'tests passed' "$out" || rc=1
+	done
+	if [ "$rc" = 0 ]; then
+		rec_pass "B5 单元测试" "$(printf '%s ' $PROTOS)的 test_packet 现场执行通过（$(grep -c 'tests passed' "$out") 个测试程序）"
 	else
-		rec_fail "B5 EGP 单元测试" "rc=$rc，见 $out"
+		rec_fail "B5 单元测试" "rc=$rc，见 $out"
 	fi
 	return 0
 }
 
 verify_check_tests() {
-	local log="$HR_BUILD_ROOT/logs/verify-check-tests.log" rc=0 total pass_n fail_n
+	local log="$HR_BUILD_ROOT/logs/verify-check-tests.log" rc=0 total pass_n fail_n proto miss="" names=""
 	( cd "$FRR_BUILD" && make check-TESTS ) >"$log" 2>&1 || rc=$?
 	total="$(grep -m1 '^# TOTAL:' "$log" | awk '{print $3}' || true)"
 	pass_n="$(grep -m1 '^# PASS:' "$log" | awk '{print $3}' || true)"
 	fail_n="$(grep -m1 '^# FAIL:' "$log" | awk '{print $3}' || true)"
-	if [ "$rc" = 0 ] && grep -qE '^PASS: egpd/test_packet$' "$log" && [ "${fail_n:-1}" = 0 ]; then
-		rec_pass "B6 make check-TESTS" "PASS: egpd/test_packet（TOTAL=${total:-?} PASS=${pass_n:-?} FAIL=0）"
+	for proto in $PROTOS; do
+		hr_proto_load "$proto"
+		names="$names $P_TEST_BINARY"
+		grep -qE "^PASS: $P_TEST_BINARY$" "$log" || miss="$miss $P_TEST_BINARY"
+	done
+	if [ "$rc" = 0 ] && [ -z "$miss" ] && [ "${fail_n:-1}" = 0 ]; then
+		rec_pass "B6 make check-TESTS" "PASS:$(printf '%s' "$names")（TOTAL=${total:-?} PASS=${pass_n:-?} FAIL=0）"
 	else
-		rec_fail "B6 make check-TESTS" "rc=$rc TOTAL=${total:-?} PASS=${pass_n:-?} FAIL=${fail_n:-?}，见 $log"
+		rec_fail "B6 make check-TESTS" "rc=$rc 未出现PASS:$miss TOTAL=${total:-?} PASS=${pass_n:-?} FAIL=${fail_n:-?}，见 $log"
 	fi
 	return 0
 }
@@ -389,11 +443,17 @@ verify_dist() {
 		rec_fail "B8 make dist" "无法读取 $(basename "$tarball")"
 		return 0
 	fi
-	for f in egpd/egpd.c egpd/egp_packet.c egpd/egp_packet.h egpd/test_packet.c egpd/subdir.am egpd/README.md; do
+	local files=""
+	for proto in $PROTOS; do
+		hr_proto_load "$proto"
+		for f in $P_SOURCES; do files="$files $P_DAEMON/$f"; done
+		files="$files $P_DAEMON/test_packet.c $P_DAEMON/subdir.am $P_DAEMON/README.md"
+	done
+	for f in $files; do
 		grep -q "/$f$" "$list" || missing="$missing $f"
 	done
 	if [ -z "$missing" ]; then
-		rec_pass "B8 make dist" "$(basename "$tarball") $(du -h "$tarball" | cut -f1)，egpd/ 源码与 automake 片段齐全"
+		rec_pass "B8 make dist" "$(basename "$tarball") $(du -h "$tarball" | cut -f1)，$(printf '%s ' $PROTOS)的源码与 automake 片段齐全"
 	else
 		rec_fail "B8 make dist" "包内缺少:$missing"
 	fi
@@ -403,6 +463,10 @@ verify_dist() {
 # ---------------- C. 实验环境 ----------------
 phase_lab() {
 	log "========== [C] 实验环境"
+	if ! printf '%s\n' $PROTOS | grep -qx 'egp'; then
+		rec_skip "C0 实验前置" "容器实验目前只覆盖 EGP；--protocols 里没有 egp，跳过 C 段"
+		return 0
+	fi
 	if ! command -v podman >/dev/null 2>&1; then
 		rec_skip "C0 实验前置" "本机没有 podman"
 		return 0

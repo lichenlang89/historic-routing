@@ -9,6 +9,10 @@
 
 ### Added
 
+- 多协议架构（S7）：`protocols/<name>/PROTOCOL.meta` 作为唯一资源登记处，
+  `scripts/check-allocations.sh` 检查路由类型/显示码/vtysh 位/daemon 名不重复且与补丁一致，
+  `build.sh` / `verify.sh` 支持 `--protocols egp,ggp`，路由类型编号按登记顺序自动断言。
+- `docs/PACKAGING.md`：RPM/DEB 的公共运行时 + 独立协议包划分设计（未实现）。
 - `scripts/verify.sh`：统一验证入口（`--build-only` / `--lab-only` / `--all`），结果分
   `PASS / FAIL / SKIP / KNOWN-FAIL`，退出码 0/1/2/3。
 - `scripts/parse-make-check.py`：把 FRR 完整 `make check` 的每个失败测试的**异常文本**

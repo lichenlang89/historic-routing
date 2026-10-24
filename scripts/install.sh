@@ -28,7 +28,11 @@ done
 [ -n "$BUILD_DIR" ] && [ -n "$PREFIX" ] || { usage; die "必须指定 --build-dir 与 --prefix"; }
 
 [ -f "$BUILD_DIR/Makefile" ] || die "$BUILD_DIR 没有 Makefile（先 configure）"
-[ -x "$BUILD_DIR/egpd/egpd" ] || die "$BUILD_DIR/egpd/egpd 不存在（先 make）"
+# 至少有一个协议 daemon 构建产物（协议列表来自 HR_PROTOCOLS，默认 egp）
+for _p in $(hr_proto_list); do
+	hr_proto_load "$_p"
+	[ -x "$BUILD_DIR/$P_DAEMON/$P_DAEMON" ] || die "$BUILD_DIR/$P_DAEMON/$P_DAEMON 不存在（先 make）"
+done
 
 log "构建目录: $BUILD_DIR"
 log "安装前缀: $PREFIX"
@@ -41,7 +45,12 @@ make -C "$BUILD_DIR" install >>"${HR_LOG_FILE:-/dev/null}" 2>&1 \
 # ---- 产物断言 ----
 log "校验安装产物"
 miss=0
-for f in sbin/egpd sbin/zebra sbin/staticd bin/vtysh; do
+_bins="sbin/zebra sbin/staticd bin/vtysh"
+for _p in $(hr_proto_list); do
+	hr_proto_load "$_p"
+	_bins="$_bins sbin/$P_DAEMON"
+done
+for f in $_bins; do
 	if [ -x "$PREFIX/$f" ]; then
 		log "  OK $f"
 	else
@@ -59,11 +68,14 @@ lib=$(find "$PREFIX" -maxdepth 3 -name 'libfrr.so*' -print 2>/dev/null | head -1
 # ---- 动态库可解析 ----
 log "校验动态库依赖（ldd）"
 if command -v ldd >/dev/null 2>&1; then
-	if ldd "$PREFIX/sbin/egpd" 2>&1 | grep -q 'not found'; then
-		ldd "$PREFIX/sbin/egpd" | grep 'not found' >&2
-		die "egpd 存在无法解析的共享库"
-	fi
-	log "  egpd 的动态库全部可解析"
+	for _p in $(hr_proto_list); do
+		hr_proto_load "$_p"
+		if ldd "$PREFIX/sbin/$P_DAEMON" 2>&1 | grep -q 'not found'; then
+			ldd "$PREFIX/sbin/$P_DAEMON" | grep 'not found' >&2
+			die "$P_DAEMON 存在无法解析的共享库"
+		fi
+		log "  $P_DAEMON 的动态库全部可解析"
+	done
 else
 	warn "系统无 ldd，跳过依赖校验"
 fi
@@ -74,9 +86,12 @@ if [ -n "$MANIFEST" ]; then
 	{
 		printf '# install manifest @ %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 		printf '# prefix=%s\n' "$PREFIX"
-		printf 'EGPD_SHA256=%s\n' "$(hr_sha256 "$PREFIX/sbin/egpd")"
-		printf 'ZEBRA_SHA256=%s\n' "$(hr_sha256 "$PREFIX/sbin/zebra")"
-		printf 'VTYSH_SHA256=%s\n' "$(hr_sha256 "$PREFIX/bin/vtysh")"
+		printf '%s_SHA256=%s\n' "ZEBRA" "$(hr_sha256 "$PREFIX/sbin/zebra")"
+		printf '%s_SHA256=%s\n' "VTYSH" "$(hr_sha256 "$PREFIX/bin/vtysh")"
+		for _p in $(hr_proto_list); do
+			hr_proto_load "$_p"
+			printf '%s_SHA256=%s\n' "${P_DAEMON^^}" "$(hr_sha256 "$PREFIX/sbin/$P_DAEMON")"
+		done
 	} > "$MANIFEST"
 	log "清单: $MANIFEST"
 fi

@@ -1,7 +1,23 @@
 # FRR 适配补丁
 
-补丁只描述 **FRR 原生文件的改动**，不包含任何 EGP 源码。协议源码由
-`scripts/integrate-sources.sh`（S4 实现）在构建时复制进 FRR 树。
+补丁只描述 **FRR 原生文件的改动**，不包含任何协议源码。协议源码由
+`scripts/integrate-sources.sh` 在构建时复制进 FRR 树。
+
+## 目录：每个协议一组
+
+```
+patches/frr/
+├── BASELINE     钉死的 FRR 提交
+├── SHA256SUMS   所有补丁的哈希基线（verify.sh 的 A2 检查读它）
+├── egp/         0001..0005（EGP）
+└── <下一个协议>/ 0001..0005
+```
+
+**应用顺序 = `protocols/<name>/PROTOCOL.meta` 的登记顺序**，不是字母序：
+`lib/route_types.txt` 的路由类型编号由插入位置决定，EGP 已经是 32（v0.1.0 已发布），
+新协议必须排在它之后（见 `docs/ARCHITECTURE.md`「多协议」）。
+下面这一节的清单与冲突点，对每个协议各自成立；跨协议的资源冲突由
+`scripts/check-allocations.sh` 检查。
 
 - 基线：见同目录 `BASELINE`（`FRR_COMMIT=27f287be9…`）
 - 全部补丁由 `git format-patch` 生成，用 `git apply` 应用；**顺序固定**（文件名已编号）
@@ -88,10 +104,12 @@ tests/subdir.am:84    TESTS += egpd/test_packet             （追加，两者�
 
 ```sh
 cd <frr-source-at-BASELINE>
-for p in patches/frr/00*.patch; do
+for p in /path/to/repo/patches/frr/<proto>/000[1-4]-*.patch; do
   git apply --check "$p" && git apply "$p" || { echo "失败: $p"; exit 1; }
 done
 ```
+
+多协议时按登记顺序逐协议应用（`hr_patch_list` 就是这么实现的）。
 
 **不要**用 `git am` 直接串起来（补丁带 `From` 头，`git am` 会尝试创建提交，需要干净的
 提交身份与基线分支）；构建脚本用 `git apply`。

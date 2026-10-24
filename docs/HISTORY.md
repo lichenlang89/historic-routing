@@ -343,3 +343,97 @@ S6 复核发现：**这行只是警告**（zebra 仍正常启动并装路由）�
   （两次，第二次为复用构建的一致性复核）。
 - **未复现**：第二台机器、其他发行版、SELinux 强制域、系统服务启动方式。
   **不声称跨发行版兼容。**
+
+---
+
+## S7：多协议架构验证（执行记录）
+
+日期 2026-10-24。执行机：实验机（RHEL 10.1 x86_64，gcc 14.4.1）。
+**没有实现 GGP/HELLO，没有做 RPM/DEB，没有改 v0.1.0 的 tag/Release，没有推送。**
+
+### 审查结论：加第二个协议会撞在哪
+
+逐个集成点看了 5 个补丁触及的 12 个 FRR 文件（`lib/route_types.txt`、`lib/command.h`、
+`lib/subdir.am`、`zebra/rt_netlink.c`、`zebra/zebra_rib.c`、`vtysh/vtysh.c`、
+`vtysh/vtysh.h`、`configure.ac`、`Makefile.am`、`tests/subdir.am`、
+`tools/etc/frr/daemons`、`tools/frrcommon.sh.in`），其中 4 处是**结构性冲突点**：
+
+| # | 问题 | 后果 |
+| --- | --- | --- |
+| 1 | `lib/route_types.txt` 的编号**由行位置决定**，EGP 的 32 已发布 | 新协议若插在 EGP 之前，EGP 变成 33 —— 与 v0.1.0 的 CLI/pcap/指纹不一致 |
+| 2 | `vtysh/vtysh.h` 的 `VTYSH_ALL` 是**同一行**宏 | 两个协议各改这一行 → 文本冲突，且位值可能撞车 |
+| 3 | `tools/frrcommon.sh.in` 的 `DAEMONS="..."` 是**单行字符串** | 同上；还可能打乱 topotest 期望的顺序 |
+| 4 | `zebra/rt_netlink.c` 的 `switch (proto)` 首条 / `lib/command.h` 的 `NODE_TYPE_MAX` 前 | 同锚点插入，顺序决定结果 |
+
+其余 8 处（`lib/subdir.am`、`zebra_rib.c` 距离表、`vtysh.c` 的 client 表/节点、`configure.ac`、
+`Makefile.am`、`tests/subdir.am`、`daemons` 文件）都是"追加一行/一块"的形态，语义独立、
+文本上容易合。
+
+### 做了什么
+
+| 新增/修改 | 内容 |
+| --- | --- |
+| `protocols/<name>/PROTOCOL.meta`（新增，egp 一份） | 协议的**唯一资源登记处**：daemon、configure 开关、automake 条件、HAVE 宏、路由类型符号/名字、显示码、距离、vtysh 符号/位、CLI 节点、补丁目录、源文件、测试目标 |
+| `patches/frr/<name>/`（egp 的 5 个补丁移入） | 每协议一个补丁目录；**内容零改动**（SHA256 与移动前逐一相同） |
+| `scripts/lib.sh` | `hr_proto_load()` / `hr_proto_list()`；`hr_patch_list()` 改为按登记顺序产出补丁 |
+| `scripts/apply-patches.sh` | 断言全部由登记驱动（路由类型行、距离、vtysh 位、client 表、configure/AM_CONDITIONAL、`include`、`TESTS +=`、daemons、DAEMONS 串、`if <COND>` 块） |
+| `scripts/integrate-sources.sh` | 目标目录、源文件集合、EXTRA_DIST 文件都来自登记，不再写死 8 个文件名 |
+| `scripts/build.sh` | `--protocols LIST`；configure 开关、产物、单测、`PASS:` 断言行、指纹全部按协议循环；路由类型编号断言改为"32 + 登记序、ALL 紧随、MAX=ALL+1" |
+| `scripts/install.sh` | daemon 清单、ldd 校验、安装清单按协议生成 |
+| `scripts/check-allocations.sh`（新增） | 12 类资源跨协议唯一性 + vtysh 位区间/2 的幂 + **补丁与登记一致性** + 可选与基线比对 |
+| `scripts/verify.sh` | 新增 **A6 多协议资源分配**；`--protocols`；B2/B3/B4/B5/B6/B8 全部协议化；C 段在协议集不含 egp 时明确 SKIP |
+| 文档 | `ARCHITECTURE`（多协议：规则/12 个集成点/构建流程/基线升级检查清单）、`ADD_A_PROTOCOL`（重写为可执行手册）、`FIDELITY`（资源表改成"EGP 占用 + 下一个可用值"，指向登记表）、`PACKAGING.md`（RPM/DEB 划分设计）、`patches/frr/README.md`（目录约定 + 应用顺序）、`scripts/README.md`、`README`、`CHANGELOG` |
+
+### 编号与位的分配规则（已固化到代码里）
+
+- 路由类型：`32 + 登记顺序`（egp=32，下一个 33）；`ZEBRA_ROUTE_ALL` = 32+n；`MAX` = ALL+1。
+  `build.sh` 从生成的 `route_types.h` 反查，与登记顺序不符就 FAIL。
+- 显示码：单大写字母，且不在基线 `route_types.txt` 已用集合里（`check-allocations.sh --frr`）。
+- vtysh 位：保留区间 `0x400000`..`0x3FFFFFF`，必须是 2 的幂；egp=`0x400000`，下一个 `0x800000`。
+- daemon 名 / CLI 节点 / 补丁目录 / 测试目标：跨协议唯一。
+
+### 实际执行结果（全部真跑）
+
+| 项 | 命令 | 结果 |
+| --- | --- | --- |
+| 资源检查（无源码树） | `check-allocations.sh` | 通过，1 个协议 0 冲突；与基线比对 SKIP（说明原因） |
+| 资源检查（有源码树） | `check-allocations.sh --frr /root/hr-s7-build/frr-src` | 通过：显示码/路由类型/vtysh 位均未被上游占用 |
+| 全量构建 | `build.sh --protocols egp --build-root /root/hr-s7-build` | 成功：14:41:35 拉取 → 打补丁（12 文件）→ 集成（8 文件）→ configure（`--enable-egpd` 由登记生成）→ make → 单测 → `make check-TESTS 1/1` → 完整 `make check` rc=2（14 failed，与 S4/S6 相同）→ `make dist` 8.1M → 安装 → 指纹 |
+| 指纹新字段 | — | `PROTOCOLS=egp`、`PROTOCOL_EGP_ROUTE_TYPE_ID=32`、`DISPLAY_CHAR=G`、`DISTANCE=140`、`VTYSH_BIT=0x400000`、`ZEBRA_ROUTE_ALL_ID=33`、`ZEBRA_ROUTE_MAX=34` |
+| 全流程验证 | `verify.sh --all --protocols egp` | **21 PASS / 1 KNOWN-FAIL / 0 SKIP / 0 FAIL**，rc=0（A6 新增，其余与 S6 一致） |
+| EGP 回归 | 同上 C3 | 容器内 **13/13**；单元测试 `egpd/test_packet` 通过；`ZEBRA_ROUTE_EGP=32`、距离 140 未变 |
+| 负向：未登记协议 | `verify.sh --build-only --protocols egp,ggp` | rc=1，`FAIL 协议 'ggp' 不存在：没有 protocols/ggp/ 目录` |
+| 负向：未登记协议 | `build.sh --protocols ggp` | rc=1，同上信息 |
+| 负向：资源冲突 | 在临时副本里造一个与 EGP 抢同一套资源的 `ggp` 登记 | 12 类冲突全部被点名（daemon/configure/conditional/HAVE/route-type/name/display-char/vtysh-symbol/vtysh-bit/cli-node/patch-dir/test-binary），并列出 12 个共享集成点 |
+
+> 负向测试用的是 `/tmp` 下的**临时副本**，仓库里没有、也不会有假的 GGP。
+
+### 本轮修掉的两个自身缺陷
+
+1. `verify.sh` 的 `--protocols` 起初没生效：参数写进了 `PROTOCOLS`，而 `hr_proto_list` 读的是
+   `HR_PROTOCOLS`，导致 `--protocols egp,ggp` 被**静默忽略**并去做一次默认构建。
+   已修为先赋值再解析，负向测试因此变成"立刻报错退出 1"。
+2. `build.sh` 起初用 `grep "^EGPD_TRUE" Makefile` 判断 AM_CONDITIONAL：automake 会把条件
+   展开成 `@EGPD_TRUE@`，生成的 Makefile 里没有这个字符串。改为断言展开后的结果
+   （`Makefile` 里出现 `--enabled egpd`），这才是"条件真的生效"的证据。
+
+### EGP 行为不变的依据
+
+- 协议源码与补丁**逐字节未变**：`sha256sum -c protocols/egp/evidence/SOURCES.sha256` 7/7 OK、
+  `patches/frr/SHA256SUMS` 5/5 OK（补丁只是换了目录，内容与 v0.1.0 完全相同）。
+- 运行时验证：13/13 集成测试、单元测试、`G`/140/编号 32 全部与 v0.1.0 一致。
+- 二进制 SHA 与 v0.1.0 不同，原因是**构建前缀不同**（`--prefix` 会编进二进制），
+  不是源码变化；本轮没有用 `/opt/...` 前缀重编，以免覆盖既有安装。
+
+### 未解决 / 风险
+
+1. **多协议未真机验证**：只有 EGP 一个协议，`--protocols egp,ggp` 的"两个 daemon 同时编译"
+   从未真实跑过（也没有第二个协议可跑）。机制本身的参数化、断言、冲突检查都已实测，
+   但"两个真实协议共存"要等 GGP 有代码后再验。
+2. **补丁顺序耦合**：4 个热点（route_types 编号、VTYSH_ALL 行、DAEMONS 行、switch 首条）
+   要求新协议补丁以前一个协议应用后的状态为基线生成；`rebase.sh` 仍未实现，
+   基线升级后需要人工重新生成补丁（`verify.sh` 的 A4 会真打一遍，失败即报）。
+3. **打包设计未验证**：`docs/PACKAGING.md` 是设计稿，`ld.so`/systemd/RPM 的
+   `%config(noreplace)` 追加语义都还没落地。
+4. **保留区间是团队约定**：`0x400000`..`0x3FFFFFF` 不在任何规范里，只是本项目自用；
+   若将来与上游 FRR 的位分配冲突，`check-allocations.sh --frr` 会报出来，需要改用新位。

@@ -1,7 +1,7 @@
 # FRR 适配补丁的哈希基线（scripts/verify.sh 的 A2 检查读它）
-# 生成: sha256sum patches/frr/000*.patch（LF 字节）
-f1c4a7b88511c458f78e84e4371169572762b5c035f85a00c4aefe05789e167b  patches/frr/0001-lib-add-egp-route-type.patch
-09c7697dfac59292c30f20d750efef647516948f5a7c60afc83a4604e1983212  patches/frr/0002-zebra-install-egp-routes-with-distance-140.patch
-051afd3d3c6fd583ab673465cecc1d5126647904a6b3c1caee24fc7955d6d276  patches/frr/0003-vtysh-add-egpd-client-and-node.patch
-fe0cc298be589583aeadd57c5307ace85a084806b04fe35473332b6abc211e77  patches/frr/0004-build-enable-egpd-and-keep-existing-tests.patch
-b5dcb6fec4119d1bb55b8dd528a786a0fa73303b36830d4d2b616b28872362cc  patches/frr/0005-lib-allow-redistribute-egp-optional.patch
+# 生成: sha256sum patches/frr/*/000*.patch（LF 字节）
+f1c4a7b88511c458f78e84e4371169572762b5c035f85a00c4aefe05789e167b  patches/frr/egp/0001-lib-add-egp-route-type.patch
+09c7697dfac59292c30f20d750efef647516948f5a7c60afc83a4604e1983212  patches/frr/egp/0002-zebra-install-egp-routes-with-distance-140.patch
+051afd3d3c6fd583ab673465cecc1d5126647904a6b3c1caee24fc7955d6d276  patches/frr/egp/0003-vtysh-add-egpd-client-and-node.patch
+fe0cc298be589583aeadd57c5307ace85a084806b04fe35473332b6abc211e77  patches/frr/egp/0004-build-enable-egpd-and-keep-existing-tests.patch
+b5dcb6fec4119d1bb55b8dd528a786a0fa73303b36830d4d2b616b28872362cc  patches/frr/egp/0005-lib-allow-redistribute-egp-optional.patch

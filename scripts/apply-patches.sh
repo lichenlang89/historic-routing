@@ -91,27 +91,69 @@ if ! diff -u "$EXPECTED" "$ACTUAL"; then
 	die "被改动的文件集合与补丁不一致"
 fi
 changed="$actual_n"
-rm -f "$EXPECTED" "$ACTUAL"
 
-if git -C "$FRR" status --porcelain | grep -q '^?? egpd/'; then
-	die "补丁里出现了 egpd/ 源码（不应发生）"
-fi
+# 补丁里不应出现任何协议的 daemon 源码目录（源码走 integrate-sources.sh）
+for proto in $(hr_proto_list); do
+	hr_proto_load "$proto"
+	if git -C "$FRR" status --porcelain | grep -q "^?? $P_DAEMON/"; then
+		die "补丁里出现了 $P_DAEMON/ 源码（不应发生）"
+	fi
+done
 
-grep -q '^ZEBRA_ROUTE_EGP,' "$FRR/lib/route_types.txt" || die "route_types.txt 未注册 EGP"
-grep -q 'TESTS += egpd/test_packet' "$FRR/tests/subdir.am" || die "tests/subdir.am 缺少 TESTS +="
+# ---- 逐协议断言：登记表里的每个资源都真的落到了 FRR 树里 ----
+# 这里不硬编码协议常量，全部来自 protocols/<p>/PROTOCOL.meta，所以加协议不用改脚本。
+for proto in $(hr_proto_list); do
+	hr_proto_load "$proto"
+	log "校验协议 $proto 的集成点（$P_ROUTE_TYPE / '$P_DISPLAY_CHAR' / $P_VTYSH_SYMBOL=$P_VTYSH_BIT / ${P_DAEMON}）"
+
+	grep -qE "^$P_ROUTE_TYPE,[[:space:]]*$P_ROUTE_TYPE_NAME,[[:space:]]*$P_DAEMON,[[:space:]]*'$P_DISPLAY_CHAR'," \
+		"$FRR/lib/route_types.txt" \
+		|| die "route_types.txt 里 $P_ROUTE_TYPE 的行与登记不符（名字/daemon/显示码）"
+
+	grep -qE "^[[:space:]]*\[$P_ROUTE_TYPE\] = \{$P_ROUTE_TYPE, $P_DISTANCE," "$FRR/zebra/zebra_rib.c" \
+		|| die "zebra_rib.c 里 $P_ROUTE_TYPE 的距离不是 $P_DISTANCE"
+
+	grep -q "#define $P_VTYSH_SYMBOL $P_VTYSH_BIT" "$FRR/vtysh/vtysh.h" \
+		|| die "vtysh.h 缺少 #define $P_VTYSH_SYMBOL $P_VTYSH_BIT"
+	# VTYSH_ALL 是用反斜杠续行的多行宏：截取到第一行不以 \ 结尾为止
+	awk '/^#define VTYSH_ALL/{f=1} f{print} f&&!/\\$/{exit}' "$FRR/vtysh/vtysh.h" \
+		| grep -q "$P_VTYSH_SYMBOL" || die "VTYSH_ALL 掩码里没有 $P_VTYSH_SYMBOL"
+	grep -q "{.name = \"$P_DAEMON\", .flag = $P_VTYSH_SYMBOL}" "$FRR/vtysh/vtysh.c" \
+		|| die "vtysh.c 的 client 表里没有 $P_DAEMON"
+
+	grep -q "AC_ARG_ENABLE(\[$P_CONFIGURE_ENABLE\]" "$FRR/configure.ac" \
+		|| die "configure.ac 缺少 --enable-$P_CONFIGURE_ENABLE"
+	grep -q "AC_DEFINE(\[$P_HAVE_MACRO\]" "$FRR/configure.ac" \
+		|| die "configure.ac 缺少 $P_HAVE_MACRO"
+	grep -q "AM_CONDITIONAL(\[$P_CONDITIONAL\]" "$FRR/configure.ac" \
+		|| die "configure.ac 缺少 AM_CONDITIONAL($P_CONDITIONAL)"
+
+	grep -q "^include $P_DAEMON/subdir.am" "$FRR/Makefile.am" \
+		|| die "Makefile.am 缺少 include $P_DAEMON/subdir.am"
+	grep -q "TESTS += $P_TEST_BINARY" "$FRR/tests/subdir.am" \
+		|| die "tests/subdir.am 缺少 TESTS += $P_TEST_BINARY"
+	grep -q "^$P_DAEMON=no" "$FRR/tools/etc/frr/daemons" \
+		|| die "daemons 文件缺少 $P_DAEMON=no"
+	grep -q " $P_DAEMON " "$FRR/tools/frrcommon.sh.in" \
+		|| die "frrcommon.sh.in 的 DAEMONS 列表里没有 $P_DAEMON"
+	grep -qE "^if $P_CONDITIONAL$" "$FRR/lib/subdir.am" \
+		|| die "lib/subdir.am 缺少 rt_enabled 的 if $P_CONDITIONAL 块"
+done
+
 # automake 要求 TESTS 的 '=' 与 '+=' 处于兼容条件上下文，且 '=' 必须在
 # pceplib 的赋值之前（否则覆盖它）。详见 patches/frr/README.md。
 grep -q '^TESTS =$' "$FRR/Makefile.am" || die "Makefile.am 缺少 TESTS 的空定义（automake 会拒绝 +=）"
 awk '/^TESTS =$/{t=NR} /^include pceplib\/subdir.am/{p=NR} END{exit !(t && p && t<p)}' "$FRR/Makefile.am" || die "Makefile.am 里 TESTS 的空定义必须出现在 include pceplib/subdir.am 之前"
-grep -q '^AC_ARG_ENABLE(\[egpd\]' "$FRR/configure.ac" || die "configure.ac 缺少 --enable-egpd"
-grep -q 'VTYSH_EGPD' "$FRR/vtysh/vtysh.h" || die "vtysh.h 缺少 VTYSH_EGPD"
-grep -q 'ZEBRA_ROUTE_EGP' "$FRR/zebra/zebra_rib.c" || die "zebra_rib.c 缺少 EGP 距离项"
 
 if [ "$HR_WITH_OPTIONAL" = 1 ]; then
-	grep -q 'strmatch(s, "egp")' "$FRR/lib/log.c" || die "可选补丁 0005 未生效"
-	log "可选补丁 0005 已启用（redistribute egp）"
+	for proto in $(hr_proto_list); do
+		hr_proto_load "$proto"
+		grep -q "strmatch(s, \"$P_ROUTE_TYPE_NAME\")" "$FRR/lib/log.c" \
+			|| die "可选补丁 0005（redistribute $P_ROUTE_TYPE_NAME）未生效"
+	done
+	log "可选补丁 0005 已启用（redistribute）"
 fi
 
 record "MODIFIED_FILES=$changed"
-rm -f "$CHECK_OUT"
+rm -f "$CHECK_OUT" "$EXPECTED" "$ACTUAL"
 log "补丁应用完成：$changed 个文件被修改"
