@@ -15,6 +15,8 @@ HR_REPO_ROOT="${HR_REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 HR_LOG_FILE="${HR_LOG_FILE:-}"
 
 # 仅创建目录与打横幅；真正的写文件由 log()/warn()/die() 完成
+# 注意：本函数调用 log()，而 log() 在本文件后面才定义，
+# 所以下面的自动调用必须放在文件末尾，不能放在这里。
 hr_log_start() {
 	local f="${1:-$HR_LOG_FILE}"
 	if [ -n "$f" ]; then
@@ -23,10 +25,6 @@ hr_log_start() {
 		log "===== 日志文件: $f ====="
 	fi
 }
-
-if [ -n "$HR_LOG_FILE" ]; then
-	hr_log_start
-fi
 
 _ts() { date -u +%H:%M:%SZ; }
 
@@ -126,9 +124,15 @@ hr_sha256() { sha256sum "$1" | cut -d' ' -f1; }
 
 hr_tail_log() {
 	local f="$1" n="${2:-40}"
-	sleep 0.3          # 让 tee 落盘（日志是进程替换里的 tee 写的）
 	[ -f "$f" ] || return 0
-	echo "----- $f (末 $n 行) -----"
-	tail -n "$n" "$f"
-	echo "--------------------------------"
+	{
+		echo "----- $f (末 $n 行) -----"
+		tail -n "$n" "$f"
+		echo "--------------------------------"
+	} >&2
 }
+
+# 必须在 log()/warn()/die() 定义之后：hr_log_start 内部会调用 log()
+if [ -n "$HR_LOG_FILE" ]; then
+	hr_log_start
+fi
