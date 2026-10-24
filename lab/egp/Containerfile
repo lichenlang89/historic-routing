@@ -1,0 +1,30 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+#
+# historic-routing 实验运行期镜像：只装 FRR 二进制运行所需的共享库，
+# 以及实验脚本需要的工具（iproute2 / procps / python3）。
+#
+# 构建：  podman build -t localhost/historic-routing-lab:egp -f Containerfile lab/egp
+# 说明：  FRR 二进制本身不打进镜像，而是在运行时把宿主机的安装前缀
+#        （S4 的 make install 产物）只读挂载到 LAB_MOUNT（固定为 /build/prefix）。
+#        这样镜像与 FRR 版本解耦，换基线只要换挂载点。
+
+ARG BASE_IMAGE=quay.io/centos/centos:stream10
+FROM ${BASE_IMAGE}
+
+# 运行期库：soname 来自 S4 产物的 ldd
+#   libfrr.so.0 需要 libyang/libjson-c/libcap/libxcrypt/libatomic，
+#   vtysh 需要 libreadline/libtinfo，zebra 需要 libpcre2-8；
+#   iproute2 提供 ip，procps-ng 提供 pgrep/pkill，python3 用于 UDP 测试。
+RUN dnf -y install --setopt=install_weak_deps=False \
+        libyang json-c libcap libxcrypt pcre2 readline ncurses-libs libatomic \
+        iproute procps-ng python3 util-linux \
+    && dnf clean all \
+    && rm -rf /var/cache/dnf
+
+# 容器内固定路径（lab.sh 与 test_lab.py 都依赖这两个约定）
+ENV LAB_MOUNT=/build/prefix
+ENV LD_LIBRARY_PATH=/build/prefix/lib:/build/prefix/lib64:/build/prefix/lib/frr
+
+RUN mkdir -p /build/prefix /tmp/run /tmp/egp
+
+CMD ["sleep", "infinity"]

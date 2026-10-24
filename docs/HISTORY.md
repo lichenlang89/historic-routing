@@ -167,3 +167,71 @@ gcc 14.4.1，libyang 2.1.148，json-c 0.18，pytest 7.4.3 + pytest-xdist 3.6.1�
   `install-manifest.txt`）。修复已提交，下次运行的 `build.log` 会完整。
 - `verify.sh` / `rebase.sh` 未实现（S6 / 未来）。
 - 未做双路由器集成实验（属 S5–S6）。
+
+---
+
+## S5：EGP 双路由器实验参数化与真实验证（执行记录）
+
+日期 2026-10-24。执行机：`<实验机 B>`（RHEL 10.1，podman 5.6.0 rootful）。
+使用 S4 的前缀 `/opt/historic-routing/egp-27f287be9`，**未重新编译 FRR**（也不需要）。
+
+### 做了什么
+
+- `lab/egp/lab.sh` 重写：`build|up|status|vty N|exec N -- CMD|test|down|env`，
+  参数全部来自 `lab.env.example`（默认值）+ 可选 `lab.env`（覆盖）。
+- `lab/egp/test_lab.py` 重写：12 项检查 + 收尾校验，逐项断言解析后的状态；
+  破坏性检查在 `finally` 里恢复实验；日志写到 `$LAB_RUNDIR/logs/test-*.log`。
+- 新增 `lab/egp/Containerfile`（`quay.io/centos/centos:stream10` + 运行期库 + iproute2 +
+  procps + python3）与 `lab/egp/lab.env.example`；`lab.env` 进 `.gitignore`。
+- 移除开发者个人路径与私有镜像：不再有 `/root/frr-egp-build/prefix`、
+  不再依赖 `localhost/frr-23837-base:20261022`。
+
+### 实测结果
+
+主路径（`egp-lab-r1/r2`，`198.18.123.0/24`，`/var/tmp/egp-lab`）：
+
+```
+汇总: 13 通过 / 0 失败 / 共 13 项
+01 进程   egpd=17 zebra=11       02 邻居   R1->198.18.123.2 Up(active) R2->198.18.123.1 Up(passive)
+03 路由   双向 protocol=egp      04 类型/距离  JSON distance=140；文本 G>* 172.16.0.0/16 [140/1]
+05 内核   172.16.0.0/16 via .2 proto zebra / 10.0.0.0/8 via .1 proto zebra
+06 数据面 10.0.0.1->172.16.0.1 OK ECHO；反向 OK ECHO
+07/08 撤路 4s 消失、重宣告 6s 恢复
+09/10 SIGKILL 后 7s 对端撤路；重启后 7s 邻居+路由恢复
+11/12 zebra 重启后 0s 重放；删邻居后 0s 双端撤路
+13 收尾 8s 内实验恢复
+```
+
+参数化验证（另一路径 `/root/hr-alt`、另一套名字/网段 `egp-lab2-r*`、
+`198.18.124.0/24`、`/var/tmp/egp-lab2`，`lab.env` 只写差异项）：**同样 13/13 通过**。
+
+### 真实运行暴露并修掉的问题（都在实验脚本/容器配置层，EGP 代码一行未改）
+
+1. **zebra 起不来**：`privs_init: initial cap_set_proc failed`。zebra 编译期声明的能力集是
+   `{NET_ADMIN, SYS_ADMIN, NET_RAW}`，容器只给了前两个 → 补 `--cap-add SYS_ADMIN`。
+2. **zebra 报 `failed to mkdir .../var/lib/frr`**：安装前缀里本来就没有 `var/`、`run/`
+   （`make install` 没创建空目录），且容器里是只读挂载 → 宿主侧 `mkdir -p $LAB_PREFIX/{var,run}`
+   作为挂载点，容器里用 `--tmpfs` 盖住这两个目录。
+3. **僵尸进程让"进程在不在"判断失真**：容器 PID 1 原为 `sleep infinity`，不回收子进程，
+   被 SIGKILL 的 egpd 以 `Z` 状态留在进程表 → 容器加 `--init`（`podman-init` 回收），
+   同时测试侧增加"排除僵尸"的存活性判定。
+4. **只写差异项的 `lab.env` 直接崩**：原实现是"有 lab.env 就只加载它"，未定义变量在
+   `set -u` 下报错 → 改为"先加载 `lab.env.example` 的默认值，再用 `lab.env` 覆盖"。
+5. **`show ip route egp` 不可用**（"Unknown route type"）：该选择器依赖可选补丁 `0005`
+   （`lib/log.c` 的 `proto_redistnum`）。本实验默认不启用 0005，所以测试改用
+   `show ip route json`（`protocol=="egp"`、`distance==140`）+ 文本里的 `G>*` 行，
+   `lab.sh status` 也改成过滤 `^G`。**没有为了测试去启用 0005 或改 EGP 代码。**
+
+### 清理状态
+
+`./lab.sh down` 后：容器 0 个、网络只剩默认 `podman`、宿主机无 zebra/egpd 进程、
+宿主机路由表与本实验开始前一致（原默认网关 + 两条直连网段，实验没有留下任何路由）。
+另外顺手清理了**今天早些时候**做手工 EGP 演示留在 156 上的
+`/opt/frr-egpd/3ab0ca7470` 的 zebra/egpd 进程与 `stub0`（不属于本实验，也非系统 FRR）。
+
+### 明确区分
+
+- **本实验在当前开发环境（<实验机 B>）通过**：13/13，且有第二套参数/路径复跑为证。
+- **未证明"在全新机器上可复现"**：只有这一台 RHEL 10.1 + podman 5.6 的机器可用；
+  换机器需要重新验证 podman 版本、SELinux 行为、镜像拉取来源与内核模块。
+  这一点不能混为一谈。
