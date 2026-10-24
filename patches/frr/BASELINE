@@ -1,0 +1,14 @@
+# FRR 上游基线（构建脚本从这里读，不要改代码里的硬编码）
+#
+# 规则：
+#   - 只用这个提交，不跟随 FRRouting/frr 的 master。
+#   - 升级基线必须单独一次提交，并重跑 scripts/verify.sh（S4 实现）。
+
+FRR_REPO=https://github.com/FRRouting/frr
+FRR_COMMIT=27f287be9210d4024a140486b7b8ddd5eb41fe04
+FRR_DESCRIBE=10.9.0-dev
+
+# 补丁系列是从下面这棵树导出的；它是"已验证"的对照树，不是补丁的 base。
+SOURCE_REPO=https://github.com/lichenlang89/frr
+SOURCE_VERIFIED_COMMIT=3ab0ca74700bf6e8175ec07e930a320a79f232d9
+SOURCE_VERIFIED_TAG=egp-verified-20261024
