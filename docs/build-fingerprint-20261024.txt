@@ -1,0 +1,37 @@
+# historic-routing build fingerprint
+GENERATED_AT=2026-10-24T13:43:37Z
+REPO_COMMIT=no-git
+FRR_REPO=https://github.com/FRRouting/frr
+FRR_COMMIT=27f287be9210d4024a140486b7b8ddd5eb41fe04
+FRR_DESCRIBE=10.9.0-dev
+FRR_SRC_TREE_DIRTY=13
+FRR_PATCHED_DIFF_SHA256=c0ef912c8c0e570a95ffbdc093a528545d88fde72f645007d558b9e2f93fd118
+OPTIONAL_PATCH_0005=disabled
+PATCH_0001-lib-add-egp-route-type.patch sha256=f1c4a7b88511c458f78e84e4371169572762b5c035f85a00c4aefe05789e167b
+PATCH_0002-zebra-install-egp-routes-with-distance-140.patch sha256=09c7697dfac59292c30f20d750efef647516948f5a7c60afc83a4604e1983212
+PATCH_0003-vtysh-add-egpd-client-and-node.patch sha256=051afd3d3c6fd583ab673465cecc1d5126647904a6b3c1caee24fc7955d6d276
+PATCH_0004-build-enable-egpd-and-keep-existing-tests.patch sha256=fe0cc298be589583aeadd57c5307ace85a084806b04fe35473332b6abc211e77
+PROTO_SRC_egpd.c_SHA256=bd5f722a76be985e85a73f25835e3b32801f4e5c9e62bbad372a1499728b911d
+PROTO_SRC_egp_packet.c_SHA256=0e1440f786645d7f09ba117e6063560cbab83ba0bedaaac06e3a8ef72c3bfd6e
+PROTO_SRC_egp_packet.h_SHA256=44318c88fbaa7e0dbfd21d9dc3be1d5a082b4625b6f40bb4b6d093c0ef86fbb7
+PROTO_SRC_test_packet.c_SHA256=556f859064d0c9c455ff1f3b56eee7686f85c10be72bd2280c2cd2767040e33e
+PROTO_SRC_egpd.subdir.am_SHA256=89e08e8c584c9c367813c1659c684aac1fe563e5b18f1d1307ff178cb4ff5f84
+PROTO_SRC_README.md_SHA256=57cc0d253efb9817d5e91ce290ec1f25ddad3f84eaa0c21aa4140de26f3680a5
+PROTO_SRC_lab.sh_SHA256=5962cea157e8c93dd46a11e3b54c3fb118f971c2c221b6a74880ff83d9d5219d
+PROTO_SRC_test_lab.py_SHA256=6d25993c6275b80af31e75fcf6d34c4909fef32b928fd7f378e513e6ce8e825c
+CC=14.4.1
+CC_VERSION=gcc (GCC) 14.4.1 20260724 (Red Hat 14.4.1-4)
+MAKE_JOBS=4
+CONFIGURE_ARGS=--prefix=/opt/historic-routing/egp-27f287be9 --sysconfdir=/opt/historic-routing/egp-27f287be9/etc --localstatedir=/opt/historic-routing/egp-27f287be9/var --runstatedir=/opt/historic-routing/egp-27f287be9/run --enable-egpd --enable-user=root --enable-group=root --enable-vty-group=root --disable-doc --disable-protobuf --disable-ospfapi --disable-ospfclient --disable-isisd --disable-pimd --disable-pim6d --disable-ldpd --disable-nhrpd --disable-babeld --disable-pbrd --disable-fabricd --disable-vrrpd --disable-pathd 
+INSTALL_PREFIX=/opt/historic-routing/egp-27f287be9
+MAKE_RESULT=ok
+EGPD_TEST_PACKET=passed
+MAKE_CHECK_RC=2
+MAKE_CHECK_FAILED_DIRS=isisd pimd 
+MAKE_CHECK_SUMMARY=check-TESTS: 1/1 passed; make check rc=2: 仅在已 --disable 的模块 (isisd pimd ) 失败，14 failed, 514 passed, 5 skipped in 24.62s
+MAKE_DIST=ok: frr-10.9.0-dev.tar.gz (8.1M), egpd/ 全部文件在内
+EGPD_BINARY_SHA256=0058ecb6805317783a06d18870c218cce720d48eaeb2235fafdc52fd44ccdd5e
+ZEBRA_BINARY_SHA256=57b44e3a37cadfd5e5c327d7fabfe79380187210fc6f721a88b1a71a2cce26f5
+VTYSH_BINARY_SHA256=0b41cc7275efd31b47f6477a32d6e5a1c51c1d155aa241f6d3a2f5cbbaf43840
+ZEBRA_ROUTE_EGP=32
+ZEBRA_ROUTE_MAX=34

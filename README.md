@@ -24,17 +24,25 @@
 | S1 | 建立本仓库骨架（目录、README、架构、许可、BASELINE） | 已完成 |
 | S2 | 从原 fork 提取 FRR 适配补丁（0001–0005） | 已完成 |
 | S3 | 把 EGP 协议源码迁入 `protocols/egp/`（逐字节不变） | 已完成 |
-| S4 | 构建编排（`scripts/build.sh` 等） | **未开始** |
+| S4 | 构建编排（`scripts/build.sh` 等） | 已完成（RHEL 10.1 实跑通过，见 `docs/HISTORY.md`） |
 | S5 | 实验环境参数化（`lab/egp/`） | **未开始** |
 | S6 | 回归清单自动化与证据归档 | **未开始** |
 | S7 | 新协议模板验证（空壳 GGP） | **未开始** |
 
 因此请注意：
 
-- **本仓库现在还不能一键构建。** `scripts/` 里只有说明，构建脚本要到 S4 才实现。
-- `lab/egp/lab.sh`、`lab/egp/test_lab.py` 仍是原 fork 里的版本，**带有硬编码路径**（`/build/prefix`、私有镜像名），在本仓库实现参数化（S5）之前不能直接使用。
-- 目前唯一可用的 EGP 可运行构建，是原 fork 的已验证树：
-  `lichenlang89/frr` 的 tag `egp-verified-20261024`（提交 `3ab0ca7470`）。
+- **本仓库现在能从零一键构建到安装前缀**：`./scripts/build.sh --jobs N --prefix DIR`
+  （取固定基线 FRR → 打补丁 → 集成源码 → 编译 → 单测 → make check → make dist → 安装 → 指纹）。
+  详见 `scripts/README.md`。
+- **"EGP 构建与单测通过" ≠ "完整 FRR 测试通过"**：EGP 的门禁 `make check-TESTS` 为
+  `PASS: egpd/test_packet`；而完整 `make check` 会跑上游 pytest 套件，其中
+  `tests/isisd/*`、`tests/pimd/*` 需要被本项目禁用的 daemon，实测 14 failed（详情与
+  原始退出码见 `docs/build-fingerprint-20261024.txt` 与 `scripts/README.md`）。
+- `lab/egp/lab.sh`、`lab/egp/test_lab.py` 仍是原 fork 里的版本，**带有硬编码路径**
+  （`/build/prefix`、私有镜像名），在本仓库实现参数化（S5）之前不能直接使用。
+- 已构建好的实机产物在 `<实验机 B>:/opt/historic-routing/egp-27f287be9`（`sbin/egpd`、
+  `sbin/zebra`、`bin/vtysh`），指纹见 `docs/build-fingerprint-20261024.txt`。
+  原 fork 的已验证树（tag `egp-verified-20261024`）作为历史对照保留。
 
 ## 仓库结构
 

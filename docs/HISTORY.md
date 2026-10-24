@@ -97,3 +97,73 @@
 配套决定：本仓库 `core.autocrlf=false` + `.gitattributes` 固定 `eol=lf`，
 保证后续任何 Windows 侧操作都不会再引入换行转换。
 
+
+---
+
+## S4：构建自动化与首次迁移验证（执行记录）
+
+日期 2026-10-24。执行机：`<实验机 B>`（RHEL 10.1 x86_64，4 vCPU / 7.6 GiB，
+gcc 14.4.1，libyang 2.1.148，json-c 0.18，pytest 7.4.3 + pytest-xdist 3.6.1）。
+**不再依赖原 fork 工作目录**：FRR 源码由 `scripts/fetch-frr.sh` 从
+`https://github.com/FRRouting/frr` 浅取固定提交 `27f287be9…`。
+
+### 命令
+
+```sh
+./scripts/build.sh --jobs 4 \
+  --build-root /root/hr-build \
+  --prefix /opt/historic-routing/egp-27f287be9 \
+  --reuse-source      # 首次不需要；后续增量复用 frr-src/frr-build
+```
+
+### 结果
+
+| 步骤 | 结果 |
+| --- | --- |
+| 拉取 FRR | `HEAD=27f287be9…`，工作树干净，9587 个文件 |
+| 应用补丁 | 0001–0004 全部 `git apply --check` + `git apply` 成功；改动 12 个文件（与补丁自身推导一致）；0005 未启用 |
+| 集成源码 | 8 个文件复制进 `frr-src/egpd/`，逐个 SHA256 与仓库内副本一致（与 S3 记录值相同） |
+| bootstrap / configure | 通过；`HAVE_EGPD` 已定义 |
+| 路由类型 | `ZEBRA_ROUTE_EGP=32`、`ZEBRA_ROUTE_ALL=33`、`ZEBRA_ROUTE_MAX=34` |
+| 编译 | `egpd/egpd`、`zebra/zebra`、`vtysh/vtysh` 全部产出（-j4，约 2.5 分钟） |
+| 单元测试 | `EGP codec: golden wire format, bounds, checksum and unaligned tests passed` |
+| `make check-TESTS` | `PASS: egpd/test_packet`，TOTAL 1 / PASS 1 / FAIL 0 |
+| `make check`（完整） | **rc=2**：`14 failed, 514 passed, 5 skipped`；14 个失败全部在 `tests/isisd/*` 与 `tests/pimd/*`，原因是这些用例要执行 `isisd/test_*`、`pimd/pimd` 等产物，而这两个 daemon 按已验证 configure 集合被 `--disable` 掉（构建目录里确实没有这两个二进制）。判为已知限制，原始 rc 与失败目录已写入指纹 |
+| `make dist` | `frr-10.9.0-dev.tar.gz` 8.1 MB，2193 条目，`egpd/` 下 8 个文件全部在内 |
+| `make install` | 安装到 `/opt/historic-routing/egp-27f287be9`（81 MB）；`sbin/{egpd,zebra,staticd}`、`bin/vtysh`、`lib/libfrr.so` 俱在；`ldd egpd` 无未解析库 |
+| 指纹 | `docs/build-fingerprint-20261024.txt` |
+
+### 明确区分两件事
+
+- **EGP 构建与单测：通过。**（`make`、`make egpd/test_packet`、`make check-TESTS`）
+- **完整 FRR 测试套件：本配置下不通过，且与 EGP 无关。** 若要它全绿，需要
+  额外启用 isisd/pimd 等 daemon（换 configure 集合），或在上游层面修这些测试
+  对"daemon 必须存在"的假设。本轮不做，只记录。
+
+### 真实运行暴露并修掉的脚本缺陷（都是跑出来的，不是看出来的）
+
+1. 日志初始化在 `HR_LOG_FILE` 就绪前发生 → `logs/` 为空。
+2. `exec > >(tee ...)` 接管道是块缓冲，失败瞬间 `hr_tail_log` 读不到内容 → 改为逐行
+   append 写文件。
+3. `hr_log_start` 在 `log()` 定义之前被调用 → 子脚本 `source` 时直接
+   `log: command not found` 退出。
+4. `--force` 只在"提交不符"时生效，"提交对但工作树脏"时直接报错 → 改为所有不可复用
+   场景都重建。
+5. 基线标记 `fetch.err` / `.hr-baseline` 写进了源码树，污染工作树导致补丁步骤拒绝执行
+   → 改为 `mktemp` 与写进 `.git/`。
+6. `set -e` 下 `命令; rc=$?` 会让 `make check` 失败静默退出 → 改 `|| rc=$?`。
+7. **automake 拒绝 `TESTS +=`**（`TESTS` 只在 pceplib 的条件块里定义过）→ 补丁 0004
+   改为在 `Makefile.am` 里先无条件 `TESTS =`（位置在 pceplib 之前），再在
+   `tests/subdir.am` 里 `+=`。
+8. `tar tzf … | grep -q` 在 `pipefail` 下因 SIGPIPE 误判"包内缺文件" → 先把清单落文件。
+9. `install.sh` 用 `>` 重定向写共享日志，清空了前面步骤的 `build.log` → 改 `>>`
+   （该修复已单独验证：预置的哨兵行仍在，日志 154 行）。
+10. `libfrr.so` 的安装校验写死了 `lib/frr/` 布局 → 改用 `find` 在前缀内查找。
+
+### 遗留
+
+- 本轮 `build.log` 因第 9 条缺陷在安装阶段被截断（各步骤独立日志完整：`patches-applied.txt`、
+  `integration-manifest.txt`、`make.log`、`make-check*.log`、`make-dist*`、`unit-test.log`、
+  `install-manifest.txt`）。修复已提交，下次运行的 `build.log` 会完整。
+- `verify.sh` / `rebase.sh` 未实现（S6 / 未来）。
+- 未做双路由器集成实验（属 S5–S6）。
