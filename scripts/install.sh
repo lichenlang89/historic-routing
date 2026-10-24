@@ -47,7 +47,9 @@ for f in sbin/egpd sbin/zebra sbin/staticd bin/vtysh; do
 		miss=$((miss+1))
 	fi
 done
-lib=$(ls "$PREFIX"/lib*/frr/libfrr.so* "$PREFIX"/lib/frr/libfrr.so* 2>/dev/null | head -1 || true)
+# 库的落点随 libdir 变化（RHEL 上是 $PREFIX/lib，部分平台是 lib64 或 lib/frr），
+# 不要写死一种布局：直接在前缀里找。
+lib=$(find "$PREFIX" -maxdepth 3 -name 'libfrr.so*' -print 2>/dev/null | head -1 || true)
 [ -n "$lib" ] && log "  OK ${lib#$PREFIX/}" || { warn "  缺失 libfrr.so"; miss=$((miss+1)); }
 
 [ "$miss" -eq 0 ] || die "安装产物缺失 $miss 项"
