@@ -31,7 +31,7 @@ FRR=""; PROTOCOLS="egp"; MANIFEST=""
 while [ $# -gt 0 ]; do
 	case "$1" in
 		--frr)       FRR="${2:?}"; shift 2 ;;
-		--protocols) PROTOCOLS="${2:?}"; shift ;;
+		--protocols) PROTOCOLS="${2:?}"; shift 2 ;;
 		--manifest)  MANIFEST="${2:?}"; shift 2 ;;
 		-h|--help)   usage; exit 0 ;;
 		*) die "未知参数: $1" ;;
