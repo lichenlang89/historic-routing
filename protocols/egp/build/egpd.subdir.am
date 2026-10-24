@@ -1,0 +1,11 @@
+if EGPD
+sbin_PROGRAMS += egpd/egpd
+vtysh_daemons += egpd
+endif
+egpd_egpd_SOURCES = egpd/egpd.c egpd/egp_packet.c
+egpd_egpd_LDADD = lib/libfrr.la $(LIBCAP)
+noinst_HEADERS += egpd/egp_packet.h
+
+egpd_test_packet_SOURCES = egpd/test_packet.c egpd/egp_packet.c
+EXTRA_DIST += egpd/lab.sh egpd/README.md egpd/test_lab.py
+egpd_test_packet_LDADD = lib/libfrr.la $(LIBCAP)
