@@ -145,14 +145,23 @@ grep -E '^EGPD_TRUE|^egpd' "$FRR_BUILD/Makefile" | head -3 || true
 log "========== [5b/9] 路由类型 / TESTS 注册校验"
 RT="$FRR_BUILD/lib/route_types.h"
 [ -f "$RT" ] || { log "  route_types.h 尚未生成（make 时生成），稍后再校验"; }
-TESTS_LINES="$(grep -nE '^TESTS[[:space:]]*(\+=|=)' "$FRR_BUILD/Makefile" || true)"
-log "  生成 Makefile 里的 TESTS 赋值："
-printf '%s
-' "$TESTS_LINES" | sed 's/^/    /'
-case "$TESTS_LINES" in
-	*'TESTS += egpd/test_packet'*) log "  TESTS 以累加方式包含 egpd/test_packet" ;;
-	*) die "生成的 Makefile 里 TESTS 未包含 egpd/test_packet（补丁 0004 未生效？）" ;;
-esac
+# automake 会把 TESTS 里的程序名改写成 am__EXEEXT_N 变量，所以不能只 grep 字面量：
+# 先找 egpd/test_packet 对应的变量名，再确认它确实出现在 TESTS 的赋值里。
+TESTS_LINE="$(grep -m1 '^TESTS = ' "$FRR_BUILD/Makefile" || true)"
+EGP_VAR="$(sed -n 's/^\(am__EXEEXT_[0-9]*\) = egpd\/test_packet.*/\1/p' "$FRR_BUILD/Makefile" | head -1)"
+log "  Makefile: ${TESTS_LINE:-<没有 TESTS 赋值行>}"
+log "  egpd/test_packet 的 automake 变量: ${EGP_VAR:-<无（可能未改写）>}"
+if [ -n "$EGP_VAR" ]; then
+	case "$TESTS_LINE" in
+		*"$EGP_VAR"*) log "  egpd/test_packet 已注册进 TESTS（经 $EGP_VAR）" ;;
+		*) die "egpd/test_packet 未被注册进 TESTS（$EGP_VAR 不在 '$TESTS_LINE' 里）" ;;
+	esac
+else
+	case "$TESTS_LINE" in
+		*egpd/test_packet*) log "  egpd/test_packet 已直接出现在 TESTS 里" ;;
+		*) die "生成的 Makefile 里 TESTS 未包含 egpd/test_packet（补丁 0004 未生效？）" ;;
+	esac
+fi
 # A/B 对照：用真实片段与真实 include 顺序演示 '=' 与 '+=' 的差别
 TESTS_AB="$HR_BUILD_ROOT/logs/tests-registration-ab.txt"
 {
