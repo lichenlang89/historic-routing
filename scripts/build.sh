@@ -81,6 +81,15 @@ for pkg in libyang json-c; do
 		|| warn "  pkg-config 找不到 $pkg（configure 可能会失败）"
 done
 log "  gcc: $(gcc --version | head -1)"
+if [ "$SKIP_CHECKS" = 0 ]; then
+	# FRR 的 make check 会跑 tests/runtests.py（pytest）
+	if python3 -c 'import pytest' 2>/dev/null; then
+		log "  pytest: $(python3 -c 'import pytest; print(pytest.__version__)')"
+	else
+		die "make check 需要 pytest，请先安装: dnf install -y python3-pytest python3-pytest-xdist（或加 --skip-checks）"
+	fi
+	python3 -c 'import xdist' 2>/dev/null || warn "  没有 pytest-xdist，make check 会串行执行"
+fi
 
 # ---------- 1. 拉源码 ----------
 log "========== [1/9] 获取固定基线 FRR"
@@ -212,8 +221,10 @@ grep -q 'tests passed' "$UNIT_OUT" || die "单元测试输出不含 'tests passe
 CHECK_SUMMARY="skipped"
 if [ "$SKIP_CHECKS" = 0 ]; then
 	log "========== [8/9] make check"
-	( cd "$FRR_BUILD" && make -j"$JOBS" check ) >"$HR_BUILD_ROOT/logs/make-check.log" 2>&1
-	rc=$?
+	# 注意：set -e 下不能 "命令; rc=$?"，失败会直接退出（S4 实测踩到，表现为
+	# 日志停在 make check 一行且没有任何报错）
+	rc=0
+	( cd "$FRR_BUILD" && make -j"$JOBS" check ) >"$HR_BUILD_ROOT/logs/make-check.log" 2>&1 || rc=$?
 	if [ "$rc" -ne 0 ]; then
 		hr_tail_log "$HR_BUILD_ROOT/logs/make-check.log" 60 >&2
 		if [ -f "$FRR_BUILD/test-suite.log" ]; then hr_tail_log "$FRR_BUILD/test-suite.log" 40 >&2; fi
