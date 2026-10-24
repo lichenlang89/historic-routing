@@ -33,7 +33,9 @@ done
 log "构建目录: $BUILD_DIR"
 log "安装前缀: $PREFIX"
 log "执行 make install"
-make -C "$BUILD_DIR" install >"${HR_LOG_FILE:-/dev/null}" 2>&1 \
+# 注意用 >> 追加：HR_LOG_FILE 是所有步骤共用的日志，用 `>` 会把前面步骤的记录清空
+# （S4 实跑踩到：build.log 只剩 make install 的输出）
+make -C "$BUILD_DIR" install >>"${HR_LOG_FILE:-/dev/null}" 2>&1 \
 	|| { hr_tail_log "${HR_LOG_FILE:-/dev/null}" 40 >&2; die "make install 失败"; }
 
 # ---- 产物断言 ----
