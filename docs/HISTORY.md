@@ -224,6 +224,10 @@ gcc 14.4.1，libyang 2.1.148，json-c 0.18，pytest 7.4.3 + pytest-xdist 3.6.1�
    `show ip route json`（`protocol=="egp"`、`distance==140`）+ 文本里的 `G>*` 行，
    `lab.sh status` 也改成过滤 `^G`。**没有为了测试去启用 0005 或改 EGP 代码。**
 
+**第 3 次（14:42–14:44，用 `git archive HEAD` 导出的提交内容）**：同样 20 PASS / 1 KNOWN-FAIL /
+0 SKIP / 0 FAIL，退出码 0。这一次是为了证明"归档的证据对应的是提交的内容"，而不是工作区里的临时改动。
+`docs/evidence/verify-20261024.{log,json}` 就是这一次的原始输出。
+
 ### 清理状态
 
 `./lab.sh down` 后：容器 0 个、网络只剩默认 `podman`、宿主机无 zebra/egpd 进程、
