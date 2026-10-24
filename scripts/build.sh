@@ -374,8 +374,10 @@ fi
 # ---------- 9. 安装 + 指纹 ----------
 log "========== [9/9] 安装与指纹"
 INSTALL_MANIFEST="$HR_BUILD_ROOT/logs/install-manifest.txt"
+destdir_args=()
+[ -n "$DESTDIR_ARG" ] && destdir_args=(--destdir "$DESTDIR_ARG")
 HR_SCRIPT=install.sh "$HR_REPO_ROOT/scripts/install.sh" \
-	--build-dir "$FRR_BUILD" --prefix "$PREFIX" --destdir "$DESTDIR_ARG" \
+	--build-dir "$FRR_BUILD" --prefix "$PREFIX" "${destdir_args[@]}" \
 	--manifest "$INSTALL_MANIFEST" \
 	|| { hr_tail_log "$HR_LOG_FILE" 40 >&2; die "安装失败"; }
 

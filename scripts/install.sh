@@ -21,7 +21,7 @@ while [ $# -gt 0 ]; do
 	case "$1" in
 		--build-dir) BUILD_DIR="${2:?}"; shift 2 ;;
 		--prefix)    PREFIX="${2:?}"; shift 2 ;;
-		--destdir)   DESTDIR="${2:?}"; shift 2 ;;
+		--destdir)   DESTDIR="${2:-}"; shift 2 ;;
 		--manifest)  MANIFEST="${2:?}"; shift 2 ;;
 		-h|--help)   usage; exit 0 ;;
 		*) die "未知参数: $1" ;;
