@@ -226,6 +226,8 @@ grep -q 'tests passed' "$UNIT_OUT" || die "单元测试输出不含 'tests passe
 #      按已验证配置禁用了这些 daemon，因此这些用例必然失败。这类失败按
 #      "--disable-<daemon>" 归类，只有"无法归因"的失败才判定为构建失败。
 CHECK_SUMMARY="skipped"
+CHECK_RC="not-run"
+CHECK_FAILED_DIRS=""
 if [ "$SKIP_CHECKS" = 0 ]; then
 	log "========== [8/9] make check（8a: TESTS 门禁 / 8b: 完整套件）"
 
@@ -250,6 +252,7 @@ if [ "$SKIP_CHECKS" = 0 ]; then
 	( cd "$FRR_BUILD" && make -j"$JOBS" check ) >"$HR_BUILD_ROOT/logs/make-check.log" 2>&1 || rc=$?
 	UPSTREAM_SUMMARY="$(grep -E '^(=+) [0-9]+ (failed|passed)' "$HR_BUILD_ROOT/logs/make-check.log" | tail -1 | sed 's/^=* //;s/ =*$//')"
 	if [ "$rc" -eq 0 ]; then
+		CHECK_RC=0
 		CHECK_SUMMARY="check-TESTS: 1/1 passed; make check: passed"
 		log "  [8b] make check 通过（$UPSTREAM_SUMMARY）"
 	else
@@ -270,7 +273,9 @@ if [ "$SKIP_CHECKS" = 0 ]; then
 		if [ -n "$unclassified" ]; then
 			die "make check 有无法归因到被禁用模块的失败:$unclassified（见 logs/make-check.log）"
 		fi
-		CHECK_SUMMARY="check-TESTS: 1/1 passed; make check: 仅在已 --disable 的模块 ($failed_dirs) 失败，$UPSTREAM_SUMMARY"
+		CHECK_RC="$rc"
+		CHECK_FAILED_DIRS="$failed_dirs"
+		CHECK_SUMMARY="check-TESTS: 1/1 passed; make check rc=$rc: 仅在已 --disable 的模块 ($failed_dirs) 失败，$UPSTREAM_SUMMARY"
 		log "  [8b] 所有失败都属于已 --disable 的模块（$failed_dirs），判定为已知限制"
 	fi
 	if [ -f "$FRR_BUILD/test-suite.log" ]; then cp -f "$FRR_BUILD/test-suite.log" "$HR_BUILD_ROOT/logs/test-suite.log"; fi
@@ -285,8 +290,13 @@ if [ "$SKIP_DIST" = 0 ]; then
 		TARBALL=$(ls -1t "$FRR_BUILD"/*.tar.gz 2>/dev/null | head -1 || true)
 		if [ -n "$TARBALL" ]; then
 			dist_ok=1
+			# 注意：不能写 `tar tzf "$T" | grep -q ...`：set -o pipefail 下
+			# grep -q 先退出会让 tar 收到 SIGPIPE（141），整条管道被判失败，
+			# 于是"包里有文件"也被报成缺少（S4 实测踩到）。先把清单落文件。
+			DIST_LIST="$HR_BUILD_ROOT/logs/make-dist-contents.txt"
+			tar tzf "$TARBALL" > "$DIST_LIST" || die "无法读取 $TARBALL 的清单"
 			for f in egpd/egpd.c egpd/subdir.am egpd/test_packet.c egpd/README.md egpd/lab.sh egpd/test_lab.py; do
-				tar tzf "$TARBALL" | grep -q "/$f$" || { warn "  dist 里缺少 $f"; dist_ok=0; }
+				grep -q "/$f$" "$DIST_LIST" || { warn "  dist 里缺少 $f"; dist_ok=0; }
 			done
 			[ "$dist_ok" = 1 ] || die "make dist 生成的包缺少 egpd 文件"
 			DIST_RESULT="ok: $(basename "$TARBALL") ($(du -h "$TARBALL" | cut -f1)), egpd/ 全部文件在内"
@@ -329,7 +339,9 @@ FP="$HR_BUILD_ROOT/fingerprint.txt"
 	echo "INSTALL_PREFIX=$PREFIX"
 	echo "MAKE_RESULT=ok"
 	echo "EGPD_TEST_PACKET=passed"
-	echo "MAKE_CHECK=$CHECK_SUMMARY"
+	echo "MAKE_CHECK_RC=$CHECK_RC"
+	echo "MAKE_CHECK_FAILED_DIRS=$CHECK_FAILED_DIRS"
+	echo "MAKE_CHECK_SUMMARY=$CHECK_SUMMARY"
 	echo "MAKE_DIST=$DIST_RESULT"
 	echo "EGPD_BINARY_SHA256=$(hr_sha256 "$PREFIX/sbin/egpd")"
 	echo "ZEBRA_BINARY_SHA256=$(hr_sha256 "$PREFIX/sbin/zebra")"
