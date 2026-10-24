@@ -2,6 +2,10 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # 公共函数库：日志、断言、路径安全、BASELINE 读取。
 # 被 scripts/*.sh source，不单独执行。
+#
+# 日志策略：每条日志同时写 stdout 与日志文件（直接 append）。
+# 不用 `exec > >(tee ...)`：shell 的 stdout 接管道时是块缓冲，
+# 失败瞬间 tail 日志仍为空（S4 实测踩到过）。
 
 set -Eeuo pipefail
 
@@ -9,19 +13,15 @@ set -Eeuo pipefail
 HR_SCRIPT="${HR_SCRIPT:-$(basename "$0")}"
 HR_REPO_ROOT="${HR_REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 HR_LOG_FILE="${HR_LOG_FILE:-}"
-HR_LOG_STARTED=0
 
-# 把本脚本的 stdout/stderr 同时写入日志文件。可重复调用（幂等）。
-# 调用方必须在设好 HR_LOG_FILE 之后再调它，否则没有日志。
+# 仅创建目录与打横幅；真正的写文件由 log()/warn()/die() 完成
 hr_log_start() {
 	local f="${1:-$HR_LOG_FILE}"
-	[ -n "$f" ] || return 0
-	[ "$HR_LOG_STARTED" = "1" ] && return 0
-	mkdir -p "$(dirname "$f")"
-	exec > >(tee -a "$f") 2>&1
-	HR_LOG_STARTED=1
-	HR_LOG_FILE="$f"
-	echo "===== 日志文件: $f ====="
+	if [ -n "$f" ]; then
+		mkdir -p "$(dirname "$f")"
+		HR_LOG_FILE="$f"
+		log "===== 日志文件: $f ====="
+	fi
 }
 
 if [ -n "$HR_LOG_FILE" ]; then
@@ -30,9 +30,21 @@ fi
 
 _ts() { date -u +%H:%M:%SZ; }
 
-log()  { printf '[%s] %-22s %s\n' "$(_ts)" "$HR_SCRIPT" "$*"; }
-warn() { printf '[%s] %-22s WARN %s\n' "$(_ts)" "$HR_SCRIPT" "$*" >&2; }
-die()  { printf '[%s] %-22s FAIL %s\n' "$(_ts)" "$HR_SCRIPT" "$*" >&2; exit 1; }
+_emit() {
+	local line="$1" dest="$2"
+	if [ "$dest" = "err" ]; then
+		printf '%s\n' "$line" >&2
+	else
+		printf '%s\n' "$line"
+	fi
+	if [ -n "$HR_LOG_FILE" ]; then
+		printf '%s\n' "$line" >> "$HR_LOG_FILE"
+	fi
+}
+
+log()  { _emit "$(printf '[%s] %-22s %s' "$(_ts)" "$HR_SCRIPT" "$*")" out; }
+warn() { _emit "$(printf '[%s] %-22s WARN %s' "$(_ts)" "$HR_SCRIPT" "$*")" err; }
+die()  { _emit "$(printf '[%s] %-22s FAIL %s' "$(_ts)" "$HR_SCRIPT" "$*")" err; exit 1; }
 
 hr_require_cmd() {
 	local c

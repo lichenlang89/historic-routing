@@ -62,9 +62,19 @@ log "尝试浅取单个提交（--depth 1）"
 # 错误输出用临时文件：不能写进源码树，否则会让工作树变脏（apply-patches 会拒绝）
 FETCH_ERR="$(mktemp)"
 trap 'rm -f "$FETCH_ERR"' EXIT
-if ! git fetch -q --depth 1 origin "$FRR_COMMIT" 2>"$FETCH_ERR"; then
-	warn "浅取单个提交失败，改为过滤克隆 + 取该提交"
-	cat "$FETCH_ERR" >&2
+shallow_ok=0
+for attempt in 1 2 3; do
+	if git fetch -q --depth 1 origin "$FRR_COMMIT" 2>"$FETCH_ERR"; then
+		shallow_ok=1
+		break
+	fi
+	warn "浅取失败（第 $attempt/3 次）: $(tail -n 1 "$FETCH_ERR" 2>/dev/null)"
+	if [ "$attempt" -lt 3 ]; then
+		sleep 15
+	fi
+done
+if [ "$shallow_ok" != 1 ]; then
+	warn "改为过滤克隆 + 取该提交（网络不稳时会慢一些）"
 	git fetch -q --filter=blob:none --no-tags origin '+refs/heads/*:refs/remotes/origin/*' \
 		|| die "无法从 $FRR_REPO 获取引用"
 	git fetch -q origin "$FRR_COMMIT" || die "无法获取提交 $FRR_COMMIT"
