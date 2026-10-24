@@ -74,5 +74,7 @@ cur="$(git rev-parse HEAD)"
 [ -z "$(git status --porcelain)" ] || die "检出的工作树不干净"
 rm -f fetch.err
 
-printf 'FRR_REPO=%s\nFRR_COMMIT=%s\n' "$FRR_REPO" "$FRR_COMMIT" > .hr-baseline
+# 基线标记写在 .git/ 里：既不污染工作树（apply-patches 要求工作树干净），
+# 又跟着这棵源码树走，便于排查这棵树是怎么来的。
+printf 'FRR_REPO=%s\nFRR_COMMIT=%s\n' "$FRR_REPO" "$FRR_COMMIT" > "$DIR/.git/hr-baseline"
 log "完成: HEAD=$cur，文件数 $(git ls-files | wc -l)"
