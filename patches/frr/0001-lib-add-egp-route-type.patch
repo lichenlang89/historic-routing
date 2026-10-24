@@ -1,0 +1,58 @@
+From df10a318a1ceabe52c1fb721ad97fffe6a5f2d62 Mon Sep 17 00:00:00 2001
+From: Chenlang Li <Cc1580155hsg@163.com>
+Date: Sat, 24 Oct 2026 19:54:17 +0800
+Subject: [PATCH 1/5] lib: add egp route type
+
+---
+ lib/command.h       | 1 +
+ lib/route_types.txt | 3 +++
+ lib/subdir.am       | 3 +++
+ 3 files changed, 7 insertions(+)
+
+diff --git a/lib/command.h b/lib/command.h
+index fca6c5f66a..7524dc0a4d 100644
+--- a/lib/command.h
++++ b/lib/command.h
+@@ -184,6 +184,7 @@ enum node_type {
+ 	RPKI_VRF_NODE,  /* RPKI node for VRF */
+ 	PIM_NODE,		 /* PIM protocol mode */
+ 	PIM6_NODE,		 /* PIM protocol for IPv6 mode */
++	EGP_NODE, /* EGP configuration writer. */
+ 	NODE_TYPE_MAX, /* maximum */
+ };
+ /* clang-format on */
+diff --git a/lib/route_types.txt b/lib/route_types.txt
+index 098d5f6011..a02ec144b3 100644
+--- a/lib/route_types.txt
++++ b/lib/route_types.txt
+@@ -88,6 +88,7 @@ ZEBRA_ROUTE_VRRP,       vrrp,      vrrpd,  '-', 0, 0, 0,     "VRRP",          vr
+ ZEBRA_ROUTE_NHG,        zebra,     none,   '-', 0, 0, 0,     "Nexthop Group", none
+ ZEBRA_ROUTE_SRTE,       srte,      none,   '-', 0, 0, 0,     "SR-TE",         none
+ ZEBRA_ROUTE_TABLE_DIRECT,      table-direct,     zebra,  't', 1, 1, 0,     "Table-Direct",         zebra
++ZEBRA_ROUTE_EGP,        egp,       egpd,   'G', 1, 0, 1,     "EGP",           egpd
+ ZEBRA_ROUTE_ALL,        any,       none,   '-', 0, 0, 0,     "-",             none
+ 
+ 
+@@ -120,3 +121,5 @@ ZEBRA_ROUTE_VRRP, "Virtual Router Redundancy Protocol (VRRP)"
+ ZEBRA_ROUTE_OPENFABRIC, "OpenFabric Routing Protocol"
+ ZEBRA_ROUTE_NHG, "Zebra Nexthop Groups (NHG)"
+ ZEBRA_ROUTE_TABLE_DIRECT,  "Non-main Kernel Routing Table - Direct"
++
++ZEBRA_ROUTE_EGP, "Exterior Gateway Protocol (EGP)"
+diff --git a/lib/subdir.am b/lib/subdir.am
+index f6f802d559..cbfebe4447 100644
+--- a/lib/subdir.am
++++ b/lib/subdir.am
+@@ -589,6 +589,9 @@ DISTCLEANFILES += lib/command_lex.h \
+ 		  lib/command_parse.c
+ 
+ rt_enabled =
++if EGPD
++rt_enabled += --enabled egpd
++endif
+ 
+ if BABELD
+ rt_enabled += --enabled babeld
+-- 
+2.53.0.windows.3
+

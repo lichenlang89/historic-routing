@@ -1,0 +1,9 @@
+# 字节保真策略
+#
+# - 统一存 LF、检出 LF（core.autocrlf=false 已在仓库配置中设置）
+# - 协议源码必须与上游 blob 逐字节一致，任何换行转换都会破坏 SHA256 对照
+* text=auto eol=lf
+
+# 抓包与二进制证据不做任何转换
+*.pcap -text
+*.png -text

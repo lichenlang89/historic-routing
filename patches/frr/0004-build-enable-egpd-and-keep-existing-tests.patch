@@ -1,0 +1,95 @@
+From d98773ff26a7a05ad770a56ae993baf66778843d Mon Sep 17 00:00:00 2001
+From: Chenlang Li <Cc1580155hsg@163.com>
+Date: Sat, 24 Oct 2026 19:54:18 +0800
+Subject: [PATCH 4/5] build: enable egpd and keep existing tests
+
+---
+ Makefile.am           | 1 +
+ configure.ac          | 4 ++++
+ tests/subdir.am       | 5 +++++
+ tools/etc/frr/daemons | 1 +
+ tools/frrcommon.sh.in | 2 +-
+ 5 files changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/Makefile.am b/Makefile.am
+index 3a3c453883..9ca7fd2b85 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -209,6 +209,7 @@ include ldpd/subdir.am
+ include babeld/subdir.am
+ include eigrpd/subdir.am
+ include sharpd/subdir.am
++include egpd/subdir.am
+ include pimd/subdir.am
+ include pbrd/subdir.am
+ include staticd/subdir.am
+diff --git a/configure.ac b/configure.ac
+index 6f8084f436..f141bc293b 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -754,6 +754,7 @@ AC_ARG_ENABLE([pim6d],
+   AS_HELP_STRING([--disable-pim6d], [do not build pim6d]))
+ AC_ARG_ENABLE([pbrd],
+   AS_HELP_STRING([--disable-pbrd], [do not build pbrd]))
++AC_ARG_ENABLE([egpd], AS_HELP_STRING([--enable-egpd], [build experimental EGP daemon]))
+ AC_ARG_ENABLE([sharpd],
+   AS_HELP_STRING([--enable-sharpd], [build sharpd]))
+ AC_ARG_ENABLE([staticd],
+@@ -1887,6 +1888,8 @@ AS_IF([test "$enable_pbrd" != "no"], [
+   AC_DEFINE([HAVE_PBRD], [1], [pbrd])
+ ])
+ 
++AS_IF([test "$enable_egpd" = "yes"], [AC_DEFINE([HAVE_EGPD], [1], [egpd])])
++
+ AS_IF([test "$enable_sharpd" = "yes"], [
+   AC_DEFINE([HAVE_SHARPD], [1], [sharpd])
+ ])
+@@ -2830,6 +2833,7 @@ AM_CONDITIONAL([ISISD], [test "$enable_isisd" != "no"])
+ AM_CONDITIONAL([PIMD], [test "$enable_pimd" != "no"])
+ AM_CONDITIONAL([PIM6D], [test "$enable_pim6d" != "no"])
+ AM_CONDITIONAL([PBRD], [test "$enable_pbrd" != "no"])
++AM_CONDITIONAL([EGPD], [test "$enable_egpd" = "yes"])
+ AM_CONDITIONAL([SHARPD], [test "$enable_sharpd" = "yes"])
+ AM_CONDITIONAL([STATICD], [test "$enable_staticd" != "no"])
+ AM_CONDITIONAL([FABRICD], [test "$enable_fabricd" != "no"])
+diff --git a/tests/subdir.am b/tests/subdir.am
+index c8a68c0537..301cc819a1 100644
+--- a/tests/subdir.am
++++ b/tests/subdir.am
+@@ -78,3 +78,8 @@ include tests/ospf6d/subdir.am
+ include tests/pimd/subdir.am
+ include tests/zebra/subdir.am
+ include tests/lib/subdir.am
++
++if EGPD
++check_PROGRAMS += egpd/test_packet
++TESTS += egpd/test_packet
++endif
+diff --git a/tools/etc/frr/daemons b/tools/etc/frr/daemons
+index c4b10779ac..2ccf99b890 100644
+--- a/tools/etc/frr/daemons
++++ b/tools/etc/frr/daemons
+@@ -27,6 +27,7 @@ nhrpd=no
+ eigrpd=no
+ babeld=no
+ sharpd=no
++egpd=no
+ pbrd=no
+ bfdd=no
+ fabricd=no
+diff --git a/tools/frrcommon.sh.in b/tools/frrcommon.sh.in
+index ace31daab2..9b8199e17b 100755
+--- a/tools/frrcommon.sh.in
++++ b/tools/frrcommon.sh.in
+@@ -37,7 +37,7 @@ FRR_DEFAULT_PROFILE="@DFLT_NAME@" # traditional / datacenter
+ # - watchfrr does NOT belong in this list
+ # - The topotests attempt to mirror this so if you modify this order
+ #   go fix the topotests.
+-DAEMONS="mgmtd zebra bfdd bgpd ripd ripngd ospfd ospf6d isisd babeld pimd pim6d ldpd nhrpd eigrpd sharpd pbrd staticd fabricd vrrpd pathd"
++DAEMONS="mgmtd zebra bfdd bgpd ripd ripngd ospfd ospf6d isisd babeld pimd pim6d ldpd nhrpd eigrpd sharpd egpd pbrd staticd fabricd vrrpd pathd"
+ RELOAD_SCRIPT="$D_PATH/frr-reload.py"
+ 
+ #
+-- 
+2.53.0.windows.3
+

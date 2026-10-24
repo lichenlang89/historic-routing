@@ -1,0 +1,25 @@
+From e6e64e968d892fc24dc65a5c163e77dc188aa29d Mon Sep 17 00:00:00 2001
+From: Chenlang Li <Cc1580155hsg@163.com>
+Date: Sat, 24 Oct 2026 19:54:19 +0800
+Subject: [PATCH 5/5] lib: allow redistribute egp (optional)
+
+---
+ lib/log.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/lib/log.c b/lib/log.c
+index 6c35387e9c..4971381cbb 100644
+--- a/lib/log.c
++++ b/lib/log.c
+@@ -560,6 +560,8 @@ uint8_t proto_redistnum(int afi, const char *s)
+ 			return ZEBRA_ROUTE_STATIC;
+ 		else if (strmatch(s, "rip"))
+ 			return ZEBRA_ROUTE_RIP;
++		else if (strmatch(s, "egp"))
++			return ZEBRA_ROUTE_EGP;
+ 		else if (strmatch(s, "eigrp"))
+ 			return ZEBRA_ROUTE_EIGRP;
+ 		else if (strmatch(s, "ospf"))
+-- 
+2.53.0.windows.3
+

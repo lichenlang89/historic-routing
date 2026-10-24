@@ -1,0 +1,68 @@
+From e76627ae636360f6a84aee4534ee4e9cd6159c55 Mon Sep 17 00:00:00 2001
+From: Chenlang Li <Cc1580155hsg@163.com>
+Date: Sat, 24 Oct 2026 19:54:17 +0800
+Subject: [PATCH 3/5] vtysh: add egpd client and node
+
+---
+ vtysh/vtysh.c | 9 +++++++++
+ vtysh/vtysh.h | 3 ++-
+ 2 files changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/vtysh/vtysh.c b/vtysh/vtysh.c
+index 28bbe33f39..eee7701c4d 100644
+--- a/vtysh/vtysh.c
++++ b/vtysh/vtysh.c
+@@ -128,6 +128,7 @@ struct vtysh_client vtysh_client[] = {
+ 	{.name = "eigrpd", .flag = VTYSH_EIGRPD},
+ 	{.name = "babeld", .flag = VTYSH_BABELD},
+ 	{.name = "sharpd", .flag = VTYSH_SHARPD},
++	{.name = "egpd", .flag = VTYSH_EGPD},
+ 	{.name = "fabricd", .flag = VTYSH_FABRICD},
+ 	{.name = "pbrd", .flag = VTYSH_PBRD},
+ 	{.name = "staticd", .flag = VTYSH_STATICD},
+@@ -1172,6 +1173,13 @@ static struct cmd_node rip_node = {
+ 	.prompt = "%s(config-router)# ",
+ };
+ 
++static struct cmd_node egp_node = {
++	.name = "egp",
++	.node = EGP_NODE,
++	.parent_node = CONFIG_NODE,
++	.prompt = "%s(config-router)# ",
++};
++
+ static struct cmd_node isis_node = {
+ 	.name = "isis",
+ 	.node = ISIS_NODE,
+@@ -5356,6 +5364,7 @@ void vtysh_init_vty(void)
+ 	install_node(&bgp_srv6_node);
+ 	install_node(&bgp_ls_node);
+ 	install_node(&rip_node);
++	install_node(&egp_node);
+ 	install_node(&ripng_node);
+ 	install_node(&ospf_node);
+ 	install_node(&ospf6_node);
+diff --git a/vtysh/vtysh.h b/vtysh/vtysh.h
+index 07c6b4c3fb..eeff5481db 100644
+--- a/vtysh/vtysh.h
++++ b/vtysh/vtysh.h
+@@ -35,6 +35,7 @@ extern struct event_loop *master;
+ #define VTYSH_PATHD     0x80000
+ #define VTYSH_PIM6D     0x100000
+ #define VTYSH_MGMTD 0x200000
++#define VTYSH_EGPD 0x400000
+ 
+ #define VTYSH_RCV_BUF_MAX 16777216
+ 
+@@ -50,7 +51,7 @@ extern struct event_loop *master;
+ 		VTYSH_LDPD | VTYSH_BGPD | VTYSH_ISISD | VTYSH_PIMD |           \
+ 		VTYSH_PIM6D | VTYSH_NHRPD | VTYSH_EIGRPD | VTYSH_BABELD |      \
+ 		VTYSH_SHARPD | VTYSH_PBRD | VTYSH_STATICD | VTYSH_BFDD |       \
+-		VTYSH_FABRICD | VTYSH_VRRPD | VTYSH_PATHD | VTYSH_MGMTD
++		VTYSH_FABRICD | VTYSH_VRRPD | VTYSH_PATHD | VTYSH_MGMTD | VTYSH_EGPD
+ #define VTYSH_ACL_CONFIG                                                       \
+ 	VTYSH_BABELD | VTYSH_BGPD | VTYSH_EIGRPD | VTYSH_ISISD |               \
+ 		VTYSH_FABRICD | VTYSH_LDPD | VTYSH_NHRPD | VTYSH_OSPF6D |      \
+-- 
+2.53.0.windows.3
+

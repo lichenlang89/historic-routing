@@ -1,0 +1,39 @@
+From 0ae778811547e6fabc29a649263ad717cdd3ec69 Mon Sep 17 00:00:00 2001
+From: Chenlang Li <Cc1580155hsg@163.com>
+Date: Sat, 24 Oct 2026 19:54:17 +0800
+Subject: [PATCH 2/5] zebra: install egp routes with distance 140
+
+---
+ zebra/rt_netlink.c | 3 +++
+ zebra/zebra_rib.c  | 1 +
+ 2 files changed, 4 insertions(+)
+
+diff --git a/zebra/rt_netlink.c b/zebra/rt_netlink.c
+index 8bcb176240..7bf1466746 100644
+--- a/zebra/rt_netlink.c
++++ b/zebra/rt_netlink.c
+@@ -244,6 +244,9 @@ static inline bool is_selfroute(int proto)
+ int zebra2proto(int proto)
+ {
+ 	switch (proto) {
++	case ZEBRA_ROUTE_EGP:
++		proto = RTPROT_ZEBRA;
++		break;
+ 	case ZEBRA_ROUTE_BABEL:
+ 		proto = RTPROT_BABEL;
+ 		break;
+diff --git a/zebra/zebra_rib.c b/zebra/zebra_rib.c
+index 186a879072..cf7f51bbc8 100644
+--- a/zebra/zebra_rib.c
++++ b/zebra/zebra_rib.c
+@@ -166,6 +166,7 @@ static const struct {
+ 					META_QUEUE_BGP},
+ 	[ZEBRA_ROUTE_BABEL] = {ZEBRA_ROUTE_BABEL, ZEBRA_BABEL_DISTANCE_DEFAULT,
+ 			       META_QUEUE_NOTBGP},
++	[ZEBRA_ROUTE_EGP] = {ZEBRA_ROUTE_EGP, 140, META_QUEUE_NOTBGP},
+ 	[ZEBRA_ROUTE_SHARP] = {ZEBRA_ROUTE_SHARP, ZEBRA_SHARP_DISTANCE_DEFAULT,
+ 			       META_QUEUE_OTHER},
+ 	[ZEBRA_ROUTE_PBR] = {ZEBRA_ROUTE_PBR, ZEBRA_PBR_DISTANCE_DEFAULT,
+-- 
+2.53.0.windows.3
+
