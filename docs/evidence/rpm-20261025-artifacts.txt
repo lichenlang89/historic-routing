@@ -1,0 +1,216 @@
+# S8-A RPM 产物与检查记录（真实输出，未编辑）
+# 生成: 2026-10-25 (UTC 2026-10-24T22:55Z) / RHEL 10.1 x86_64 / rpm 4.19.1.1
+# 说明: 本文件由 scripts/package-rpm.sh 的产物 + rpm/rpmlint 命令输出直接拼接，
+#       源码提交 2262b0e5e8f75896807f6470d6c967bd79c873ea，FRR 基线 27f287be92…
+#       版本 0.1.1-0.1.dev2262b0e.el10 = 开发验证构建（未发布）。
+historic-routing RPM 产物（S8-A 开发验证构建，未发布）
+构建主机: <实验机> x86_64 / Red Hat Enterprise Linux 10.1 (Coughlan) / rpm 4.19.1.1
+构建时间(UTC): 2026-10-24T22:55:14Z
+
+== 文件名 / 大小 / SHA256
+04dcdc7701931153c8b71eadb262fb957ff34653a4c5651af2a2691c84574a7d  /root/hr-s8-rpm/RPMS/x86_64/historic-routing-runtime-0.1.1-0.1.dev2262b0e.el10.x86_64.rpm
+51be46f74158c1566474fce98d95e39ab4edabc267ef6609c9da4b43a9d783aa  /root/hr-s8-rpm/RPMS/x86_64/historic-routing-egp-0.1.1-0.1.dev2262b0e.el10.x86_64.rpm
+/root/hr-s8-rpm/RPMS/x86_64/historic-routing-runtime-0.1.1-0.1.dev2262b0e.el10.x86_64.rpm 1793431 bytes
+/root/hr-s8-rpm/RPMS/x86_64/historic-routing-egp-0.1.1-0.1.dev2262b0e.el10.x86_64.rpm 23118 bytes
+
+== rpm -qpi（头部摘要）
+Name        : historic-routing-runtime
+Version     : 0.1.1
+Release     : 0.1.dev2262b0e.el10
+Architecture: x86_64
+Install Date: (not installed)
+Group       : Unspecified
+Size        : 10364847
+License     : GPL-2.0-or-later
+Signature   : (none)
+Source RPM  : historic-routing-runtime-0.1.1-0.1.dev2262b0e.el10.src.rpm
+Build Date  : Sat 24 Oct 2026 06:33:54 PM EDT
+
+Name        : historic-routing-egp
+Version     : 0.1.1
+Release     : 0.1.dev2262b0e.el10
+Architecture: x86_64
+Install Date: (not installed)
+Group       : Unspecified
+Size        : 39712
+License     : GPL-2.0-or-later
+Signature   : (none)
+Source RPM  : historic-routing-runtime-0.1.1-0.1.dev2262b0e.el10.src.rpm
+Build Date  : Sat 24 Oct 2026 06:33:54 PM EDT
+
+== rpm -qpl（runtime）
+/opt/historic-routing/27f287be9
+/opt/historic-routing/27f287be9/RPM-BUILD-INFO.txt
+/opt/historic-routing/27f287be9/bin
+/opt/historic-routing/27f287be9/bin/vtysh
+/opt/historic-routing/27f287be9/etc
+/opt/historic-routing/27f287be9/etc/frr
+/opt/historic-routing/27f287be9/etc/frr/daemons
+/opt/historic-routing/27f287be9/etc/frr/frr.conf
+/opt/historic-routing/27f287be9/etc/frr/vtysh.conf
+/opt/historic-routing/27f287be9/lib
+/opt/historic-routing/27f287be9/lib/libfrr.so.0
+/opt/historic-routing/27f287be9/lib/libfrr.so.0.0.0
+/opt/historic-routing/27f287be9/run
+/opt/historic-routing/27f287be9/run/frr
+/opt/historic-routing/27f287be9/sbin
+/opt/historic-routing/27f287be9/sbin/zebra
+/opt/historic-routing/27f287be9/var
+/opt/historic-routing/27f287be9/var/lib
+/opt/historic-routing/27f287be9/var/lib/frr
+/usr/lib/.build-id
+/usr/lib/.build-id/47
+/usr/lib/.build-id/47/0d85e61e75e3c36ac949ee3a2d8868ccf9f65b
+/usr/lib/.build-id/69
+/usr/lib/.build-id/69/dd21511b3c96ae282a35e160cb60e3d2514caf
+/usr/lib/.build-id/fd
+/usr/lib/.build-id/fd/0cc9a9c4d3a4aeaebf70f8f78953805b2da43d
+/usr/lib/systemd/system/historic-routing-zebra.service
+/usr/share/doc/historic-routing-runtime
+/usr/share/doc/historic-routing-runtime/ARCHITECTURE.md
+/usr/share/doc/historic-routing-runtime/CHANGELOG.md
+/usr/share/doc/historic-routing-runtime/FIDELITY.md
+/usr/share/doc/historic-routing-runtime/PACKAGING.md
+/usr/share/doc/historic-routing-runtime/README.md
+/usr/share/licenses/historic-routing-runtime
+/usr/share/licenses/historic-routing-runtime/LICENSE
+
+== rpm -qpl（egp）
+/opt/historic-routing/27f287be9
+/opt/historic-routing/27f287be9/etc
+/opt/historic-routing/27f287be9/etc/frr
+/opt/historic-routing/27f287be9/etc/frr/egpd.conf
+/opt/historic-routing/27f287be9/sbin
+/opt/historic-routing/27f287be9/sbin/egpd
+/usr/lib/.build-id
+/usr/lib/.build-id/18
+/usr/lib/.build-id/18/ecb0ab2e5b2e55db513d5a9ad6fdfeeaf3c735
+/usr/lib/systemd/system/historic-routing-egpd.service
+/usr/share/doc/historic-routing-egp
+/usr/share/doc/historic-routing-egp/README.md
+
+== rpm -qpR（runtime）
+/bin/sh
+/bin/sh
+/bin/sh
+/bin/sh
+config(historic-routing-runtime) = 0.1.1-0.1.dev2262b0e.el10
+libatomic.so.1()(64bit)
+libc.so.6()(64bit)
+libc.so.6(GLIBC_2.14)(64bit)
+libc.so.6(GLIBC_2.17)(64bit)
+libc.so.6(GLIBC_2.2.5)(64bit)
+libc.so.6(GLIBC_2.25)(64bit)
+libc.so.6(GLIBC_2.3)(64bit)
+libc.so.6(GLIBC_2.3.2)(64bit)
+libc.so.6(GLIBC_2.3.4)(64bit)
+libc.so.6(GLIBC_2.32)(64bit)
+libc.so.6(GLIBC_2.33)(64bit)
+libc.so.6(GLIBC_2.34)(64bit)
+libc.so.6(GLIBC_2.38)(64bit)
+libc.so.6(GLIBC_2.4)(64bit)
+libc.so.6(GLIBC_2.6)(64bit)
+libc.so.6(GLIBC_2.7)(64bit)
+libc.so.6(GLIBC_2.9)(64bit)
+libc.so.6(GLIBC_ABI_DT_RELR)(64bit)
+libcap.so.2()(64bit)
+libcrypt.so.2()(64bit)
+libcrypt.so.2(XCRYPT_2.0)(64bit)
+libgcc_s.so.1()(64bit)
+libgcc_s.so.1(GCC_3.0)(64bit)
+libgcc_s.so.1(GCC_3.3.1)(64bit)
+libjson-c.so.5()(64bit)
+libjson-c.so.5(JSONC_0.14)(64bit)
+libjson-c.so.5(JSONC_PRIVATE)(64bit)
+libm.so.6()(64bit)
+libreadline.so.8()(64bit)
+libyang.so.2()(64bit)
+rpmlib(CompressedFileNames) <= 3.0.4-1
+rpmlib(FileDigests) <= 4.6.0-1
+rpmlib(PayloadFilesHavePrefix) <= 4.0-1
+rpmlib(PayloadIsZstd) <= 5.4.18-1
+rtld(GNU_HASH)
+
+== rpm -qpR（egp）
+config(historic-routing-egp) = 0.1.1-0.1.dev2262b0e.el10
+historic-routing-abi = 2262b0e-27f287be9
+historic-routing-runtime(x86-64) = 0.1.1-0.1.dev2262b0e.el10
+libc.so.6()(64bit)
+libc.so.6(GLIBC_2.17)(64bit)
+libc.so.6(GLIBC_2.2.5)(64bit)
+libc.so.6(GLIBC_2.3.4)(64bit)
+libc.so.6(GLIBC_2.34)(64bit)
+libc.so.6(GLIBC_2.38)(64bit)
+libc.so.6(GLIBC_2.4)(64bit)
+libc.so.6(GLIBC_ABI_DT_RELR)(64bit)
+rpmlib(CompressedFileNames) <= 3.0.4-1
+rpmlib(FileDigests) <= 4.6.0-1
+rpmlib(PayloadFilesHavePrefix) <= 4.0-1
+rpmlib(PayloadIsZstd) <= 5.4.18-1
+rtld(GNU_HASH)
+
+== rpm -qp --provides（runtime，节选）
+config(historic-routing-runtime) = 0.1.1-0.1.dev2262b0e.el10
+historic-routing-abi = 2262b0e-27f287be9
+historic-routing-abi-27f287be9 = 2262b0e-27f287be9
+historic-routing-runtime = 0.1.1-0.1.dev2262b0e.el10
+historic-routing-runtime(x86-64) = 0.1.1-0.1.dev2262b0e.el10
+
+== rpmlint 汇总
+checks: 30, packages: 2
+
+ 2 packages and 0 specfiles checked; 0 errors, 0 warnings, 57 filtered, 0 badness; has taken 0.9 s 
+
+== 包内 RPM-BUILD-INFO.txt
+# historic-routing RPM build info
+package_version=0.1.1-0.1.dev2262b0e.el10
+source_commit=2262b0e5e8f75896807f6470d6c967bd79c873ea
+frr_commit=27f287be9210d4024a140486b7b8ddd5eb41fe04
+abi=2262b0e-27f287be9
+prefix=/opt/historic-routing/27f287be9
+build_host=<实验机> x86_64
+built_at=2026-10-24T22:39:03Z
+---- fingerprint.txt ----
+# historic-routing build fingerprint
+GENERATED_AT=2026-10-24T22:39:03Z
+REPO_COMMIT=no-git
+FRR_REPO=https://github.com/FRRouting/frr
+FRR_COMMIT=27f287be9210d4024a140486b7b8ddd5eb41fe04
+FRR_DESCRIBE=10.9.0-dev
+FRR_SRC_TREE_DIRTY=13
+FRR_PATCHED_DIFF_SHA256=c0ef912c8c0e570a95ffbdc093a528545d88fde72f645007d558b9e2f93fd118
+OPTIONAL_PATCH_0005=disabled
+PATCH_0001-lib-add-egp-route-type.patch sha256=f1c4a7b88511c458f78e84e4371169572762b5c035f85a00c4aefe05789e167b
+PATCH_0002-zebra-install-egp-routes-with-distance-140.patch sha256=09c7697dfac59292c30f20d750efef647516948f5a7c60afc83a4604e1983212
+PATCH_0003-vtysh-add-egpd-client-and-node.patch sha256=051afd3d3c6fd583ab673465cecc1d5126647904a6b3c1caee24fc7955d6d276
+PATCH_0004-build-enable-egpd-and-keep-existing-tests.patch sha256=fe0cc298be589583aeadd57c5307ace85a084806b04fe35473332b6abc211e77
+PROTO_SRC_egpd.c_SHA256=bd5f722a76be985e85a73f25835e3b32801f4e5c9e62bbad372a1499728b911d
+PROTO_SRC_egp_packet.c_SHA256=0e1440f786645d7f09ba117e6063560cbab83ba0bedaaac06e3a8ef72c3bfd6e
+PROTO_SRC_egp_packet.h_SHA256=44318c88fbaa7e0dbfd21d9dc3be1d5a082b4625b6f40bb4b6d093c0ef86fbb7
+PROTO_SRC_test_packet.c_SHA256=556f859064d0c9c455ff1f3b56eee7686f85c10be72bd2280c2cd2767040e33e
+PROTO_SRC_egpd.subdir.am_SHA256=89e08e8c584c9c367813c1659c684aac1fe563e5b18f1d1307ff178cb4ff5f84
+PROTO_SRC_README.md_SHA256=57cc0d253efb9817d5e91ce290ec1f25ddad3f84eaa0c21aa4140de26f3680a5
+PROTO_SRC_lab.sh_SHA256=2c50a96398fab497f04232e46ddcf3c0a1b1865751527160cb193c01a3b3f39b
+PROTO_SRC_test_lab.py_SHA256=923350bacc3d8808321f767e002509f76a5b9109c0292ed10bbb2d1822e5eda3
+CC=14.4.1
+CC_VERSION=gcc (GCC) 14.4.1 20260724 (Red Hat 14.4.1-4)
+MAKE_JOBS=4
+CONFIGURE_ARGS=--prefix=/opt/historic-routing/27f287be9 --sysconfdir=/opt/historic-routing/27f287be9/etc --localstatedir=/opt/historic-routing/27f287be9/var --runstatedir=/opt/historic-routing/27f287be9/run --enable-user=root --enable-group=root --enable-vty-group=root --disable-doc --disable-protobuf --disable-ospfapi --disable-ospfclient --disable-isisd --disable-pimd --disable-pim6d --disable-ldpd --disable-nhrpd --disable-babeld --disable-pbrd --disable-fabricd --disable-vrrpd --disable-pathd --enable-egpd 
+INSTALL_PREFIX=/opt/historic-routing/27f287be9
+MAKE_RESULT=ok
+EGPD_TEST_PACKET=passed
+MAKE_CHECK_RC=2
+MAKE_CHECK_FAILED_DIRS=isisd pimd 
+MAKE_CHECK_SUMMARY=check-TESTS: 1/1 passed; make check rc=2: 仅在已 --disable 的模块 (isisd pimd ) 失败，14 failed, 514 passed, 5 skipped in 25.80s
+MAKE_DIST=ok: frr-10.9.0-dev.tar.gz (8.1M), egpd/ 全部文件在内
+PROTOCOL_EGP_BINARY_SHA256=b2ecfa48e71b6f475690c636e059873c2fa539dc59e813f55765a8d99b94af67
+ZEBRA_BINARY_SHA256=76ab2d8c07f8e98202a9e8fa4b61f2bfa72693a837ae4aacc1656b21da34f7e4
+VTYSH_BINARY_SHA256=c0e79f9327f9c7d5355336c10e8948726f7367e95056c3d37c426ae8c3d490a6
+PROTOCOLS=egp 
+PROTOCOL_EGP_ROUTE_TYPE_ID=32
+PROTOCOL_EGP_DISPLAY_CHAR=G
+PROTOCOL_EGP_DISTANCE=140
+PROTOCOL_EGP_VTYSH_BIT=0x400000
+PROTOCOL_EGP_DAEMON=egpd
+ZEBRA_ROUTE_ALL_ID=33
+ZEBRA_ROUTE_MAX=34

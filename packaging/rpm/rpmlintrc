@@ -1,0 +1,29 @@
+# rpmlint 过滤：只过滤"本包设计上刻意如此"的项，并逐条说明理由。
+# 其它任何 E/W 都不在这里放行——报告里能看到过滤前后的完整输出。
+#
+# 用法（scripts/package-rpm.sh 已自动带上）：
+#   rpmlint --rpmlintrc packaging/rpm/rpmlintrc *.rpm
+
+# 1) 安装到 /opt/historic-routing/<frr短提交>/ 是与系统 FRR 隔离的手段，
+#    rpmlint 按 FHS 偏好 /usr 而报 E。这里刻意选择 /opt（见 packaging/rpm/README.md §2）。
+addFilter("E: dir-or-file-in-opt")
+
+# 2) 二进制带 RUNPATH=$ORIGIN/../lib，用于在**自己的前缀**里找到同一次构建的 libfrr。
+#    rpmlint 对任何 rpath 都报 E；这里是 $ORIGIN 相对路径，不是绝对 /opt 路径，
+#    rpm 的 check-rpaths 也已通过（无 ERROR 0002）。
+addFilter("E: binary-or-shlib-defines-rpath")
+
+# 3) 配置放在 <prefix>/etc/frr/ 而不是 /etc：本包不得覆盖系统 /etc/frr，
+#    但仍需要 RPM 的 %config(noreplace) 语义来保护用户修改。
+addFilter("W: non-etc-or-var-file-marked-as-conffile")
+
+# 4) vtysh 的 setuid/setgroups 检查：vtysh 不含 setuid 逻辑（FRR 用 libfrr 的 privs
+#    机制在 daemon 侧降权），rpmlint 的启发式匹配到字符串而误报。
+addFilter("E: missing-call-to-setgroups-before-setuid")
+
+# 5) LICENSE 是 FRR 的 GPL-2.0 原文（逐字复制，未改）；FSF 地址是文本本身的旧地址。
+addFilter("E: incorrect-fsf-address")
+
+# 6) 拼写检查对中文描述里的英文专有名词/缩写误报
+#    （development / libfrr / .md 等词在 %description 中作为术语出现）。
+addFilter("E: spelling-error")

@@ -9,6 +9,16 @@
 
 ### Added
 
+- RPM 原生打包（S8-A，RHEL 10.1 x86_64，**开发验证构建，未发布**）：
+  `packaging/rpm/`（SPEC + 两个 systemd unit + `rpmlintrc` + `verify-rpm.sh` + README）、
+  `scripts/package-rpm.sh`；一个 SPEC 出 `historic-routing-runtime` 与
+  `historic-routing-egp` 两个子包，版本 `0.1.1-<n>.dev<源码短提交>.el10`，
+  安装到 `/opt/historic-routing/27f287be9`，与系统 FRR 完全隔离。
+- `scripts/build.sh` / `scripts/install.sh` 支持 `--destdir`（打包时的暂存安装），
+  `scripts/fetch-frr.sh` 支持 `HR_FRR_REPO`（离线镜像，提交与补丁哈希仍强制校验）。
+- RPM 依赖治理：私有 `libfrr.so.0` 不再进入系统 soname 命名空间
+  （`__provides_exclude_from` + `__requires_exclude`），二进制 RUNPATH 改为
+  `$ORIGIN/../lib`，不打包 `lib/frr/modules/*.so`。
 - 多协议架构（S7）：`protocols/<name>/PROTOCOL.meta` 作为唯一资源登记处，
   `scripts/check-allocations.sh` 检查路由类型/显示码/vtysh 位/daemon 名不重复且与补丁一致，
   `build.sh` / `verify.sh` 支持 `--protocols egp,ggp`，路由类型编号按登记顺序自动断言。

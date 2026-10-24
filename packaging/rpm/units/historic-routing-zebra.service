@@ -1,0 +1,29 @@
+[Unit]
+# SPDX-License-Identifier: GPL-2.0-or-later
+# historic-routing 的 zebra —— 与系统 frr.service 里的 zebra 互不兼容，不要同时运行。
+# 本 unit 只负责启动，不随包启用（包里没有任何 enable/start）。
+Description=historic-routing zebra (development build)
+Documentation=https://github.com/lichenlang89/historic-routing
+After=network.target
+ConditionPathExists=@PREFIX@/sbin/zebra
+
+[Service]
+Type=simple
+# socket/pid 都放在 @PREFIX@/run/frr（= 编译期 runstatedir），
+# 同前缀的 vtysh 不带参数即可连上（vtysh 默认找 runstatedir 下的 *.vty）。
+ExecStart=@PREFIX@/sbin/zebra \
+	-f @PREFIX@/etc/frr/frr.conf \
+	-i @PREFIX@/run/frr/zebra.pid \
+	-z @PREFIX@/run/frr/zserv.api \
+	--vty_socket @PREFIX@/run/frr \
+	-u root -g root
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=mixed
+Restart=on-failure
+RestartSec=2
+# 只写本项目前缀内的状态目录
+StateDirectory=
+RuntimeDirectory=
+
+[Install]
+WantedBy=multi-user.target

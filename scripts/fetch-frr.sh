@@ -32,6 +32,13 @@ done
 
 hr_require_cmd git
 hr_read_baseline
+# 离线/镜像构建：HR_FRR_REPO 可覆盖传输来源（内容仍由 $FRR_COMMIT + 补丁 SHA256 校验，
+# BASELINE 里的 FRR_COMMIT 不会变；使用了覆盖会写进日志与指纹）
+FRR_REPO_ORIG="$FRR_REPO"
+if [ -n "${HR_FRR_REPO:-}" ]; then
+	FRR_REPO="$HR_FRR_REPO"
+	log "WARN 源码来源被 HR_FRR_REPO 覆盖: $FRR_REPO_ORIG -> $FRR_REPO（提交仍须等于 BASELINE）"
+fi
 
 case "$DIR" in /*) ;; *) DIR="$(cd "$(dirname "$DIR")" 2>/dev/null && pwd || echo "$PWD")/$(basename "$DIR")" ;; esac
 

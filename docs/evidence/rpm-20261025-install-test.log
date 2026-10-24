@@ -1,0 +1,119 @@
+# S8-A 安装 / 运行 / 升级 / 卸载实测日志（真实输出）
+# 环境: RHEL 10.1 x86_64（唯一一台可用的干净测试机；未做跨机器复现）
+# 顺序: 清理 → 装 0.1 → verify-rpm.sh（10 项）→ soname 命名空间 → 文件交集 →
+#       systemd 起 zebra+egpd → EGP 双路由器 13 项 → 升级 0.2 → 降级 0.1 → 卸载
+
+########## 0. 清理上一轮的残留（仅本项目前缀） ##########
+清理前:
+/opt/historic-routing/27f287be9
+/opt/historic-routing/27f287be9/run
+/opt/historic-routing/27f287be9/run/frr
+/opt/historic-routing/27f287be9/run/frr/zserv.api
+/opt/historic-routing/27f287be9/run/frr/zebra.pid
+/opt/historic-routing/27f287be9/run/zserv.api
+/opt/historic-routing/27f287be9/run/zebra.pid
+/opt/historic-routing/27f287be9/etc
+/opt/historic-routing/27f287be9/etc/frr
+/opt/historic-routing/27f287be9/etc/frr/frr.conf.rpmsave
+清理后: 已删除
+
+########## 1. 产物指纹 ##########
+04dcdc7701931153c8b71eadb262fb957ff34653a4c5651af2a2691c84574a7d  /root/hr-s8-rpm/RPMS/x86_64/historic-routing-runtime-0.1.1-0.1.dev2262b0e.el10.x86_64.rpm
+51be46f74158c1566474fce98d95e39ab4edabc267ef6609c9da4b43a9d783aa  /root/hr-s8-rpm/RPMS/x86_64/historic-routing-egp-0.1.1-0.1.dev2262b0e.el10.x86_64.rpm
+-rw-r--r--. 1 root root   23118 Oct 24 18:39 /root/hr-s8-rpm/RPMS/x86_64/historic-routing-egp-0.1.1-0.1.dev2262b0e.el10.x86_64.rpm
+-rw-r--r--. 1 root root 1793431 Oct 24 18:39 /root/hr-s8-rpm/RPMS/x86_64/historic-routing-runtime-0.1.1-0.1.dev2262b0e.el10.x86_64.rpm
+--- runtime 依赖里的 libfrr（应为 0）
+0
+--- runtime 提供的 libfrr（应为 0）
+0
+
+########## 2. 干净安装 ##########
+Installed:
+  historic-routing-egp-0.1.1-0.1.dev2262b0e.el10.x86_64                         
+  historic-routing-runtime-0.1.1-0.1.dev2262b0e.el10.x86_64                     
+
+Complete!
+historic-routing-runtime-0.1.1-0.1.dev2262b0e.el10.x86_64
+historic-routing-egp-0.1.1-0.1.dev2262b0e.el10.x86_64
+
+########## 3. 验收脚本（10 项） ##########
+== RPM 安装验收（prefix=/opt/historic-routing/27f287be9）
+主机: <实验机> Red Hat Enterprise Linux 10.1 (Coughlan) x86_64
+
+PASS P1 两包已安装且版本一致  0.1.1-0.1.dev2262b0e.el10
+PASS P2 ABI 绑定一致                historic-routing-abi=2262b0e-27f287be9
+PASS P3 rpm -V 无差异                
+PASS P4 关键文件齐备              zebra/vtysh/egpd/libfrr
+PASS P5 RUNPATH 为 $ORIGIN 相对路径 $ORIGIN/../lib
+PASS P6 库依赖可解析              /opt/historic-routing/27f287be9/sbin/../lib/libfrr.so.0
+PASS P7 二进制可独立运行        zebra version 10.9.0-dev
+PASS P8 服务默认不启用           is-enabled: disabled disabled  / is-active: inactive
+PASS P9 系统 frr 包未被改         仅 /etc/frr 目录权限差异（安装前即存在；文件内容未变）
+PASS P10 前缀与系统路径隔离    /opt/historic-routing/27f287be9
+
+合计: PASS=10 FAIL=0 SKIP=0
+VERIFY_RC=0
+
+########## 4. soname 命名空间（最终包，安装后） ##########
+whatprovides libfrr.so.0()  -> frr-10.1-11.el10.x86_64
+whatprovides libfrrcares.so.0() -> frr-10.1-11.el10.x86_64
+runtime 的 Requires 里 libfrr 条数: 0
+egp 的 Requires 里 libfrr 条数: 0
+
+########## 5. 文件级交集（排除 build-id） ##########
+真实文件交集行数=0
+
+########## 6. systemd：手动起 zebra + egpd，vtysh 连接 ##########
+zebra start rc=0
+active
+FRRouting 10.9.0-dev (<实验机>) on Linux(6.12.0-124.8.1.el10_1.x86_64).
+Copyright 1996-2005 Kunihiro Ishiguro, et al.
+egpd start rc=0
+active
+ zebra egpd
+停止后: zebra=inactive egpd=inactive
+
+########## 7. EGP 双路由器实验（最终包前缀） ##########
+[22:49:48Z] lab   两端 EGP 邻居均已 Up（约 7s）
+[22:49:48Z] lab   实验就绪：./lab.sh status / ./lab.sh test / ./lab.sh vty 1
+汇总: 13 通过 / 0 失败 / 共 13 项
+[22:50:30Z] lab   清理完成（本实验资源已全部移除）
+
+########## 8. 升级到 0.2 再降回 0.1（最终包） ##########
+Upgraded:
+  historic-routing-egp-0.1.1-0.2.dev2262b0e.el10.x86_64                         
+  historic-routing-runtime-0.1.1-0.2.dev2262b0e.el10.x86_64                     
+Complete!
+historic-routing-runtime-0.1.1-0.2.dev2262b0e.el10.x86_64
+
+合计: PASS=10 FAIL=0 SKIP=0
+Downgraded:
+  historic-routing-egp-0.1.1-0.1.dev2262b0e.el10.x86_64                         
+  historic-routing-runtime-0.1.1-0.1.dev2262b0e.el10.x86_64                     
+Complete!
+historic-routing-runtime-0.1.1-0.1.dev2262b0e.el10.x86_64
+
+########## 9. 卸载并检查残留 ##########
+rpm -q: package historic-routing-runtime is not installed package historic-routing-egp is not installed 
+--- 前缀残留（应只有 run/ 与可能的 rpmsave）
+/opt/historic-routing/27f287be9
+/opt/historic-routing/27f287be9/run
+/opt/historic-routing/27f287be9/run/frr
+/opt/historic-routing/27f287be9/run/frr/zserv.api
+/opt/historic-routing/27f287be9/run/frr/zebra.pid
+/opt/historic-routing/27f287be9/run/frr/egpd.pid
+/opt/historic-routing/27f287be9/run/frr/egpd.vty
+/opt/historic-routing/27f287be9/run/egpd.log
+--- unit 残留
+ls: cannot access '/usr/lib/systemd/system/historic-routing-*.service': No such file or directory
+--- 系统 frr 文件哈希
+c7ab32fabb4e5918e2c423bf6f3247a122cecc0dfec7c8b3d97c2d29c6f9b5be  /etc/frr/daemons
+4cfba2d3141659a278dac6f77ced794748c1ac132866054a44d169022374d570  /etc/frr/frr.conf
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  /etc/frr/vtysh.conf
+--- 系统 frr 服务
+inactive
+disabled
+
+########## 10. 收尾 ##########
+容器: 
+网络: podman 

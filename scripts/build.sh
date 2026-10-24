@@ -15,6 +15,7 @@ usage() {
   --jobs N           并行度（默认: nproc）
   --build-root DIR   构建根目录（默认 <repo>/build）
   --prefix DIR       安装前缀（默认 <build-root>/prefix）
+  --destdir DIR      暂存安装根（打包用）：文件落 DIR/PREFIX，前缀里的路径仍是 --prefix
   --with-optional    启用可选补丁 0005（redistribute egp）
   --reuse-source     复用 <build-root>/frr-src（已存在且提交正确时）
   --skip-checks      跳过 make check（不推荐，会记录在指纹里）
@@ -34,13 +35,14 @@ BUILD_ROOT="$HR_REPO_ROOT/build"
 PREFIX=""
 HR_WITH_OPTIONAL=0
 HR_PROTOCOLS="${HR_PROTOCOLS:-egp}"
-REUSE=0; SKIP_CHECKS=0; SKIP_DIST=0; EXTRA_CONF=""
+REUSE=0; SKIP_CHECKS=0; SKIP_DIST=0; EXTRA_CONF=""; DESTDIR_ARG=""
 while [ $# -gt 0 ]; do
 	case "$1" in
 		--protocols)      HR_PROTOCOLS="${2:?}"; shift 2 ;;
 		--jobs)           JOBS="${2:?}"; shift 2 ;;
 		--build-root)     BUILD_ROOT="${2:?}"; shift 2 ;;
 		--prefix)         PREFIX="${2:?}"; shift 2 ;;
+		--destdir)        DESTDIR_ARG="${2:?}"; shift 2 ;;
 		--with-optional)  HR_WITH_OPTIONAL=1; shift ;;
 		--reuse-source)   REUSE=1; shift ;;
 		--skip-checks)    SKIP_CHECKS=1; shift ;;
@@ -60,8 +62,16 @@ export HR_LOG_FILE="$HR_BUILD_ROOT/logs/build.log"
 FRR_SRC="$HR_BUILD_ROOT/frr-src"
 FRR_BUILD="$HR_BUILD_ROOT/frr-build"
 [ -n "$PREFIX" ] || PREFIX="$HR_BUILD_ROOT/prefix"
-mkdir -p "$PREFIX"
-PREFIX="$(cd "$PREFIX" && pwd)"
+if [ -z "$DESTDIR_ARG" ]; then
+	mkdir -p "$PREFIX"
+	PREFIX="$(cd "$PREFIX" && pwd)"
+else
+	# 暂存安装（打包）：不碰真实前缀，文件落 $DESTDIR$PREFIX；
+	# --prefix 的值仍是最终安装路径（会编进二进制与 RUNPATH）
+	mkdir -p "$DESTDIR_ARG$PREFIX"
+	DESTDIR_ARG="$(cd "$DESTDIR_ARG" && pwd)"
+fi
+ART_ROOT="${DESTDIR_ARG}${PREFIX}"
 
 # 日志从这里开始（必须在 HR_LOG_FILE 确定之后调用）
 hr_log_start "$HR_LOG_FILE"
@@ -70,6 +80,7 @@ log "构建根目录 : $HR_BUILD_ROOT"
 log "源码目录   : $FRR_SRC"
 log "构建目录   : $FRR_BUILD"
 log "安装前缀   : $PREFIX"
+if [ -n "$DESTDIR_ARG" ]; then log "暂存根     : $DESTDIR_ARG（文件落 $ART_ROOT）"; fi
 log "并行度     : $JOBS"
 PROTOS="$(hr_proto_list)"
 [ -n "$PROTOS" ] || die "--protocols 解析结果为空"
@@ -364,7 +375,8 @@ fi
 log "========== [9/9] 安装与指纹"
 INSTALL_MANIFEST="$HR_BUILD_ROOT/logs/install-manifest.txt"
 HR_SCRIPT=install.sh "$HR_REPO_ROOT/scripts/install.sh" \
-	--build-dir "$FRR_BUILD" --prefix "$PREFIX" --manifest "$INSTALL_MANIFEST" \
+	--build-dir "$FRR_BUILD" --prefix "$PREFIX" --destdir "$DESTDIR_ARG" \
+	--manifest "$INSTALL_MANIFEST" \
 	|| { hr_tail_log "$HR_LOG_FILE" 40 >&2; die "安装失败"; }
 
 FP="$HR_BUILD_ROOT/fingerprint.txt"
@@ -395,10 +407,10 @@ FP="$HR_BUILD_ROOT/fingerprint.txt"
 	echo "MAKE_DIST=$DIST_RESULT"
 	for _p in $PROTOS; do
 		hr_proto_load "$_p"
-		echo "PROTOCOL_${P_NAME^^}_BINARY_SHA256=$(hr_sha256 "$PREFIX/sbin/$P_DAEMON")"
+		echo "PROTOCOL_${P_NAME^^}_BINARY_SHA256=$(hr_sha256 "$ART_ROOT/sbin/$P_DAEMON")"
 	done
-	echo "ZEBRA_BINARY_SHA256=$(hr_sha256 "$PREFIX/sbin/zebra")"
-	echo "VTYSH_BINARY_SHA256=$(hr_sha256 "$PREFIX/bin/vtysh")"
+	echo "ZEBRA_BINARY_SHA256=$(hr_sha256 "$ART_ROOT/sbin/zebra")"
+	echo "VTYSH_BINARY_SHA256=$(hr_sha256 "$ART_ROOT/bin/vtysh")"
 	echo "PROTOCOLS=$(printf '%s ' $PROTOS)"
 	for _p in $PROTOS; do
 		hr_proto_load "$_p"
