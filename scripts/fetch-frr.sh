@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-2.0-or-later
+# 拉取 patches/frr/BASELINE 指定提交的上游 FRR 源码到一个新建目录。
+# 不修改任何已存在的目录；只在自己创建的目录里工作。
+set -Eeuo pipefail
+HR_SCRIPT=fetch-frr.sh
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib.sh"
+
+usage() {
+	cat <<'EOF'
+用法: fetch-frr.sh --dir DIR [--force]
+
+  --dir DIR    目标目录（不存在则创建；已存在且提交正确则复用）
+  --force      目标目录存在但提交不对时，删掉重建（仅限 BUILD_ROOT 之下）
+
+环境变量:
+  HR_BUILD_ROOT   允许 --force 删除的根目录（必须设置）
+EOF
+}
+
+DIR=""
+FORCE=0
+while [ $# -gt 0 ]; do
+	case "$1" in
+		--dir)   DIR="${2:?}"; shift 2 ;;
+		--force) FORCE=1; shift ;;
+		-h|--help) usage; exit 0 ;;
+		*) die "未知参数: $1" ;;
+	esac
+done
+[ -n "$DIR" ] || { usage; die "必须指定 --dir"; }
+
+hr_require_cmd git
+hr_read_baseline
+
+case "$DIR" in /*) ;; *) DIR="$(cd "$(dirname "$DIR")" 2>/dev/null && pwd || echo "$PWD")/$(basename "$DIR")" ;; esac
+
+log "上游仓库 : $FRR_REPO"
+log "固定基线 : $FRR_COMMIT ($FRR_DESCRIBE)"
+log "目标目录 : $DIR"
+
+if [ -d "$DIR/.git" ]; then
+	cur="$(git -C "$DIR" rev-parse HEAD 2>/dev/null || echo none)"
+	if [ "$cur" = "$FRR_COMMIT" ]; then
+		if [ -n "$(git -C "$DIR" status --porcelain)" ]; then
+			die "$DIR 已存在于基线提交，但工作树有改动；请换目录或清理后再试"
+		fi
+		log "复用已存在的源码树（提交与基线一致，工作树干净）"
+		exit 0
+	fi
+	if [ "$FORCE" != 1 ]; then
+		die "$DIR 已存在但提交是 $cur，不是基线 $FRR_COMMIT（不自动删除；如需重建请加 --force）"
+	fi
+	hr_safe_rm_rf "$DIR" "$(basename "$DIR")"
+fi
+
+mkdir -p "$DIR"
+cd "$DIR"
+git init -q .
+git remote add origin "$FRR_REPO"
+
+log "尝试浅取单个提交（--depth 1）"
+if ! git fetch -q --depth 1 origin "$FRR_COMMIT" 2>fetch.err; then
+	warn "浅取单个提交失败，改为过滤克隆 + 取该提交"
+	cat fetch.err >&2
+	git fetch -q --filter=blob:none --no-tags origin '+refs/heads/*:refs/remotes/origin/*' \
+		|| die "无法从 $FRR_REPO 获取引用"
+	git fetch -q origin "$FRR_COMMIT" || die "无法获取提交 $FRR_COMMIT"
+fi
+git checkout -q --detach FETCH_HEAD 2>/dev/null || git checkout -q --detach "$FRR_COMMIT"
+
+cur="$(git rev-parse HEAD)"
+[ "$cur" = "$FRR_COMMIT" ] || die "检出的提交 $cur 与基线 $FRR_COMMIT 不一致"
+[ -z "$(git status --porcelain)" ] || die "检出的工作树不干净"
+rm -f fetch.err
+
+printf 'FRR_REPO=%s\nFRR_COMMIT=%s\n' "$FRR_REPO" "$FRR_COMMIT" > .hr-baseline
+log "完成: HEAD=$cur，文件数 $(git ls-files | wc -l)"
