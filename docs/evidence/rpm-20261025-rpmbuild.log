@@ -1,0 +1,449 @@
+# S8-A rpmbuild 完整日志（真实输出，442 行）
+# 命令: ./scripts/package-rpm.sh --topdir /root/hr-s8-rpm --frr-repo file:///root/frr-mirror.git
+# 说明: 源码 tarball 由 git archive（提交 2b2c681，工作树干净）生成；%build 里真跑
+#       scripts/build.sh：[1/9] fetch 固定 FRR → [2/9] 打补丁 → [3/9] 集成协议源码 →
+#       [4/9] bootstrap → [5/9] configure → [6/9] 编译 → [7/9] egpd/test_packet →
+#       [8/9] make check（14 项已知失败保留 rc=2）→ make dist → [9/9] 暂存安装 + 指纹。
+# 关键行: EGDP_TEST_PACKET=passed / MAKE_CHECK_RC=2 / PROTOCOLS=egp / REPO_COMMIT=2b2c681…
+setting SOURCE_DATE_EPOCH=1792886400
+Executing(%prep): /bin/sh -e /var/tmp/rpm-tmp.zIjgIf
++ umask 022
++ cd /root/hr-s8-rpm/BUILD
++ cd /root/hr-s8-rpm/BUILD
++ rm -rf historic-routing-0.1.1
++ /usr/lib/rpm/rpmuncompress -x /root/hr-s8-rpm/SOURCES/historic-routing-0.1.1.tar.gz
++ STATUS=0
++ '[' 0 -ne 0 ']'
++ cd historic-routing-0.1.1
++ rm -rf /root/hr-s8-rpm/BUILD/historic-routing-0.1.1-SPECPARTS
++ /usr/bin/mkdir -p /root/hr-s8-rpm/BUILD/historic-routing-0.1.1-SPECPARTS
++ /usr/bin/chmod -Rf a+rX,u+w,g-w,o-w .
++ RPM_EC=0
+++ jobs -p
++ exit 0
+Executing(%build): /bin/sh -e /var/tmp/rpm-tmp.tpt6Aj
++ umask 022
++ cd /root/hr-s8-rpm/BUILD
++ CFLAGS='-O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1  -m64 -march=x86-64-v3 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2   '
++ export CFLAGS
++ CXXFLAGS='-O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1  -m64 -march=x86-64-v3 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2   '
++ export CXXFLAGS
++ FFLAGS='-O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1  -m64 -march=x86-64-v3 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2   -I/usr/lib64/gfortran/modules '
++ export FFLAGS
++ FCFLAGS='-O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1  -m64 -march=x86-64-v3 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2   -I/usr/lib64/gfortran/modules '
++ export FCFLAGS
++ VALAFLAGS=-g
++ export VALAFLAGS
++ LDFLAGS='-Wl,-z,relro -Wl,--as-needed  -Wl,-z,pack-relative-relocs -Wl,-z,now -specs=/usr/lib/rpm/redhat/redhat-hardened-ld -specs=/usr/lib/rpm/redhat/redhat-hardened-ld-errors -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1  -Wl,--build-id=sha1 -specs=/usr/lib/rpm/redhat/redhat-package-notes '
++ export LDFLAGS
++ LT_SYS_LIBRARY_PATH=/usr/lib64:
++ export LT_SYS_LIBRARY_PATH
++ CC=gcc
++ export CC
++ CXX=g++
++ export CXX
++ cd historic-routing-0.1.1
++ CFLAGS='-O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1  -m64 -march=x86-64-v3 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2   '
++ export CFLAGS
++ CXXFLAGS='-O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1  -m64 -march=x86-64-v3 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2   '
++ export CXXFLAGS
++ FFLAGS='-O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1  -m64 -march=x86-64-v3 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2   -I/usr/lib64/gfortran/modules '
++ export FFLAGS
++ FCFLAGS='-O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1  -m64 -march=x86-64-v3 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2   -I/usr/lib64/gfortran/modules '
++ export FCFLAGS
++ VALAFLAGS=-g
++ export VALAFLAGS
++ LDFLAGS='-Wl,-z,relro -Wl,--as-needed  -Wl,-z,pack-relative-relocs -Wl,-z,now -specs=/usr/lib/rpm/redhat/redhat-hardened-ld -specs=/usr/lib/rpm/redhat/redhat-hardened-ld-errors -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1  -Wl,--build-id=sha1 -specs=/usr/lib/rpm/redhat/redhat-package-notes '
++ export LDFLAGS
++ LT_SYS_LIBRARY_PATH=/usr/lib64:
++ export LT_SYS_LIBRARY_PATH
++ CC=gcc
++ export CC
++ CXX=g++
++ export CXX
++ export RPM_ARCH=x86_64
++ RPM_ARCH=x86_64
++ export HR_SOURCE_COMMIT=2b2c681b30a65785daece86045f70160b0d9ff8c
++ HR_SOURCE_COMMIT=2b2c681b30a65785daece86045f70160b0d9ff8c
++ test -x scripts/build.sh
++ '[' -n file:///root/frr-mirror.git ']'
++ export HR_FRR_REPO=file:///root/frr-mirror.git
++ HR_FRR_REPO=file:///root/frr-mirror.git
++ echo '源码来源覆盖: file:///root/frr-mirror.git（提交仍须等于 BASELINE）'
+源码来源覆盖: file:///root/frr-mirror.git（提交仍须等于 BASELINE）
+++ sed -n 's/^FRR_COMMIT=//p' patches/frr/BASELINE
+++ head -1
++ baseline_commit=27f287be9210d4024a140486b7b8ddd5eb41fe04
++ test 27f287be9210d4024a140486b7b8ddd5eb41fe04 = 27f287be9210d4024a140486b7b8ddd5eb41fe04
+++ _strip_lto '-O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1  -m64 -march=x86-64-v3 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2   '
+++ printf %s '-O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1  -m64 -march=x86-64-v3 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2   '
+++ sed -e 's/ -flto=auto//g' -e 's/ -ffat-lto-objects//g' -e 's/ -flto=[a-z0-9]*//g' -e 's/ -flto//g' -e 's/^ *//' -e 's/ *$//'
++ CFLAGS='-O2 -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1  -m64 -march=x86-64-v3 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2'
+++ _strip_lto '-O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1  -m64 -march=x86-64-v3 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2   '
+++ printf %s '-O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1  -m64 -march=x86-64-v3 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2   '
+++ sed -e 's/ -flto=auto//g' -e 's/ -ffat-lto-objects//g' -e 's/ -flto=[a-z0-9]*//g' -e 's/ -flto//g' -e 's/^ *//' -e 's/ *$//'
++ CXXFLAGS='-O2 -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1  -m64 -march=x86-64-v3 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2'
+++ _strip_lto '-Wl,-z,relro -Wl,--as-needed  -Wl,-z,pack-relative-relocs -Wl,-z,now -specs=/usr/lib/rpm/redhat/redhat-hardened-ld -specs=/usr/lib/rpm/redhat/redhat-hardened-ld-errors -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1  -Wl,--build-id=sha1 -specs=/usr/lib/rpm/redhat/redhat-package-notes '
+++ printf %s '-Wl,-z,relro -Wl,--as-needed  -Wl,-z,pack-relative-relocs -Wl,-z,now -specs=/usr/lib/rpm/redhat/redhat-hardened-ld -specs=/usr/lib/rpm/redhat/redhat-hardened-ld-errors -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1  -Wl,--build-id=sha1 -specs=/usr/lib/rpm/redhat/redhat-package-notes '
+++ sed -e 's/ -flto=auto//g' -e 's/ -ffat-lto-objects//g' -e 's/ -flto=[a-z0-9]*//g' -e 's/ -flto//g' -e 's/^ *//' -e 's/ *$//'
++ LDFLAGS='-Wl,-z,relro -Wl,--as-needed  -Wl,-z,pack-relative-relocs -Wl,-z,now -specs=/usr/lib/rpm/redhat/redhat-hardened-ld -specs=/usr/lib/rpm/redhat/redhat-hardened-ld-errors -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1  -Wl,--build-id=sha1 -specs=/usr/lib/rpm/redhat/redhat-package-notes'
++ export CFLAGS CXXFLAGS LDFLAGS
++ ./scripts/build.sh --jobs 4 --build-root /root/hr-s8-rpm/BUILD/hr-build --prefix /opt/historic-routing/27f287be9 --destdir /root/hr-s8-rpm/BUILD/hr-build/dest --protocols egp
+[23:34:50Z] build.sh               ===== 日志文件: /root/hr-s8-rpm/BUILD/hr-build/logs/build.log =====
+[23:34:50Z] build.sh               构建根目录 : /root/hr-s8-rpm/BUILD/hr-build
+[23:34:50Z] build.sh               源码目录   : /root/hr-s8-rpm/BUILD/hr-build/frr-src
+[23:34:50Z] build.sh               构建目录   : /root/hr-s8-rpm/BUILD/hr-build/frr-build
+[23:34:50Z] build.sh               安装前缀   : /opt/historic-routing/27f287be9
+[23:34:50Z] build.sh               暂存根     : /root/hr-s8-rpm/BUILD/hr-build/dest（文件落 /root/hr-s8-rpm/BUILD/hr-build/dest/opt/historic-routing/27f287be9）
+[23:34:50Z] build.sh               并行度     : 4
+[23:34:50Z] build.sh               协议       : egp 
+[23:34:50Z] build.sh               ========== [0/9] 前置检查
+[23:34:50Z] build.sh                 pkg-config: libyang 2.1.148
+[23:34:51Z] build.sh                 pkg-config: json-c 0.18
+[23:34:51Z] build.sh                 gcc: gcc (GCC) 14.4.1 20260724 (Red Hat 14.4.1-4)
+[23:34:51Z] build.sh                 pytest: 7.4.3
+[23:34:51Z] build.sh               ========== [1/9] 获取固定基线 FRR
+[23:34:51Z] fetch-frr.sh           ===== 日志文件: /root/hr-s8-rpm/BUILD/hr-build/logs/build.log =====
+[23:34:51Z] fetch-frr.sh           WARN 源码来源被 HR_FRR_REPO 覆盖: https://github.com/FRRouting/frr -> file:///root/frr-mirror.git（提交仍须等于 BASELINE）
+[23:34:51Z] fetch-frr.sh           上游仓库 : file:///root/frr-mirror.git
+[23:34:51Z] fetch-frr.sh           固定基线 : 27f287be9210d4024a140486b7b8ddd5eb41fe04 (10.9.0-dev)
+[23:34:51Z] fetch-frr.sh           目标目录 : /root/hr-s8-rpm/BUILD/hr-build/frr-src
+[23:34:51Z] fetch-frr.sh           尝试浅取单个提交（--depth 1）
+[23:34:54Z] fetch-frr.sh           完成: HEAD=27f287be9210d4024a140486b7b8ddd5eb41fe04，文件数 9587
+[23:34:54Z] build.sh               ========== [2/9] 应用 FRR 适配补丁
+[23:34:54Z] apply-patches.sh       ===== 日志文件: /root/hr-s8-rpm/BUILD/hr-build/logs/build.log =====
+[23:34:54Z] apply-patches.sh       FRR 树: /root/hr-s8-rpm/BUILD/hr-build/frr-src
+[23:34:54Z] apply-patches.sh       基线: 27f287be9210d4024a140486b7b8ddd5eb41fe04
+[23:34:54Z] apply-patches.sh       补丁数: 4（可选补丁 未启用）
+[23:34:54Z] apply-patches.sh       [1/4] 0001-lib-add-egp-route-type.patch  sha256=f1c4a7b88511c458
+[23:34:54Z] apply-patches.sh       [2/4] 0002-zebra-install-egp-routes-with-distance-140.patch  sha256=09c7697dfac59292
+[23:34:54Z] apply-patches.sh       [3/4] 0003-vtysh-add-egpd-client-and-node.patch  sha256=051afd3d3c6fd583
+[23:34:54Z] apply-patches.sh       [4/4] 0004-build-enable-egpd-and-keep-existing-tests.patch  sha256=fe0cc298be589583
+[23:34:54Z] apply-patches.sh       校验补丁效果
+[23:34:54Z] apply-patches.sh       期望改动文件数: 12，实际: 12
+[23:34:54Z] apply-patches.sh       校验协议 egp 的集成点（ZEBRA_ROUTE_EGP / 'G' / VTYSH_EGPD=0x400000 / egpd）
+[23:34:54Z] apply-patches.sh       补丁应用完成：12 个文件被修改
+[23:34:54Z] build.sh               ========== [3/9] 集成协议源码
+[23:34:54Z] integrate-sources.sh   ===== 日志文件: /root/hr-s8-rpm/BUILD/hr-build/logs/build.log =====
+[23:34:54Z] integrate-sources.sh   === 协议 egp -> /root/hr-s8-rpm/BUILD/hr-build/frr-src/egpd
+[23:34:54Z] integrate-sources.sh     + egpd.c  sha256=bd5f722a76be985e
+[23:34:54Z] integrate-sources.sh     + egp_packet.c  sha256=0e1440f786645d7f
+[23:34:54Z] integrate-sources.sh     + egp_packet.h  sha256=44318c88fbaa7e0d
+[23:34:54Z] integrate-sources.sh     + test_packet.c  sha256=556f859064d0c9c4
+[23:34:54Z] integrate-sources.sh     + subdir.am  sha256=89e08e8c584c9c36
+[23:34:54Z] integrate-sources.sh     + README.md  sha256=57cc0d253efb9817
+[23:34:54Z] integrate-sources.sh     + lab.sh  sha256=2c50a96398fab497
+[23:34:54Z] integrate-sources.sh     + test_lab.py  sha256=923350bacc3d8808
+[23:34:54Z] integrate-sources.sh     文件集合校验通过（8 个）
+[23:34:54Z] integrate-sources.sh   源码集成完成
+[23:34:54Z] build.sh               ========== [4/9] 生成构建系统（bootstrap）
+[23:35:04Z] build.sh               ========== [5/9] configure
+[23:35:32Z] build.sh                 HAVE_EGPD + rt_enabled(--enabled egpd): 已生成
+[23:35:32Z] build.sh               ========== [5b/9] 路由类型 / TESTS 注册校验
+[23:35:32Z] build.sh                 route_types.h 尚未生成（make 时生成），稍后再校验
+[23:35:32Z] build.sh                 Makefile: TESTS = $(am__EXEEXT_45) $(am__EXEEXT_13)
+[23:35:32Z] build.sh                 egpd/test_packet 的 automake 变量: am__EXEEXT_13
+[23:35:32Z] build.sh                 egpd/test_packet 已注册进 TESTS（经 am__EXEEXT_13）
+# TESTS 累加语义 A/B（GNU make，复刻 Makefile.am 的 include 顺序：pceplib 在 tests 之前）
+== pceplib/test/subdir.am 里的赋值（上游原样）
+9:TESTS = $(check_SCRIPTS)
+101:TESTS += $(check_SCRIPTS)
+== tests/subdir.am 里本项目新增的注册
+83:check_PROGRAMS += egpd/test_packet
+84:TESTS += egpd/test_packet
+== 旧写法（原 fork 的 TESTS =）
+OLD=egpd/test_packet
+== 新写法（本补丁的 TESTS +=）
+NEW=pcep_msg_tests pcep_pcc_api_tests egpd/test_packet
+[23:35:32Z] build.sh               ========== [6/9] 编译
+[23:38:07Z] build.sh                 OK egpd/egpd
+[23:38:07Z] build.sh                 OK zebra/zebra
+[23:38:07Z] build.sh                 OK vtysh/vtysh
+[23:38:07Z] build.sh                 ZEBRA_ROUTE_EGP=32（登记顺序第 1 个）
+[23:38:07Z] build.sh                 ZEBRA_ROUTE_ALL=33, ZEBRA_ROUTE_MAX=34
+[23:38:07Z] build.sh               ========== [7/9] 单元测试 egpd/test_packet（协议 egp）
+[23:38:08Z] build.sh                 egpd/test_packet:  tests passed
+########## egpd/test_packet
+EGP codec: golden wire format, bounds, checksum and unaligned tests passed
+[23:38:08Z] build.sh               ========== [8/9] make check（8a: TESTS 门禁 / 8b: 完整套件）
+[23:38:08Z] build.sh                 [8a] make check-TESTS
+[23:39:28Z] build.sh                 [8a] 1 个单元测试 PASS（TOTAL=1 PASS=1 FAIL=0）
+    PASS: egpd/test_packet
+[23:39:28Z] build.sh                 [8b] make check（含上游 pytest 套件）
+----- /root/hr-s8-rpm/BUILD/hr-build/logs/make-check.log (末 40 行) -----
+
+../../frr-src/tests/helpers/python/frrtest.py:92: AttributeError
+_________________ TestPimJpEncode.test_sgrpt_prune_overflow_OK _________________
+
+self = <test_pim_jp_encode.TestPimJpEncode object at 0x7f1deb9a0860>
+
+    def testfunction(self):
+        self._run_tests()
+>       result = self.testresults[matchfunction]
+E       AttributeError: 'TestPimJpEncode' object has no attribute 'testresults'
+
+../../frr-src/tests/helpers/python/frrtest.py:92: AttributeError
+_____________________ TestPimJpEncode.test_exit_cleanly_2 ______________________
+
+self = <test_pim_jp_encode.TestPimJpEncode object at 0x7f1deb9a0980>
+
+    def testfunction(self):
+        self._run_tests()
+>       result = self.testresults[matchfunction]
+E       AttributeError: 'TestPimJpEncode' object has no attribute 'testresults'
+
+../../frr-src/tests/helpers/python/frrtest.py:92: AttributeError
+- generated xml file: /root/hr-s8-rpm/BUILD/hr-build/frr-build/tests/tests.xml -
+=========================== short test summary info ============================
+FAILED ../../frr-src/tests/isisd/test_fuzz_isis_tlv.py::TestFuzzIsisTLV::test_exit_cleanly
+FAILED ../../frr-src/tests/isisd/test_isis_lspdb.py::TestIsisLSPDB::test_exit_cleanly
+FAILED ../../frr-src/tests/isisd/test_isis_remove_excess_adjs.py::TestIsisRemoveExcessAdjs::test_exit_cleanly
+FAILED ../../frr-src/tests/isisd/test_isis_spf.py::TestIsisSPF::test_refout
+FAILED ../../frr-src/tests/isisd/test_isis_tlv_ext_reach.py::TestIsisTlvExtReach::test_exit_cleanly
+FAILED ../../frr-src/tests/isisd/test_isis_vertex_queue.py::TestIsisVertexQueue::test_exit_cleanly
+FAILED ../../frr-src/tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_exit_cleanly
+FAILED ../../frr-src/tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_sgrpt_prune_with_sg_join_OK
+FAILED ../../frr-src/tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_sgrpt_prune_with_sg_join_and_prune_OK
+FAILED ../../frr-src/tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_sgrpt_prune_split_records_OK
+FAILED ../../frr-src/tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_sgrpt_prune_split_after_joins_OK
+FAILED ../../frr-src/tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_sgrpt_prune_same_record_as_starg_join_OK
+FAILED ../../frr-src/tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_sgrpt_prune_overflow_OK
+FAILED ../../frr-src/tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_exit_cleanly_2
+================== 14 failed, 514 passed, 5 skipped in 20.91s ==================
+make: *** [Makefile:20320: tests/tests.xml] Error 1
+--------------------------------
+[23:39:50Z] build.sh                 被禁用的模块: doc protobuf ospfapi ospfclient isisd pimd pim6d ldpd nhrpd babeld pbrd fabricd vrrpd pathd 
+[23:39:50Z] build.sh                 失败的测试目录: isisd pimd 
+[23:39:50Z] build.sh                 [8b] 所有失败都属于已 --disable 的模块（isisd pimd ），判定为已知限制
+[23:39:50Z] build.sh                 执行 make dist
+[23:40:00Z] build.sh                 ok: frr-10.9.0-dev.tar.gz (8.1M), egpd/ 全部文件在内
+[23:40:00Z] build.sh               ========== [9/9] 安装与指纹
+[23:40:00Z] install.sh             ===== 日志文件: /root/hr-s8-rpm/BUILD/hr-build/logs/build.log =====
+[23:40:00Z] install.sh             构建目录: /root/hr-s8-rpm/BUILD/hr-build/frr-build
+[23:40:00Z] install.sh             安装前缀: /opt/historic-routing/27f287be9
+[23:40:00Z] install.sh             暂存根  : /root/hr-s8-rpm/BUILD/hr-build/dest（安装到 /root/hr-s8-rpm/BUILD/hr-build/dest/opt/historic-routing/27f287be9）
+[23:40:00Z] install.sh             执行 make install
+[23:40:03Z] install.sh             校验安装产物
+[23:40:03Z] install.sh               OK sbin/zebra
+[23:40:03Z] install.sh               OK sbin/staticd
+[23:40:03Z] install.sh               OK bin/vtysh
+[23:40:03Z] install.sh               OK sbin/egpd
+[23:40:03Z] install.sh               OK lib/libfrr.so.0.0.0
+[23:40:03Z] install.sh             校验动态库依赖（ldd）
+[23:40:03Z] install.sh               egpd 的动态库全部可解析
+sha256sum: /opt/historic-routing/27f287be9/sbin/zebra: No such file or directory
+sha256sum: /opt/historic-routing/27f287be9/bin/vtysh: No such file or directory
+sha256sum: /opt/historic-routing/27f287be9/sbin/egpd: No such file or directory
+[23:40:03Z] install.sh             清单: /root/hr-s8-rpm/BUILD/hr-build/logs/install-manifest.txt
+[23:40:03Z] install.sh             安装完成：/root/hr-s8-rpm/BUILD/hr-build/dest/opt/historic-routing/27f287be9
+[23:40:04Z] build.sh               指纹: /root/hr-s8-rpm/BUILD/hr-build/fingerprint.txt
+[23:40:04Z] build.sh               ================ 构建成功 ================
+# historic-routing build fingerprint
+GENERATED_AT=2026-10-24T23:40:03Z
+REPO_COMMIT=2b2c681b30a65785daece86045f70160b0d9ff8c
+REPO_COMMIT_SOURCE=env
+FRR_REPO=https://github.com/FRRouting/frr
+FRR_REPO_EFFECTIVE=file:///root/frr-mirror.git
+FRR_COMMIT=27f287be9210d4024a140486b7b8ddd5eb41fe04
+FRR_DESCRIBE=10.9.0-dev
+FRR_SRC_TREE_DIRTY=13
+FRR_PATCHED_DIFF_SHA256=c0ef912c8c0e570a95ffbdc093a528545d88fde72f645007d558b9e2f93fd118
+OPTIONAL_PATCH_0005=disabled
+PATCH_0001-lib-add-egp-route-type.patch sha256=f1c4a7b88511c458f78e84e4371169572762b5c035f85a00c4aefe05789e167b
+PATCH_0002-zebra-install-egp-routes-with-distance-140.patch sha256=09c7697dfac59292c30f20d750efef647516948f5a7c60afc83a4604e1983212
+PATCH_0003-vtysh-add-egpd-client-and-node.patch sha256=051afd3d3c6fd583ab673465cecc1d5126647904a6b3c1caee24fc7955d6d276
+PATCH_0004-build-enable-egpd-and-keep-existing-tests.patch sha256=fe0cc298be589583aeadd57c5307ace85a084806b04fe35473332b6abc211e77
+PROTO_SRC_egpd.c_SHA256=bd5f722a76be985e85a73f25835e3b32801f4e5c9e62bbad372a1499728b911d
+PROTO_SRC_egp_packet.c_SHA256=0e1440f786645d7f09ba117e6063560cbab83ba0bedaaac06e3a8ef72c3bfd6e
+PROTO_SRC_egp_packet.h_SHA256=44318c88fbaa7e0dbfd21d9dc3be1d5a082b4625b6f40bb4b6d093c0ef86fbb7
+PROTO_SRC_test_packet.c_SHA256=556f859064d0c9c455ff1f3b56eee7686f85c10be72bd2280c2cd2767040e33e
+PROTO_SRC_egpd.subdir.am_SHA256=89e08e8c584c9c367813c1659c684aac1fe563e5b18f1d1307ff178cb4ff5f84
+PROTO_SRC_README.md_SHA256=57cc0d253efb9817d5e91ce290ec1f25ddad3f84eaa0c21aa4140de26f3680a5
+PROTO_SRC_lab.sh_SHA256=2c50a96398fab497f04232e46ddcf3c0a1b1865751527160cb193c01a3b3f39b
+PROTO_SRC_test_lab.py_SHA256=923350bacc3d8808321f767e002509f76a5b9109c0292ed10bbb2d1822e5eda3
+CC=14.4.1
+CC_VERSION=gcc (GCC) 14.4.1 20260724 (Red Hat 14.4.1-4)
+MAKE_JOBS=4
+CONFIGURE_ARGS=--prefix=/opt/historic-routing/27f287be9 --sysconfdir=/opt/historic-routing/27f287be9/etc --localstatedir=/opt/historic-routing/27f287be9/var --runstatedir=/opt/historic-routing/27f287be9/run --enable-user=root --enable-group=root --enable-vty-group=root --disable-doc --disable-protobuf --disable-ospfapi --disable-ospfclient --disable-isisd --disable-pimd --disable-pim6d --disable-ldpd --disable-nhrpd --disable-babeld --disable-pbrd --disable-fabricd --disable-vrrpd --disable-pathd --enable-egpd 
+INSTALL_PREFIX=/opt/historic-routing/27f287be9
+MAKE_RESULT=ok
+EGPD_TEST_PACKET=passed
+MAKE_CHECK_RC=2
+MAKE_CHECK_FAILED_DIRS=isisd pimd 
+MAKE_CHECK_SUMMARY=check-TESTS: 1/1 passed; make check rc=2: 仅在已 --disable 的模块 (isisd pimd ) 失败，14 failed, 514 passed, 5 skipped in 20.91s
+MAKE_DIST=ok: frr-10.9.0-dev.tar.gz (8.1M), egpd/ 全部文件在内
+PROTOCOL_EGP_BINARY_SHA256=d3672241d8cc4249b9a49a2e321883b600bf2ee5a30d2126b96bb192e9b2b47b
+ZEBRA_BINARY_SHA256=877951ea954d4ba935b3ac3c7f1670b9471ad68ab3b4c01d362013398a1c8c72
+VTYSH_BINARY_SHA256=f01a7dbbc6dabe40eb3eabfb4062936ba54f17bd22d45055a9b146ba3892c0c7
+PROTOCOLS=egp 
+PROTOCOL_EGP_ROUTE_TYPE_ID=32
+PROTOCOL_EGP_DISPLAY_CHAR=G
+PROTOCOL_EGP_DISTANCE=140
+PROTOCOL_EGP_VTYSH_BIT=0x400000
+PROTOCOL_EGP_DAEMON=egpd
+ZEBRA_ROUTE_ALL_ID=33
+ZEBRA_ROUTE_MAX=34
++ RPM_EC=0
+++ jobs -p
++ exit 0
+Executing(%install): /bin/sh -e /var/tmp/rpm-tmp.Yu9bRV
++ umask 022
++ cd /root/hr-s8-rpm/BUILD
++ '[' /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64 '!=' / ']'
++ rm -rf /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64
+++ dirname /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64
++ mkdir -p /root/hr-s8-rpm/BUILDROOT
++ mkdir /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64
++ CFLAGS='-O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1  -m64 -march=x86-64-v3 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2   '
++ export CFLAGS
++ CXXFLAGS='-O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1  -m64 -march=x86-64-v3 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2   '
++ export CXXFLAGS
++ FFLAGS='-O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1  -m64 -march=x86-64-v3 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2   -I/usr/lib64/gfortran/modules '
++ export FFLAGS
++ FCFLAGS='-O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1  -m64 -march=x86-64-v3 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2   -I/usr/lib64/gfortran/modules '
++ export FCFLAGS
++ VALAFLAGS=-g
++ export VALAFLAGS
++ LDFLAGS='-Wl,-z,relro -Wl,--as-needed  -Wl,-z,pack-relative-relocs -Wl,-z,now -specs=/usr/lib/rpm/redhat/redhat-hardened-ld -specs=/usr/lib/rpm/redhat/redhat-hardened-ld-errors -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1  -Wl,--build-id=sha1 -specs=/usr/lib/rpm/redhat/redhat-package-notes '
++ export LDFLAGS
++ LT_SYS_LIBRARY_PATH=/usr/lib64:
++ export LT_SYS_LIBRARY_PATH
++ CC=gcc
++ export CC
++ CXX=g++
++ export CXX
++ cd historic-routing-0.1.1
++ rm -rf /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64
++ install -d /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/opt/historic-routing/27f287be9
++ test -f /root/hr-s8-rpm/BUILD/hr-build/fingerprint.txt
++ DEST=/root/hr-s8-rpm/BUILD/hr-build/dest/opt/historic-routing/27f287be9
++ install -d /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/opt/historic-routing/27f287be9/bin /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/opt/historic-routing/27f287be9/sbin /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/opt/historic-routing/27f287be9/lib /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/opt/historic-routing/27f287be9/etc/frr /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/opt/historic-routing/27f287be9/run/frr /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/opt/historic-routing/27f287be9/var/lib/frr
++ cp -a /root/hr-s8-rpm/BUILD/hr-build/dest/opt/historic-routing/27f287be9/lib/libfrr.so.0 /root/hr-s8-rpm/BUILD/hr-build/dest/opt/historic-routing/27f287be9/lib/libfrr.so.0.0.0 /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/opt/historic-routing/27f287be9/lib/
++ install -m 0755 /root/hr-s8-rpm/BUILD/hr-build/dest/opt/historic-routing/27f287be9/sbin/zebra /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/opt/historic-routing/27f287be9/sbin/zebra
++ install -m 0755 /root/hr-s8-rpm/BUILD/hr-build/dest/opt/historic-routing/27f287be9/bin/vtysh /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/opt/historic-routing/27f287be9/bin/vtysh
++ patchelf --set-rpath '$ORIGIN/../lib' /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/opt/historic-routing/27f287be9/sbin/zebra /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/opt/historic-routing/27f287be9/bin/vtysh
++ install -m 0644 /root/hr-s8-rpm/BUILD/hr-build/dest/opt/historic-routing/27f287be9/etc/frr/daemons /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/opt/historic-routing/27f287be9/etc/frr/daemons
++ printf 'zebra=yes\negpd=no\n'
++ cat
++ printf '! historic-routing vtysh.conf\n'
++ chmod 0644 /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/opt/historic-routing/27f287be9/etc/frr/vtysh.conf
++ echo '# historic-routing RPM build info'
++ echo package_version=0.1.1-0.1.dev2b2c681.el10
++ echo source_commit=2b2c681b30a65785daece86045f70160b0d9ff8c
++ echo frr_commit=27f287be9210d4024a140486b7b8ddd5eb41fe04
++ echo abi=2b2c681-27f287be9
++ echo prefix=/opt/historic-routing/27f287be9
+++ uname -n
+++ uname -m
++ echo 'build_host=<实验机> x86_64'
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ echo built_at=2026-10-24T23:40:04Z
++ echo '---- fingerprint.txt ----'
++ cat /root/hr-s8-rpm/BUILD/hr-build/fingerprint.txt
++ chmod 0644 /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/opt/historic-routing/27f287be9/RPM-BUILD-INFO.txt
++ install -d /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/usr/lib/systemd/system
++ sed 's|@PREFIX@|/opt/historic-routing/27f287be9|g' /root/hr-s8-rpm/SOURCES/historic-routing-zebra.service
++ chmod 0644 /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/usr/lib/systemd/system/historic-routing-zebra.service
++ install -d /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/opt/historic-routing/27f287be9/sbin
++ install -m 0755 /root/hr-s8-rpm/BUILD/hr-build/dest/opt/historic-routing/27f287be9/sbin/egpd /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/opt/historic-routing/27f287be9/sbin/egpd
++ patchelf --set-rpath '$ORIGIN/../lib' /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/opt/historic-routing/27f287be9/sbin/egpd
++ strip --strip-unneeded /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/opt/historic-routing/27f287be9/sbin/zebra /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/opt/historic-routing/27f287be9/bin/vtysh /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/opt/historic-routing/27f287be9/sbin/egpd
++ for l in /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/opt/historic-routing/27f287be9/lib/libfrr.so.*
++ '[' -f /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/opt/historic-routing/27f287be9/lib/libfrr.so.0 ']'
++ '[' '!' -L /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/opt/historic-routing/27f287be9/lib/libfrr.so.0 ']'
++ for l in /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/opt/historic-routing/27f287be9/lib/libfrr.so.*
++ '[' -f /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/opt/historic-routing/27f287be9/lib/libfrr.so.0.0.0 ']'
++ '[' '!' -L /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/opt/historic-routing/27f287be9/lib/libfrr.so.0.0.0 ']'
++ strip --strip-unneeded /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/opt/historic-routing/27f287be9/lib/libfrr.so.0.0.0
++ for so in /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/opt/historic-routing/27f287be9/lib/frr/modules/*.so
++ '[' -e '/root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/opt/historic-routing/27f287be9/lib/frr/modules/*.so' ']'
++ cat
++ install -m 0644 /root/hr-s8-rpm/SOURCES/historic-routing-egpd.service /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/usr/lib/systemd/system/historic-routing-egpd.service
++ sed -i 's|@PREFIX@|/opt/historic-routing/27f287be9|g' /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/usr/lib/systemd/system/historic-routing-egpd.service
++ /usr/lib/rpm/check-buildroot
++ /usr/lib/rpm/redhat/brp-ldconfig
++ /usr/lib/rpm/brp-compress
++ /usr/lib/rpm/brp-strip /usr/bin/strip
++ /usr/lib/rpm/brp-strip-comment-note /usr/bin/strip /usr/bin/objdump
++ /usr/lib/rpm/redhat/brp-strip-lto /usr/bin/strip
++ /usr/lib/rpm/brp-strip-static-archive /usr/bin/strip
++ /usr/lib/rpm/check-rpaths
++ /usr/lib/rpm/redhat/brp-mangle-shebangs
++ /usr/lib/rpm/brp-remove-la-files
++ /usr/lib/rpm/redhat/brp-python-rpm-in-distinfo
++ env /usr/lib/rpm/redhat/brp-python-bytecompile '' 1 0 -j4
++ /usr/lib/rpm/redhat/brp-python-hardlink
+Processing files: historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64
+Executing(%doc): /bin/sh -e /var/tmp/rpm-tmp.Nh4JQA
++ umask 022
++ cd /root/hr-s8-rpm/BUILD
++ cd historic-routing-0.1.1
++ DOCDIR=/root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/usr/share/doc/historic-routing-runtime
++ export LC_ALL=
++ LC_ALL=
++ export DOCDIR
++ /usr/bin/mkdir -p /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/usr/share/doc/historic-routing-runtime
++ cp -pr /root/hr-s8-rpm/BUILD/historic-routing-0.1.1/README.md /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/usr/share/doc/historic-routing-runtime
++ cp -pr /root/hr-s8-rpm/BUILD/historic-routing-0.1.1/CHANGELOG.md /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/usr/share/doc/historic-routing-runtime
++ cp -pr /root/hr-s8-rpm/BUILD/historic-routing-0.1.1/docs/ARCHITECTURE.md /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/usr/share/doc/historic-routing-runtime
++ cp -pr /root/hr-s8-rpm/BUILD/historic-routing-0.1.1/docs/FIDELITY.md /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/usr/share/doc/historic-routing-runtime
++ cp -pr /root/hr-s8-rpm/BUILD/historic-routing-0.1.1/docs/PACKAGING.md /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/usr/share/doc/historic-routing-runtime
++ RPM_EC=0
+++ jobs -p
++ exit 0
+Executing(%license): /bin/sh -e /var/tmp/rpm-tmp.Qmxcv6
++ umask 022
++ cd /root/hr-s8-rpm/BUILD
++ cd historic-routing-0.1.1
++ LICENSEDIR=/root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/usr/share/licenses/historic-routing-runtime
++ export LC_ALL=
++ LC_ALL=
++ export LICENSEDIR
++ /usr/bin/mkdir -p /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/usr/share/licenses/historic-routing-runtime
++ cp -pr /root/hr-s8-rpm/BUILD/historic-routing-0.1.1/LICENSE /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/usr/share/licenses/historic-routing-runtime
++ RPM_EC=0
+++ jobs -p
++ exit 0
+Provides: config(historic-routing-runtime) = 0.1.1-0.1.dev2b2c681.el10 historic-routing-abi = 2b2c681-27f287be9 historic-routing-abi-27f287be9 = 2b2c681-27f287be9 historic-routing-runtime = 0.1.1-0.1.dev2b2c681.el10 historic-routing-runtime(x86-64) = 0.1.1-0.1.dev2b2c681.el10
+Requires(interp): /bin/sh /bin/sh /bin/sh
+Requires(rpmlib): rpmlib(CompressedFileNames) <= 3.0.4-1 rpmlib(FileDigests) <= 4.6.0-1 rpmlib(PayloadFilesHavePrefix) <= 4.0-1
+Requires(post): /bin/sh
+Requires(preun): /bin/sh
+Requires(postun): /bin/sh
+Requires: libatomic.so.1()(64bit) libc.so.6()(64bit) libc.so.6(GLIBC_2.14)(64bit) libc.so.6(GLIBC_2.17)(64bit) libc.so.6(GLIBC_2.2.5)(64bit) libc.so.6(GLIBC_2.25)(64bit) libc.so.6(GLIBC_2.3)(64bit) libc.so.6(GLIBC_2.3.2)(64bit) libc.so.6(GLIBC_2.3.4)(64bit) libc.so.6(GLIBC_2.32)(64bit) libc.so.6(GLIBC_2.33)(64bit) libc.so.6(GLIBC_2.34)(64bit) libc.so.6(GLIBC_2.38)(64bit) libc.so.6(GLIBC_2.4)(64bit) libc.so.6(GLIBC_2.6)(64bit) libc.so.6(GLIBC_2.7)(64bit) libc.so.6(GLIBC_2.9)(64bit) libc.so.6(GLIBC_ABI_DT_RELR)(64bit) libcap.so.2()(64bit) libcrypt.so.2()(64bit) libcrypt.so.2(XCRYPT_2.0)(64bit) libgcc_s.so.1()(64bit) libgcc_s.so.1(GCC_3.0)(64bit) libgcc_s.so.1(GCC_3.3.1)(64bit) libjson-c.so.5()(64bit) libjson-c.so.5(JSONC_0.14)(64bit) libjson-c.so.5(JSONC_PRIVATE)(64bit) libm.so.6()(64bit) libreadline.so.8()(64bit) libyang.so.2()(64bit) rtld(GNU_HASH)
+Processing files: historic-routing-egp-0.1.1-0.1.dev2b2c681.el10.x86_64
+Executing(%doc): /bin/sh -e /var/tmp/rpm-tmp.Rgg4wf
++ umask 022
++ cd /root/hr-s8-rpm/BUILD
++ cd historic-routing-0.1.1
++ DOCDIR=/root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/usr/share/doc/historic-routing-egp
++ export LC_ALL=
++ LC_ALL=
++ export DOCDIR
++ /usr/bin/mkdir -p /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/usr/share/doc/historic-routing-egp
++ cp -pr /root/hr-s8-rpm/BUILD/historic-routing-0.1.1/protocols/egp/README.md /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64/usr/share/doc/historic-routing-egp
++ RPM_EC=0
+++ jobs -p
++ exit 0
+Provides: config(historic-routing-egp) = 0.1.1-0.1.dev2b2c681.el10 historic-routing-egp = 0.1.1-0.1.dev2b2c681.el10 historic-routing-egp(x86-64) = 0.1.1-0.1.dev2b2c681.el10
+Requires(rpmlib): rpmlib(CompressedFileNames) <= 3.0.4-1 rpmlib(FileDigests) <= 4.6.0-1 rpmlib(PayloadFilesHavePrefix) <= 4.0-1
+Requires: libc.so.6()(64bit) libc.so.6(GLIBC_2.17)(64bit) libc.so.6(GLIBC_2.2.5)(64bit) libc.so.6(GLIBC_2.3.4)(64bit) libc.so.6(GLIBC_2.34)(64bit) libc.so.6(GLIBC_2.38)(64bit) libc.so.6(GLIBC_2.4)(64bit) libc.so.6(GLIBC_ABI_DT_RELR)(64bit) rtld(GNU_HASH)
+Checking for unpackaged file(s): /usr/lib/rpm/check-files /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64
+Wrote: /root/hr-s8-rpm/RPMS/x86_64/historic-routing-egp-0.1.1-0.1.dev2b2c681.el10.x86_64.rpm
+Wrote: /root/hr-s8-rpm/RPMS/x86_64/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64.rpm
+Executing(%clean): /bin/sh -e /var/tmp/rpm-tmp.luZaJq
++ umask 022
++ cd /root/hr-s8-rpm/BUILD
++ cd historic-routing-0.1.1
++ /usr/bin/rm -rf /root/hr-s8-rpm/BUILDROOT/historic-routing-runtime-0.1.1-0.1.dev2b2c681.el10.x86_64
++ RPM_EC=0
+++ jobs -p
++ exit 0
+Executing(rmbuild): /bin/sh -e /var/tmp/rpm-tmp.67V3GV
++ umask 022
++ cd /root/hr-s8-rpm/BUILD
++ rm -rf /root/hr-s8-rpm/BUILD/historic-routing-0.1.1-SPECPARTS
++ rm -rf historic-routing-0.1.1 historic-routing-0.1.1.gemspec
++ RPM_EC=0
+++ jobs -p
++ exit 0
