@@ -1,24 +1,30 @@
-From d98773ff26a7a05ad770a56ae993baf66778843d Mon Sep 17 00:00:00 2001
+From 2ffbe442afdd3aed25832ca7cd1fa710374c0bf3 Mon Sep 17 00:00:00 2001
 From: Chenlang Li <Cc1580155hsg@163.com>
-Date: Sat, 24 Oct 2026 19:54:18 +0800
+Date: Sat, 24 Oct 2026 20:59:49 +0800
 Subject: [PATCH 4/5] build: enable egpd and keep existing tests
 
 ---
- Makefile.am           | 1 +
+ Makefile.am           | 7 +++++++
  configure.ac          | 4 ++++
  tests/subdir.am       | 5 +++++
  tools/etc/frr/daemons | 1 +
  tools/frrcommon.sh.in | 2 +-
- 5 files changed, 12 insertions(+), 1 deletion(-)
+ 5 files changed, 18 insertions(+), 1 deletion(-)
 
 diff --git a/Makefile.am b/Makefile.am
-index 3a3c453883..9ca7fd2b85 100644
+index 3a3c453883..5d58e26610 100644
 --- a/Makefile.am
 +++ b/Makefile.am
-@@ -209,6 +209,7 @@ include ldpd/subdir.am
+@@ -209,6 +209,13 @@ include ldpd/subdir.am
  include babeld/subdir.am
  include eigrpd/subdir.am
  include sharpd/subdir.am
++# EGP: automake 要求 TESTS 的 '=' 与 '+=' 处于兼容的条件上下文。
++# 这里先无条件定义空值；tests/subdir.am 里再在 if EGPD 中 '+='。
++# 顺序很重要：本行在 pceplib/subdir.am（下面第 ~220 行）之前，
++# 而 '+=' 在 tests/subdir.am（~225 行）里，所以 pceplib 的赋值不会被覆盖。
++TESTS =
++
 +include egpd/subdir.am
  include pimd/subdir.am
  include pbrd/subdir.am

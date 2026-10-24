@@ -41,15 +41,37 @@ autotools 的 `TESTS` 是累加语义，而 `Makefile.am` 里 `include pceplib/t
 （第 221 行）在 `include tests/subdir.am`（第 225 行）之前，所以这个 `=`
 会把 pceplib 的测试列表覆盖掉，启用 egpd 后 `make check` 静默只剩一个测试。
 
-已在本补丁中改为 `TESTS += egpd/test_packet`，并用 GNU make 复刻真实 include
-顺序做了对照（`pceplib/test/subdir.am` 第 9 行是 `TESTS = $(check_SCRIPTS)`）：
+**但只把 `=` 改成 `+=` 是不行的**——S4 首次真实 `bootstrap` 就报错：
 
 ```
-旧写法  TESTS = egpd/test_packet        →  TESTS=egpd/test_packet                （pcep 测试消失）
-新写法  TESTS += egpd/test_packet       →  TESTS=pcep_msg_tests pcep_pcc_api_tests egpd/test_packet
+tests/subdir.am:84: error: cannot apply '+=' because 'TESTS' is not defined in
+the following conditions: EGPD and !PATHD_PCEP / EGPD and !PATHD_PCEP_TEST
 ```
 
-完整的 `make check` 端到端验证属于 S4（需要在真实 FRR 树上 bootstrap/configure）。
+automake 要求 `+=` 所在的条件上下文里必须已经有同名的定义，而 `TESTS` 只在
+`pceplib` 的条件块里被定义过。所以本补丁做两件事：
+
+1. `Makefile.am`：在 `include egpd/subdir.am` 之前加一条**无条件**的 `TESTS =`，
+   位置在 `include pceplib/subdir.am` 之前，这样 pceplib 的赋值不会被它覆盖；
+2. `tests/subdir.am`：`if EGPD` 里用 `TESTS += egpd/test_packet`（在 pceplib
+   赋值之后，因此不会丢测试）。
+
+修改后的 make 展开顺序（pceplib 启用时）：
+
+```
+Makefile.am:211-ish   TESTS =                               （空）
+pceplib/subdir.am:9   TESTS = $(check_SCRIPTS)              （pcep 测试）
+tests/subdir.am:84    TESTS += egpd/test_packet             （追加，两者都在）
+```
+
+只有 egpd、不启 pceplib 时结果就是 `TESTS=egpd/test_packet`。
+用 GNU make 复刻真实 include 顺序的对照结果：
+
+```
+旧写法（fork 原样）  TESTS = egpd/test_packet    →  TESTS=egpd/test_packet
+                                                      （pcep 测试被覆盖，消失）
+新写法（本补丁）     见上面三步               →  TESTS=pcep_msg_tests pcep_pcc_api_tests egpd/test_packet
+```
 
 ## 已知冲突点（rebase 到新基线时先看这里）
 
@@ -59,7 +81,7 @@ autotools 的 `TESTS` 是累加语义，而 `Makefile.am` 里 `include pceplib/t
 | `lib/command.h` 的 `PIM6_NODE` 之后 | 新增 CLI 节点 | 位置可调整，只需在 `NODE_TYPE_MAX` 之前 |
 | `vtysh/vtysh.h` 的 `VTYSH_MGMTD 0x200000` 之后（`0x400000`） | **位值是全局稀缺资源**，上游新增 daemon 会抢用 | rebase 时必须检查位图，冲突时改用空闲位 |
 | `tools/frrcommon.sh.in` 的 `DAEMONS` 串 | 顺序被 topotests 镜像 | 插在 `sharpd` 与 `pbrd` 之间；改顺序要同步确认 topotests |
-| `tests/subdir.am` | 已有的 `TESTS` 使用者（如 `pceplib/test/subdir.am`） | 永远用 `+=` |
+| `tests/subdir.am` + `Makefile.am` 的 `TESTS =` | automake 要求 `+=` 所在条件里已有同名定义，且空定义必须在 pceplib 赋值之前 | 空定义与 `+=` 必须成对出现；位置顺序不能调换 |
 | `configure.ac` | 三个 hunk 分布在不同段（AC_ARG_ENABLE 列表、HAVE_* 段、AM_CONDITIONAL 段） | 按字母序靠近 `sharpd` 相关行，减少漂移 |
 
 ## 应用方法

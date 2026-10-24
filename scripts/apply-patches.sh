@@ -98,7 +98,11 @@ if git -C "$FRR" status --porcelain | grep -q '^?? egpd/'; then
 fi
 
 grep -q '^ZEBRA_ROUTE_EGP,' "$FRR/lib/route_types.txt" || die "route_types.txt 未注册 EGP"
-grep -q 'TESTS += egpd/test_packet' "$FRR/tests/subdir.am" || die "tests/subdir.am 不是 TESTS +="
+grep -q 'TESTS += egpd/test_packet' "$FRR/tests/subdir.am" || die "tests/subdir.am 缺少 TESTS +="
+# automake 要求 TESTS 的 '=' 与 '+=' 处于兼容条件上下文，且 '=' 必须在
+# pceplib 的赋值之前（否则覆盖它）。详见 patches/frr/README.md。
+grep -q '^TESTS =$' "$FRR/Makefile.am" || die "Makefile.am 缺少 TESTS 的空定义（automake 会拒绝 +=）"
+awk '/^TESTS =$/{t=NR} /^include pceplib\/subdir.am/{p=NR} END{exit !(t && p && t<p)}' "$FRR/Makefile.am" || die "Makefile.am 里 TESTS 的空定义必须出现在 include pceplib/subdir.am 之前"
 grep -q '^AC_ARG_ENABLE(\[egpd\]' "$FRR/configure.ac" || die "configure.ac 缺少 --enable-egpd"
 grep -q 'VTYSH_EGPD' "$FRR/vtysh/vtysh.h" || die "vtysh.h 缺少 VTYSH_EGPD"
 grep -q 'ZEBRA_ROUTE_EGP' "$FRR/zebra/zebra_rib.c" || die "zebra_rib.c 缺少 EGP 距离项"
