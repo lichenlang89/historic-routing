@@ -1,0 +1,84 @@
+# S8-C RPM 与 DEB 包内构建指纹逐字段比对（33 项输入型字段一致，差异逐条见文末）
+===== 0. 产物
+RPM  historic-routing-runtime-0.1.1-0.1.devcb8336c.el10.x86_64
+RPM  historic-routing-egp-0.1.1-0.1.devcb8336c.el10.x86_64
+DEB  historic-routing-runtime_0.1.1~devcb8336c-1_amd64.deb
+DEB  historic-routing-egp_0.1.1~devcb8336c-1_amd64.deb
+dca495ae0495a7ddaa165197e077e6a55c16bebf06345cd34527ce35b6df0cad  /root/s8c4/rpm/RPMS/x86_64/historic-routing-runtime-0.1.1-0.1.devcb8336c.el10.x86_64.rpm
+7c5e144d91985bb0c48308b79234f831f71fc564a5daed47f470b9e6fb186351  /root/s8c4/rpm/RPMS/x86_64/historic-routing-egp-0.1.1-0.1.devcb8336c.el10.x86_64.rpm
+a6ab2c02f2cbb97dbf8cc53826aab63b16d8df1dbe9b46648f91cc07969f90ac  /root/hr-deb/debs4/historic-routing-runtime_0.1.1~devcb8336c-1_amd64.deb
+40cce2e9b9779c14bb0520800478230ef846b55166f7fb8a479d836f653e3857  /root/hr-deb/debs4/historic-routing-egp_0.1.1~devcb8336c-1_amd64.deb
+SIZE /root/s8c4/rpm/RPMS/x86_64/historic-routing-runtime-0.1.1-0.1.devcb8336c.el10.x86_64.rpm 1796467
+SIZE /root/s8c4/rpm/RPMS/x86_64/historic-routing-egp-0.1.1-0.1.devcb8336c.el10.x86_64.rpm 23118
+SIZE /root/hr-deb/debs4/historic-routing-runtime_0.1.1~devcb8336c-1_amd64.deb 2237280
+SIZE /root/hr-deb/debs4/historic-routing-egp_0.1.1~devcb8336c-1_amd64.deb 20752
+
+===== 1. 输入型字段（RPM 有 39 项 / DEB 有 41 项）
+--- 只在 RPM 里:
+    abi	cb8336c-27f287be9
+    FRR_REPO_EFFECTIVE	file:///root/frr-mirror.git
+    MAKE_CHECK_SUMMARY	check-TESTS: 1/1 passed; make check rc=2: 仅在已 --disable 的模块 (isisd pimd ) 失败，14 failed, 514 passed, 5 skipped in 21.77s
+    PROTOCOL_EGP_BINARY_SHA256	dc4ec21759dcc1f016c372dfce19464aade0c46f7a6c761b998e33f7f963a9fd
+    VTYSH_BINARY_SHA256	ac15e8de047568f4680f529e1aae33b74b1f4532a65a4e3413031afd6ab9c29e
+    ZEBRA_BINARY_SHA256	a3f07a366888099739ff82ff0977b43134f32b0d043679f5af0112498c487c42
+--- 只在 DEB 里:
+    abi	0.cb8336c-27f287be9
+    abi_raw	cb8336c-27f287be9
+    FRR_MIRROR_SHA256	c63a99151bac02c272c9b657223ad85c3b2733cbb0390f837fd8a1f812ffb795
+    FRR_REPO_EFFECTIVE	mirror:frr-27f287be9.git.tar.xz
+    MAKE_CHECK_SUMMARY	check-TESTS: 1/1 passed; make check rc=2: 仅在已 --disable 的模块 (isisd pimd ) 失败，14 failed, 514 passed, 5 skipped in 16.56s
+    PROTOCOL_EGP_BINARY_SHA256	8bd4bba7c9d3654a75e9094451d55642d3faae84ef5692f9981bfd4c0ee4f716
+    VTYSH_BINARY_SHA256	d26fa2754b7d3ee3f4b307486c04019f126e6685a92b4169e6e70277d6219ccf
+    ZEBRA_BINARY_SHA256	ab9da4980a08dcea0f799d61ed97fa3a63aea3d04e0201e7b9aa55cba227687c
+--- 完全相同的字段数: 33
+
+===== 2. 关键字段
+    repo_commit                        RPM=                                                           DEB=
+    REPO_COMMIT                        RPM=cb8336c0bfe991928e53697e07905ab2345838da                   DEB=cb8336c0bfe991928e53697e07905ab2345838da
+    FRR_COMMIT                         RPM=27f287be9210d4024a140486b7b8ddd5eb41fe04                   DEB=27f287be9210d4024a140486b7b8ddd5eb41fe04
+    FRR_DESCRIBE                       RPM=10.9.0-dev                                                 DEB=10.9.0-dev
+    FRR_PATCHED_DIFF_SHA256            RPM=c0ef912c8c0e570a95ffbdc093a528545d88fde72f645007d558b9e2f93fd118 DEB=c0ef912c8c0e570a95ffbdc093a528545d88fde72f645007d558b9e2f93fd118
+    OPTIONAL_PATCH_0005                RPM=disabled                                                   DEB=disabled
+    PATCH_0001-lib-add-egp-route-type.patch RPM=f1c4a7b88511c458f78e84e4371169572762b5c035f85a00c4aefe05789e167b DEB=f1c4a7b88511c458f78e84e4371169572762b5c035f85a00c4aefe05789e167b
+    PATCH_0002-zebra-install-egp-routes-with-distance-140.patch RPM=09c7697dfac59292c30f20d750efef647516948f5a7c60afc83a4604e1983212 DEB=09c7697dfac59292c30f20d750efef647516948f5a7c60afc83a4604e1983212
+    PATCH_0003-vtysh-add-egpd-client-and-node.patch RPM=051afd3d3c6fd583ab673465cecc1d5126647904a6b3c1caee24fc7955d6d276 DEB=051afd3d3c6fd583ab673465cecc1d5126647904a6b3c1caee24fc7955d6d276
+    PATCH_0004-build-enable-egpd-and-keep-existing-tests.patch RPM=fe0cc298be589583aeadd57c5307ace85a084806b04fe35473332b6abc211e77 DEB=fe0cc298be589583aeadd57c5307ace85a084806b04fe35473332b6abc211e77
+    PROTO_SRC_egpd.c_SHA256            RPM=bd5f722a76be985e85a73f25835e3b32801f4e5c9e62bbad372a1499728b911d DEB=bd5f722a76be985e85a73f25835e3b32801f4e5c9e62bbad372a1499728b911d
+    PROTO_SRC_egp_packet.c_SHA256      RPM=0e1440f786645d7f09ba117e6063560cbab83ba0bedaaac06e3a8ef72c3bfd6e DEB=0e1440f786645d7f09ba117e6063560cbab83ba0bedaaac06e3a8ef72c3bfd6e
+    PROTO_SRC_egp_packet.h_SHA256      RPM=44318c88fbaa7e0dbfd21d9dc3be1d5a082b4625b6f40bb4b6d093c0ef86fbb7 DEB=44318c88fbaa7e0dbfd21d9dc3be1d5a082b4625b6f40bb4b6d093c0ef86fbb7
+    PROTO_SRC_test_packet.c_SHA256     RPM=556f859064d0c9c455ff1f3b56eee7686f85c10be72bd2280c2cd2767040e33e DEB=556f859064d0c9c455ff1f3b56eee7686f85c10be72bd2280c2cd2767040e33e
+    PROTO_SRC_egpd.subdir.am_SHA256    RPM=89e08e8c584c9c367813c1659c684aac1fe563e5b18f1d1307ff178cb4ff5f84 DEB=89e08e8c584c9c367813c1659c684aac1fe563e5b18f1d1307ff178cb4ff5f84
+    PROTO_SRC_README.md_SHA256         RPM=57cc0d253efb9817d5e91ce290ec1f25ddad3f84eaa0c21aa4140de26f3680a5 DEB=57cc0d253efb9817d5e91ce290ec1f25ddad3f84eaa0c21aa4140de26f3680a5
+    PROTO_SRC_lab.sh_SHA256            RPM=af131943c548630b4d9d22f1ced00e6f4e73e1a7abd5340b4ea028f33ebb7514 DEB=af131943c548630b4d9d22f1ced00e6f4e73e1a7abd5340b4ea028f33ebb7514
+    PROTO_SRC_test_lab.py_SHA256       RPM=923350bacc3d8808321f767e002509f76a5b9109c0292ed10bbb2d1822e5eda3 DEB=923350bacc3d8808321f767e002509f76a5b9109c0292ed10bbb2d1822e5eda3
+    PROTOCOLS                          RPM=egp                                                        DEB=egp 
+    PROTOCOL_EGP_ROUTE_TYPE_ID         RPM=32                                                         DEB=32
+    PROTOCOL_EGP_DISPLAY_CHAR          RPM=G                                                          DEB=G
+    PROTOCOL_EGP_DISTANCE              RPM=140                                                        DEB=140
+    PROTOCOL_EGP_VTYSH_BIT             RPM=0x400000                                                   DEB=0x400000
+    PROTOCOL_EGP_DAEMON                RPM=egpd                                                       DEB=egpd
+    ZEBRA_ROUTE_ALL_ID                 RPM=33                                                         DEB=33
+    ZEBRA_ROUTE_MAX                    RPM=34                                                         DEB=34
+    MAKE_RESULT                        RPM=ok                                                         DEB=ok
+    EGPD_TEST_PACKET                   RPM=passed                                                     DEB=passed
+    MAKE_CHECK_RC                      RPM=2                                                          DEB=2
+
+===== 3. ABI 标识（DEB 因版本号必须数字开头而加 0. 前缀）
+    RPM abi=cb8336c-27f287be9 / DEB abi_raw=cb8336c-27f287be9 / DEB 包内 abi=0.cb8336c-27f287be9
+    [SAME] 原始 ABI 标识一致
+
+===== 4. 环境差异（不比，仅记录）
+--- RPM-BUILD-INFO.txt
+    build_host=<实验机> x86_64
+    CC_VERSION=gcc (GCC) 14.4.1 20260724 (Red Hat 14.4.1-4)
+    MAKE_JOBS=4
+    CONFIGURE_ARGS=--prefix=/opt/historic-routing/27f287be9 --sysconfdir=/opt/historic-routing/27f287be9/etc --localstatedir=/opt/historic-routing/27f287be9/var --e
+    FRR_REPO_EFFECTIVE=file:///root/frr-mirror.git
+--- BUILD-INFO.txt
+    CC_VERSION=gcc (Debian 14.2.0-19) 14.2.0
+    MAKE_JOBS=4
+    CONFIGURE_ARGS=--prefix=/opt/historic-routing/27f287be9 --sysconfdir=/opt/historic-routing/27f287be9/etc --localstatedir=/opt/historic-routing/27f287be9/var --e
+    FRR_REPO_EFFECTIVE=mirror:frr-27f287be9.git.tar.xz
+
+===== 5. 结论
+FINGERPRINT_INPUTS_DIFF

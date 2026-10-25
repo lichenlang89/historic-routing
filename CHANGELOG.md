@@ -9,6 +9,13 @@
 
 ### Added
 
+- **S8-C：RPM/DEB 统一 + v0.1.1 发布候选（未发布）**
+  - RPM 移植 DEB 的 `RuntimeDirectory` 设计：socket/PID 移到 `/run/historic-routing/frr`，
+    安装前缀里不再有 `run/`；卸载后无残留（实测）。
+  - `scripts/release-source.sh`：产出带离线 FRR 镜像（SHA256 + commit/tree 校验）的发布源码包；
+    DEB 已在 `--network none` 容器里用它构建成功。
+  - `build.sh` 指纹记录离线镜像与其 SHA256；`--runstatedir` 覆盖不再重复出现。
+  - 候选清单：`docs/RELEASE_CANDIDATE_v0.1.1.md`（单一源码提交 `cb8336c`，RPM/DEB 同源）。
 - Debian 原生打包（S8-B，Debian 13 amd64 用户态实测，**开发验证构建，未发布**）：
   `packaging/debian/`（control/rules/changelog/copyright/conffiles/install/units/postinst 等）、
   `scripts/package-deb.sh`；两个包 `historic-routing-runtime` 与 `historic-routing-egp`，

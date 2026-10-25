@@ -1,0 +1,170 @@
+# S8-C DEB 安装/运行/升级/降级/卸载实测（候选 cb8336c，Debian 13.7 容器，真实输出）
+# 与发行版 frr 共存；交集只有公共父目录；purge 后前缀/unit/运行期目录均无残留
+
+########## 0. 环境 ##########
+13.7
+amd64
+systemd 257 (257.13-1~deb13u1)
+被测包: historic-routing-runtime_0.1.1~devcb8336c-1_amd64.deb / historic-routing-egp_0.1.1~devcb8336c-1_amd64.deb
+升级包: historic-routing-runtime_0.1.1~devcb8336c-2_amd64.deb / historic-routing-egp_0.1.1~devcb8336c-2_amd64.deb
+
+########## 1. 安装前基线 ##########
+ii  frr            10.3-3+deb13u1 amd64        FRRouting Internet routing protocol suite
+ls: cannot access '/opt/historic-routing/27f287be9': No such file or directory
+
+########## 2. 装工具与发行版 frr（共存测试） ##########
+frr	10.3-3+deb13u1
+frr 状态: inactive / disabled
+daemons frr.conf support_bundle_commands.conf vtysh.conf 
+96e2dea85b7979a1f95632296ee0e87592a646bdf858690d2cb6857a2c8bd8bd  /etc/frr/daemons
+b2573587f46722f745c5ee22d458c854f2a36a79fd2eba9d74a457378373924a  /etc/frr/frr.conf
+-rw-r--r--. 1 root root 2375688 Jun  2 07:30 /usr/lib/x86_64-linux-gnu/frr/libfrr.so.0.0.0
+
+########## 3. 依赖拒绝：只装 egp（应失败） ##########
+E: The following information from --solver 3.0 may provide additional context:
+   Unable to satisfy dependencies. Reached two conflicting decisions:
+   1. historic-routing-egp:amd64=0.1.1~devcb8336c-1 is selected for install
+   2. historic-routing-egp:amd64 Depends historic-routing-runtime (= 0.1.1~devcb8336c-1)
+      but none of the choices are installable:
+      [no choices]
+只装 egp 的 apt rc=100
+
+########## 4. 正式安装两个包（apt install ./deb，自动拉依赖） ##########
+Selecting previously unselected package historic-routing-runtime.
+(Reading database ... 
+(Reading database ... 5%
+(Reading database ... 10%
+(Reading database ... 15%
+(Reading database ... 20%
+(Reading database ... 25%
+(Reading database ... 30%
+(Reading database ... 35%
+(Reading database ... 40%
+(Reading database ... 45%
+(Reading database ... 50%
+(Reading database ... 55%
+(Reading database ... 60%
+(Reading database ... 65%
+(Reading database ... 70%
+(Reading database ... 75%
+(Reading database ... 80%
+(Reading database ... 85%
+(Reading database ... 90%
+(Reading database ... 95%
+(Reading database ... 100%
+(Reading database ... 21270 files and directories currently installed.)
+Preparing to unpack .../historic-routing-runtime_0.1.1~devcb8336c-1_amd64.deb ...
+Unpacking historic-routing-runtime (0.1.1~devcb8336c-1) ...
+Selecting previously unselected package historic-routing-egp.
+Preparing to unpack .../historic-routing-egp_0.1.1~devcb8336c-1_amd64.deb ...
+Unpacking historic-routing-egp (0.1.1~devcb8336c-1) ...
+Setting up historic-routing-runtime (0.1.1~devcb8336c-1) ...
+Setting up historic-routing-egp (0.1.1~devcb8336c-1) ...
+Processing triggers for libc-bin (2.41-12+deb13u4) ...
+install rc=0
+ii  historic-routing-egp     0.1.1~devcb8336c-1 amd64        experimental EGP (RFC 904) daemon for historic-routing
+ii  historic-routing-runtime 0.1.1~devcb8336c-1 amd64        FRRouting-based framework for historic routing protocols
+Version: 0.1.1~devcb8336c-1
+Depends: historic-routing-runtime (= 0.1.1~devcb8336c-1), libc6 (>= 2.38), historic-routing-abi (= 0.cb8336c-27f287be9)
+
+########## 5. dpkg -V 完整性 ##########
+dpkg -V rc=0（0=无差异）
+
+########## 6. 动态库解析与可执行性 ##########
+ 0x000000000000001d (RUNPATH)            Library runpath: [$ORIGIN/../lib]
+	libfrr.so.0 => /opt/historic-routing/27f287be9/sbin/../lib/libfrr.so.0 (0x00007fcf22ef0000)
+	libyang.so.3 => /lib/x86_64-linux-gnu/libyang.so.3 (0x00007fcf22d97000)
+zebra version 10.9.0-dev
+Copyright 1996-2005 Kunihiro Ishiguro, et al.
+egpd version 10.9.0-dev
+Usage : vtysh [OPTION...]
+
+
+########## 7. 与发行版 frr 的文件交集 ##########
+/.
+/usr
+/usr/lib
+/usr/lib/systemd
+/usr/lib/systemd/system
+/usr/share
+/usr/share/doc
+/usr/share/lintian
+/usr/share/lintian/overrides
+交集行数=9
+我们的包是否碰了 /etc/frr：0
+
+########## 8. 服务默认不启用 ##########
+disabled
+disabled
+inactive
+
+########## 9. systemd 启动 zebra + egpd（RuntimeDirectory 验证） ##########
+start rc=0
+状态: active
+drwxr-xr-x 3 root root  60 Oct 25 06:00 /run/historic-routing
+drwxr-xr-x 2 root root 100 Oct 25 06:00 /run/historic-routing/frr
+zebra.pid
+zebra.vty
+zserv.api
+安装前缀里是否有 run/: ls: cannot access '/opt/historic-routing/27f287be9/run': No such file or directory
+FRRouting 10.9.0-dev (<deb容器>) on Linux(6.12.0-124.8.1.el10_1.x86_64).
+Copyright 1996-2005 Kunihiro Ishiguro, et al.
+egpd start rc=0
+egpd 状态: active
+ zebra egpd
+停止后 /run/historic-routing: /run/historic-routing
+
+########## 10. 配置保护（conffile） ##########
+用户修改行数: 1
+
+########## 10b. 把安装后的前缀复制出来（给 EGP 双路由实验用） ##########
+复制完成: 8 个文件
+BUILD-INFO.txt
+bin
+etc
+lib
+sbin
+
+########## 11. 升级到 revision 2 ##########
+Unpacking historic-routing-egp (0.1.1~devcb8336c-2) over (0.1.1~devcb8336c-1) ...
+Preparing to unpack .../historic-routing-runtime_0.1.1~devcb8336c-2_amd64.deb ...
+Unpacking historic-routing-runtime (0.1.1~devcb8336c-2) over (0.1.1~devcb8336c-1) ...
+Setting up historic-routing-runtime (0.1.1~devcb8336c-2) ...
+Setting up historic-routing-egp (0.1.1~devcb8336c-2) ...
+Processing triggers for libc-bin (2.41-12+deb13u4) ...
+upgrade rc=0
+historic-routing-runtime	0.1.1~devcb8336c-2
+升级后用户修改行数: 1
+egpd.conf frr.conf vtysh.conf 
+ii  historic-routing-runtime 0.1.1~devcb8336c-2 amd64        FRRouting-based framework for historic routing protocols
+
+########## 12. 降级回 revision 1 ##########
+Preparing to unpack .../historic-routing-runtime_0.1.1~devcb8336c-1_amd64.deb ...
+Unpacking historic-routing-runtime (0.1.1~devcb8336c-1) over (0.1.1~devcb8336c-2) ...
+Setting up historic-routing-runtime (0.1.1~devcb8336c-1) ...
+Setting up historic-routing-egp (0.1.1~devcb8336c-1) ...
+Processing triggers for libc-bin (2.41-12+deb13u4) ...
+downgrade rc=0
+historic-routing-runtime	0.1.1~devcb8336c-1
+降级后用户修改行数: 1
+
+########## 13. 卸载（purge） ##########
+(Reading database ... 21304 files and directories currently installed.)
+Removing historic-routing-egp (0.1.1~devcb8336c-1) ...
+Purging configuration files for historic-routing-egp (0.1.1~devcb8336c-1) ...
+Removing historic-routing-runtime (0.1.1~devcb8336c-1) ...
+Purging configuration files for historic-routing-runtime (0.1.1~devcb8336c-1) ...
+Processing triggers for libc-bin (2.41-12+deb13u4) ...
+剩余历史包条目: 0
+--- 前缀残留:
+ls: cannot access '/opt/historic-routing/27f287be9': No such file or directory
+--- unit 残留:
+ls: cannot access '/usr/lib/systemd/system/historic-routing-*.service': No such file or directory
+--- /run 残留:
+/run/historic-routing
+
+########## 14. 卸载后：发行版 frr 仍完好 ##########
+dpkg -V frr rc=0
+96e2dea85b7979a1f95632296ee0e87592a646bdf858690d2cb6857a2c8bd8bd  /etc/frr/daemons
+b2573587f46722f745c5ee22d458c854f2a36a79fd2eba9d74a457378373924a  /etc/frr/frr.conf
+frr 状态: inactive / disabled

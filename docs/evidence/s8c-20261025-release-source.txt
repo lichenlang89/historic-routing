@@ -1,0 +1,18 @@
+# S8-C 发布源码包清单（scripts/release-source.sh 产出）
+historic-routing 发布源码包
+version=0.1.1~devcb8336c0bf
+source_commit=cb8336c0bfe991928e53697e07905ab2345838da
+source_short=cb8336c0bf
+source_tree=f2b7974c7aadfba33b9a1ea031f8fb4520247e8c
+frr_commit=27f287be9210d4024a140486b7b8ddd5eb41fe04
+file=historic-routing-cb8336c0bf-src.tar.xz
+size=14684624
+sha256=4499d1331613e2eab495110c864524f9bd731abaf7469a4e23830a84ff67b055
+vendor_sha256=c63a99151bac02c272c9b657223ad85c3b2733cbb0390f837fd8a1f812ffb795
+packaged_at=2026-10-25T05:26:16Z
+
+包含: 源码树（100 个文件，逐文件与 git 索引校验一致）
+      vendor/frr-27f287be9.git.tar.xz（离线 FRR 镜像，SHA256 校验通过）
+      vendor/VENDOR.txt（FRR_COMMIT / TREE / DESCRIBE）
+      vendor/SHA256SUMS
+      SOURCE-COMMIT（本清单的机器可读版本 + 构建命令）
