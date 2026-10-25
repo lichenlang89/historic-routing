@@ -22,17 +22,18 @@ Provides: historic-routing-abi (= @ABI@)
 Description: FRRouting-based framework for historic routing protocols
  (development build, NOT released)
  .
- historic-routing 是一个独立项目：以 FRRouting 为底层框架，复活已经退出主流
- 使用的历史路由协议（EGP、GGP、HELLO…）。本项目不是 FRRouting 官方项目。
+ historic-routing 是一个独立项目：以 FRRouting 为底层框架，
+ 复活已经退出主流使用的历史路由协议（EGP、GGP、HELLO…）。
+ 本项目不是 FRRouting 官方项目。
  .
- This package ships the shared framework of one specific build: the runtime
- library (libfrr.so.0), zebra, vtysh and the configuration skeleton. Everything
- is installed under @PREFIX@ and does not touch the distribution FRR
- (/usr/sbin/frr*, /etc/frr, /usr/lib/*/frr, frr.service).
+ This package ships the shared framework of one specific build:
+ the runtime library (libfrr.so.0), zebra, vtysh and the configuration
+ skeleton. Everything is installed under @PREFIX@ and does not touch the
+ distribution FRR (/usr/sbin/frr*, /etc/frr, /usr/lib/*/frr, frr.service).
  .
- NOTE: this is a development build ("@VERSION@", source commit @COMMIT@); it is
- not a released version. Its zebra and the distribution frr.service both program
- the kernel RIB, so they must not run at the same time.
+ NOTE: this is a development build ("@VERSION@", source commit @COMMIT@);
+ it is not a released version. Its zebra and the distribution frr.service
+ both program the kernel RIB, so they must not run at the same time.
 
 Package: historic-routing-egp
 Architecture: any
@@ -42,13 +43,15 @@ Depends: ${shlibs:Depends}, ${misc:Depends},
 Description: experimental EGP (RFC 904) daemon for historic-routing
  (development build, NOT released)
  .
- historic-routing 的 EGP（RFC 904）守护进程 egpd。这是实验性的 stub gateway
- 实现，不是 RFC 904 意义上的 core gateway，也不建议用于生产网络。
+ historic-routing 的 EGP（RFC 904）守护进程 egpd。这是实验性的
+ stub gateway 实现，不是 RFC 904 意义上的 core gateway，
+ 也不建议用于生产网络。
  .
- This package is bound to one exact build of the runtime: it requires both the
- same version-release of historic-routing-runtime and the same
- historic-routing-abi marker (@ABI@ = source commit + FRR base commit), because
- the ZAPI enums, the EGP route-type number and the vtysh bit are compile-time
- constants shared with libfrr and zebra.
+ This package is bound to one exact build of the runtime:
+ it requires both the same version-release of historic-routing-runtime and
+ the same historic-routing-abi marker (@ABI@ = source commit + FRR base
+ commit), because the ZAPI enums, the EGP route-type number and the vtysh
+ bit are compile-time constants shared with libfrr and zebra.
  .
- NOTE: development build ("@VERSION@", source commit @COMMIT@), not a release.
+ NOTE: development build ("@VERSION@", source commit @COMMIT@),
+ not a release.

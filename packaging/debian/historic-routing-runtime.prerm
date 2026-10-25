@@ -1,0 +1,8 @@
+#!/bin/sh
+# 卸载前只停本项目自己的 unit（如果它正在跑），不碰发行版的 frr.service。
+set -e
+if [ "$1" = "remove" ] && [ -d /run/systemd/system ]; then
+	systemctl stop historic-routing-zebra.service || true
+fi
+#DEBHELPER#
+exit 0

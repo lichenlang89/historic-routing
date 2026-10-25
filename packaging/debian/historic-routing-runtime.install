@@ -4,3 +4,4 @@ opt/historic-routing/27f287be9/lib/libfrr.so.0*
 opt/historic-routing/27f287be9/etc/frr/frr.conf opt/historic-routing/27f287be9/etc/frr/
 opt/historic-routing/27f287be9/etc/frr/vtysh.conf opt/historic-routing/27f287be9/etc/frr/
 opt/historic-routing/27f287be9/BUILD-INFO.txt
+usr/lib/systemd/system/historic-routing-zebra.service
