@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.1.1] - 2026-10-25
+
+首个带安装包的发布版（实验性，非生产用途）。
+
+### Added
+
+- RPM（RHEL 10.1 x86_64）与 DEB（Debian 13 amd64）原生包：`historic-routing-runtime` +
+  `historic-routing-egp`，装到 `/opt/historic-routing/27f287be9/`，不覆盖系统 FRR。
+- 发布源码包：源码树 + 固定 FRR 提交的离线镜像（`vendor/frr-27f287be9.git.tar.xz`）+
+  SHA256 清单，`--network none` 下可完整构建。
+- `docs/RELEASE_NOTES_v0.1.1.md`、`docs/LICENSE_AUDIT.md`。
+
+### Changed
+
+- socket/PID 统一到 `/run/historic-routing/frr`，由 systemd `RuntimeDirectory` 管理（RPM 与 DEB 一致）。
+- `scripts/package-{rpm,deb}.sh` 新增 `--kind release`：正式包内不再出现 "development build / NOT released" 文案。
+
+### Known issues
+
+- `make check` 14 项已知失败（isisd/pimd，编译期已 `--disable`）。
+- DEB 仅在 Debian 13 用户态容器验证（宿主机内核为 RHEL 10.1）；未在独立 Debian 机器验证。
+
 本项目遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/) 的写法，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 

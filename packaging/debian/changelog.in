@@ -1,6 +1,6 @@
 historic-routing (@VERSION@) unstable; urgency=low
 
-  * Development build (NOT released): native Debian packaging for Debian 13
+  * @KIND_CHANGELOG@: native Debian packaging for Debian 13
     amd64, built from source commit @COMMIT@ (FRR base @FRR_COMMIT@).
   * Package split: historic-routing-runtime (libfrr.so.0, zebra, vtysh,
     configuration skeleton) and historic-routing-egp (egpd + its unit).

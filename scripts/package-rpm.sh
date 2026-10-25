@@ -24,6 +24,7 @@ HR_SCRIPT=package-rpm.sh
 
 VERSION="0.1.1"
 RELEASE=""
+KIND="dev"
 TOPDIR=""
 RUN_RPMLINT=1
 ALLOW_DIRTY=0
@@ -40,6 +41,7 @@ usage() {
   --no-rpmlint     跳过 rpmlint
   --allow-dirty    允许工作树脏
   --git-sha SHA    没有 .git 的目录树（例如 tar 解出来的）必须显式给出源码提交
+  --kind dev|release  发布类型（默认 dev；release 时包内文案改为正式发布，不再写 NOT released）
   --frr-repo URL   覆盖 FRR 源码传输来源（离线镜像；提交与补丁哈希仍强制校验）
   -h, --help       显示帮助
 EOF
@@ -49,6 +51,7 @@ while [ $# -gt 0 ]; do
 	case "$1" in
 		--version)     VERSION="${2:?}"; shift 2 ;;
 		--release)     RELEASE="${2:?}"; shift 2 ;;
+		--kind)        KIND="${2:?}"; shift 2 ;;
 		--topdir)      TOPDIR="${2:?}"; shift 2 ;;
 		--no-rpmlint)  RUN_RPMLINT=0; shift ;;
 		--allow-dirty) ALLOW_DIRTY=1; shift ;;
@@ -83,7 +86,7 @@ for d in BUILD BUILDROOT RPMS SOURCES SPECS SRPMS; do mkdir -p "$TOPDIR/$d"; don
 
 log "源码提交 : $GIT_SHA"
 log "FRR 基线 : $FRR_COMMIT"
-log "版本     : $VERSION-$RELEASE%{?dist}（开发验证构建，不是发布版本）"
+if [ "$KIND" = release ]; then log "版本     : $VERSION-$RELEASE%{?dist}（正式发布构建）"; else log "版本     : $VERSION-$RELEASE%{?dist}（开发验证构建，不是发布版本）"; fi
 log "rpmbuild : $TOPDIR"
 
 # ---- 1. 源码 tarball ----
@@ -120,6 +123,11 @@ def_args=(
 	--define "hr_frr $FRR_COMMIT"
 	--define "hr_frr_short $FRR_SHORT"
 )
+if [ "$KIND" = release ]; then
+	def_args+=(--define "hr_is_release 1")
+elif [ "$KIND" != dev ]; then
+	die "--kind 只能是 dev 或 release（收到: $KIND）"
+fi
 [ -n "$FRR_REPO_ARG" ] && def_args+=(--define "hr_frr_repo $FRR_REPO_ARG")
 [ -n "$FRR_REPO_ARG" ] && log "FRR 源码来源覆盖为 $FRR_REPO_ARG（提交与补丁哈希仍强制校验）"
 rc=0

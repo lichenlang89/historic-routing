@@ -18,6 +18,7 @@ WORK=""
 VERSION=""
 REVISION="1"
 GIT_SHA_ARG=""
+KIND="dev"
 RUN_LINTIAN=1
 KEEP=0
 ALLOW_DIRTY=0
@@ -29,6 +30,7 @@ usage() {
   --work DIR        构建工作目录（默认 <repo>/build-deb）
   --version V       覆盖上游版本（默认 0.1.1~dev<源码短提交>）
   --revision N      Debian revision（默认 1；升级测试时用 2）
+  --kind dev|release  发布类型（默认 dev；release 时包内文案改为正式发布）
   --no-lintian      跳过 lintian
   --allow-dirty     允许工作树脏（不推荐：包必须对应确定的提交）
   --keep            构建成功后保留工作目录
@@ -46,6 +48,7 @@ while [ $# -gt 0 ]; do
 		--version)    VERSION="${2:?}"; shift 2 ;;
 		--git-sha)    GIT_SHA_ARG="${2:?}"; shift 2 ;;
 		--revision)   REVISION="${2:?}"; shift 2 ;;
+		--kind)       KIND="${2:?}"; shift 2 ;;
 		--no-lintian) RUN_LINTIAN=0; shift ;;
 		--allow-dirty) ALLOW_DIRTY=1; shift ;;
 		--keep)       KEEP=1; shift ;;
@@ -92,6 +95,17 @@ FRR_SHORT="${FRR_COMMIT:0:9}"
 DVERSION="$VERSION-$REVISION"
 PREFIX="/opt/historic-routing/$FRR_SHORT"
 ABI_RAW="$SHORT-$FRR_SHORT"
+if [ "$KIND" = release ]; then
+	KIND_SHORT="official release $VERSION"
+	KIND_LONG="this is the official release build v$VERSION"
+	KIND_CHANGELOG="Official release v$VERSION"
+elif [ "$KIND" = dev ]; then
+	KIND_SHORT="development build, NOT released"
+	KIND_LONG="this is a development build, not a released version"
+	KIND_CHANGELOG="Development build (NOT released)"
+else
+	die "--kind 只能是 dev 或 release（收到: $KIND）"
+fi
 # Debian 的版本号必须以数字开头（dpkg-deb 会拒绝 "cefbfc6-..."），
 # 所以 Provides/Depends 里的 ABI 标识加 "0." 前缀；原始标识记在 BUILD-INFO 与 changelog 里。
 ABI="0.$ABI_RAW"
@@ -149,7 +163,10 @@ subst() {
 	    -e "s|@ABI_RAW@|$ABI_RAW|g" \
 	    -e "s|@ABI@|$ABI|g" \
 	    -e "s|@PREFIX@|$PREFIX|g" \
-	    -e "s|@RUNSTATEDIR@|$RUNSTATEDIR|g" "$1"
+	    -e "s|@RUNSTATEDIR@|$RUNSTATEDIR|g" \
+	    -e "s|@KIND_SHORT@|$KIND_SHORT|g" \
+	    -e "s|@KIND_LONG@|$KIND_LONG|g" \
+	    -e "s|@KIND_CHANGELOG@|$KIND_CHANGELOG|g" "$1"
 }
 subst "$SRC/debian/changelog.in" > "$SRC/debian/changelog"
 rm -f "$SRC/debian/changelog.in"

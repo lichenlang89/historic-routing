@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # historic-routing 的 EGP daemon（实验性 RFC 904 stub gateway，开发验证构建）。
 # 依赖同一次构建的 historic-routing-zebra（通过 ZAPI 下发路由）。
-Description=historic-routing EGP daemon (experimental, development build)
+Description=historic-routing EGP daemon (experimental, non-production)
 Documentation=https://github.com/lichenlang89/historic-routing
 After=network.target historic-routing-zebra.service
 Wants=historic-routing-zebra.service

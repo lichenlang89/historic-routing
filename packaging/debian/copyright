@@ -2,6 +2,12 @@ Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: historic-routing
 Upstream-Contact: Chenlang Li <Cc1580155hsg@163.com>
 Source: https://github.com/lichenlang89/historic-routing
+Comment: FRR source availability: the binaries in this package are built from
+ FRRouting (GPL-2.0-or-later) at commit
+ 27f287be9210d4024a140486b7b8ddd5eb41fe04 plus the patches in
+ patches/frr/egp/. The corresponding source is distributed with the release
+ source package (historic-routing-<short>-src.tar.xz, containing
+ vendor/frr-27f287be9.git.tar.xz and SHA256SUMS); see docs/LICENSE_AUDIT.md.
 Comment: This is an independent project. It is NOT an official FRRouting
  project, although it uses FRRouting as its framework and ships binaries
  built from an unmodified FRRouting base commit plus the patches in

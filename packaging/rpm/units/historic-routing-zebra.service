@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # historic-routing 的 zebra —— 与系统 frr.service 里的 zebra 互不兼容，不要同时运行。
 # 本 unit 只负责启动，不随包启用（包里没有任何 enable/start）。
-Description=historic-routing zebra (development build)
+Description=historic-routing zebra (experimental, non-production)
 Documentation=https://github.com/lichenlang89/historic-routing
 After=network.target
 ConditionPathExists=@PREFIX@/sbin/zebra

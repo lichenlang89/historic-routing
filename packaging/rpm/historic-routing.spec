@@ -23,6 +23,16 @@
 
 %global hr_prefix /opt/historic-routing/%{hr_frr_short}
 %global hr_abi %{hr_git_short}-%{hr_frr_short}
+# 发布类型：0=开发验证构建（未发布），1=正式发布版本。由 scripts/package-rpm.sh
+# 的 --kind release 以 --define "hr_is_release 1" 传入；默认仍是开发构建。
+%{!?hr_is_release:%global hr_is_release 0}
+%if %{hr_is_release}
+%global hr_kind_note official release
+%global hr_kind_long 这是 v%{hr_version} 的正式发布构建；精确源码提交见 %{hr_prefix}/RPM-BUILD-INFO.txt
+%else
+%global hr_kind_note development build
+%global hr_kind_long 本包是**开发验证构建**（未发布），release 字段带 dev 与源码提交号
+%endif
 # socket/PID 由 systemd RuntimeDirectory 管理（与 DEB 统一），不在安装前缀里
 %global hr_runstatedir /run/historic-routing
 
@@ -40,7 +50,7 @@
 Name:           historic-routing-runtime
 Version:        %{hr_version}
 Release:        %{hr_release}%{?dist}
-Summary:        FRRouting framework for historic routing protocols (development build)
+Summary:        FRRouting framework for historic routing protocols (%{hr_kind_note} %{hr_version})
 License:        GPL-2.0-or-later
 URL:            https://github.com/lichenlang89/historic-routing
 Source0:        historic-routing-%{hr_version}.tar.gz
@@ -63,7 +73,7 @@ Requires:       /bin/sh
 historic-routing 是一个独立项目：以 FRRouting 为底层框架，复活已经退出主流
 使用的历史路由协议（EGP、GGP、HELLO…）。本项目不是 FRRouting 官方项目。
 
-本包是**开发验证构建**（release 字段带 development 与源码提交号），不是正式发布版本。
+%{hr_kind_long}。
 它提供共享框架：共享运行时库、zebra、vtysh 与配置骨架，安装到
 %{hr_prefix}，与系统 FRR（/usr、/etc/frr、/usr/lib64/frr）互不覆盖。
 
@@ -78,7 +88,7 @@ Requires:       historic-routing-abi = %{hr_abi}
 %description -n historic-routing-egp
 historic-routing 的 EGP（RFC 904）守护进程 egpd。这是实验性的 stub gateway 实现，
 不是 RFC 904 意义上的 core gateway，也不建议用于生产网络。
-本包是开发验证构建，必须与同一次构建产出的 historic-routing-runtime 严格配对
+本包必须与同一次构建产出的 historic-routing-runtime 严格配对（%{hr_kind_note}）
 （ABI 标识 %{hr_abi}）。
 
 %prep
@@ -258,5 +268,5 @@ systemctl daemon-reload >/dev/null 2>&1 || :
 
 %changelog
 * Sun Oct 25 2026 Chenlang Li <Cc1580155hsg@163.com> - %{hr_version}-%{hr_release}
-- Development build (NOT released): RPM packaging for RHEL 10.1 x86_64
+- %{hr_kind_note} v%{hr_version}: RPM packaging for RHEL 10.1 x86_64
 - runtime: libfrr + zebra + vtysh; egp: egpd; isolated under /opt/historic-routing

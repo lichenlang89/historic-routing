@@ -3,7 +3,7 @@
 # historic-routing 的 zebra（开发验证构建）。
 # 与发行版的 frr.service 互不兼容：两者都写内核 RIB，不要同时运行。
 # 本 unit 不随包启用、不随包启动。
-Description=historic-routing zebra (development build)
+Description=historic-routing zebra (experimental, non-production)
 Documentation=https://github.com/lichenlang89/historic-routing
 After=network.target
 ConditionPathExists=@PREFIX@/sbin/zebra

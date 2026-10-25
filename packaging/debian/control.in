@@ -20,7 +20,7 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Provides: historic-routing-abi (= @ABI@)
 Description: FRRouting-based framework for historic routing protocols
- (development build, NOT released)
+ (@KIND_SHORT@)
  .
  historic-routing 是一个独立项目：以 FRRouting 为底层框架，
  复活已经退出主流使用的历史路由协议（EGP、GGP、HELLO…）。
@@ -32,10 +32,9 @@ Description: FRRouting-based framework for historic routing protocols
  recorded in BUILD-INFO.txt and does not touch the distribution FRR
  (/usr/sbin/frr*, /etc/frr, /usr/lib/*/frr, frr.service).
  .
- NOTE: this is a development build (see Version and BUILD-INFO.txt for the
- source commit); it is not a released version. Its zebra and the distribution
- frr.service both program the kernel RIB, so they must not run at the same
- time.
+ NOTE: @KIND_LONG@ (exact source commit is recorded in BUILD-INFO.txt).
+ Its zebra and the distribution frr.service both program the kernel RIB,
+ so they must not run at the same time.
 
 Package: historic-routing-egp
 Architecture: any
@@ -43,7 +42,7 @@ Depends: ${shlibs:Depends}, ${misc:Depends},
          historic-routing-runtime (= ${binary:Version}),
          historic-routing-abi (= @ABI@)
 Description: experimental EGP (RFC 904) daemon for historic-routing
- (development build, NOT released)
+ (@KIND_SHORT@)
  .
  historic-routing 的 EGP（RFC 904）守护进程 egpd。这是实验性的
  stub gateway 实现，不是 RFC 904 意义上的 core gateway，
@@ -55,4 +54,4 @@ Description: experimental EGP (RFC 904) daemon for historic-routing
  because the ZAPI enums, the EGP route-type number and the vtysh bit are
  compile-time constants shared with libfrr and zebra.
  .
- NOTE: development build, not a release.
+ NOTE: @KIND_LONG@.
