@@ -335,6 +335,9 @@ cmd_down() {
 	else
 		log "网络 $LAB_NET 不存在，跳过"
 	fi
+	# 实验会在安装前缀里建 var/ run/ 两个 tmpfs 挂载点；若它们是空的就收掉，
+	# 免得 RPM/DEB 卸载后看起来像"包留下了 run/"（rmdir 只删空目录，非空自动跳过）。
+	rmdir "$LAB_PREFIX/run" "$LAB_PREFIX/var" 2>/dev/null || true
 	log "清理完成（本实验资源已全部移除）"
 }
 

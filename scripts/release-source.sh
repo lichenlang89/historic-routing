@@ -99,8 +99,9 @@ packaged_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
 # 构建（离线，不访问网络）:
 #   HR_FRR_MIRROR_TARBALL=vendor/frr-$FRR_SHORT.git.tar.xz ./scripts/package-deb.sh --git-sha $SHA
-#   ./scripts/package-rpm.sh --git-sha $SHA --frr-repo file://\$PWD/vendor/frr-$FRR_SHORT.git.tar.xz
-#   （RPM 脚本的 --frr-repo 需要先解开 vendor 里的 bare 仓库，见 packaging/rpm/README.md）
+#   # RPM 需要 bare 仓库路径：先把 vendor 里的镜像解开
+#   mkdir -p /tmp/frr-mirror && tar -xJf vendor/frr-$FRR_SHORT.git.tar.xz -C /tmp/frr-mirror
+#   ./scripts/package-rpm.sh --git-sha $SHA --frr-repo file:///tmp/frr-mirror/$(basename vendor/frr-$FRR_SHORT.git)
 EOF
 
 # ---------- 3. 文件级一致性校验（git 索引 vs 解包后的树） ----------
