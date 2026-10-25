@@ -150,9 +150,9 @@ probe_container() {
 		"$LAB_IMAGE" sh -ec '
 			# libfrr 必须解析到挂载前缀里的 lib（RUNPATH=$ORIGIN/../lib 时 ldd 会显示
 			# /build/prefix/sbin/../lib，所以这里按"落在 /build/prefix 之下且文件名正确"判断）
-			lib=$(ldd /build/prefix/sbin/egpd 2>/dev/null | grep -F 'libfrr.so.0 =>' | awk '{print $3}')
-			case "$lib" in
-				/build/prefix/*lib/libfrr.so.0|/build/prefix/*/lib/libfrr.so.0) : ;;
+			line=$(ldd /build/prefix/sbin/egpd 2>/dev/null | grep libfrr.so.0)
+			case "$line" in
+				*"=> /build/prefix/"*) : ;;
 				*) echo LIBFRR_NOT_FROM_PREFIX; exit 3 ;;
 			esac
 			ip link add hrtest0 type dummy 2>/dev/null || { echo NO_NET_ADMIN; exit 4; }
