@@ -402,7 +402,11 @@ FP="$HR_BUILD_ROOT/fingerprint.txt"
 	echo "REPO_COMMIT=$_src_commit"
 	echo "REPO_COMMIT_SOURCE=$( [ -n "$HR_SOURCE_COMMIT" ] && echo env || echo git )"
 	echo "FRR_REPO=$FRR_REPO"
-	if [ -n "${HR_FRR_REPO:-}" ]; then echo "FRR_REPO_EFFECTIVE=$HR_FRR_REPO"; else echo "FRR_REPO_EFFECTIVE=$FRR_REPO"; fi
+	if [ -n "${HR_FRR_MIRROR_TARBALL:-}" ]; then
+		echo "FRR_REPO_EFFECTIVE=mirror:$(basename "$HR_FRR_MIRROR_TARBALL")"
+		echo "FRR_MIRROR_SHA256=$(sha256sum "$HR_FRR_MIRROR_TARBALL" | cut -d' ' -f1)"
+	elif [ -n "${HR_FRR_REPO:-}" ]; then echo "FRR_REPO_EFFECTIVE=$HR_FRR_REPO"
+	else echo "FRR_REPO_EFFECTIVE=$FRR_REPO"; fi
 	echo "FRR_COMMIT=$FRR_COMMIT"
 	echo "FRR_DESCRIBE=$FRR_DESCRIBE"
 	echo "FRR_SRC_TREE_DIRTY=$(git -C "$FRR_SRC" status --porcelain | wc -l)"
