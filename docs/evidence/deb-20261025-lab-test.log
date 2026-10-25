@@ -1,0 +1,35 @@
+# S8-B EGP 双路由器集成测试（Debian 13 容器，二进制来自 DEB 安装后的前缀）
+# 镜像: localhost/historic-routing-lab:deb13（Debian 13.7 + libyang3/iproute2/python3）
+# 网段: 198.18.126.0/24；结论: 13 通过 / 0 失败
+EGP 双路由器实验集成测试
+  参数: R1=egp-deb-r1(198.18.126.1,AS65001)  R2=egp-deb-r2(198.18.126.2,AS65002)  前缀=/build/prefix  UDP端口=9999
+  宣告: 10.0.0.0 @ 10.0.0.1/8 ; 172.16.0.0 @ 172.16.0.1/16
+
+PASS  01 两个 egpd 进程正常启动                            egp-deb-r1: egpd=17 zebra=11; egp-deb-r2: egpd=17 zebra=11
+PASS  02 双方邻居状态 Up                                 R1->198.18.126.2 Up(AS65002,active)  R2->198.18.126.1 Up(AS65001,passive)
+PASS  03 双向学习 EGP 路由                               egp-deb-r1 学到 172.16.0.0/16（protocol=egp）；egp-deb-r2 学到 10.0.0.0/8（protocol=egp）
+PASS  04 zebra 显示类型 G、管理距离 140                     JSON protocol=egp distance=140；文本 R1: G>* 172.16.0.0/16 [140/1]  R2: G>* 10.0.0.0/8 [140/1]
+PASS  05 内核路由表存在学习到的路由                             R1: 172.16.0.0/16 via 198.18.126.2 proto zebra；R2: 10.0.0.0/8 via 198.18.126.1 proto zebra
+PASS  06 两个 Stub 网络之间 UDP 双向通信                     10.0.0.1->172.16.0.1: OK ECHO:p1-to-p2 ; 172.16.0.1->10.0.0.1: OK ECHO:p2-to-p1
+PASS  07 取消 network 通告后对端撤路                        撤宣告后 3s：egp-deb-r2 的 RIB 与内核均无 10.0.0.0/8
+PASS  08 重新宣告后路由恢复                                 重宣告后 6s：egp-deb-r2 恢复 10.0.0.0/8 via 198.18.126.1
+PASS  09 egpd 异常退出后过期路由撤销                          SIGKILL egpd@egp-deb-r2(pid=17) 后 8s：egp-deb-r1 撤掉 172.16.0.0/16
+PASS  10 egpd 重启后邻居与路由重建                           重启 egpd@egp-deb-r2 后 7s：邻居 Up、双向路由恢复
+PASS  11 zebra 重启后 egpd 重新下发路由                     重启 zebra@egp-deb-r1 后 0s：172.16.0.0/16 重新出现在 zebra 与内核
+PASS  12 删除 EGP 邻居后路由撤销                            删邻居后 0s egp-deb-r1 撤路、0s egp-deb-r2 撤路；邻居已重新配置
+PASS  13 实验恢复（收尾校验）                                8s 内双方邻居 Up、双向路由齐备
+
+汇总: 13 通过 / 0 失败 / 共 13 项
+  [PASS] 01 两个 egpd 进程正常启动                              0.5s  egp-deb-r1: egpd=17 zebra=11; egp-deb-r2: egpd=17 zebra=11
+  [PASS] 02 双方邻居状态 Up                                   0.3s  R1->198.18.126.2 Up(AS65002,active)  R2->198.18.126.1 Up(AS65001,passive)
+  [PASS] 03 双向学习 EGP 路由                                 0.3s  egp-deb-r1 学到 172.16.0.0/16（protocol=egp）；egp-deb-r2 学到 10.0.0.0/8（protocol=egp）
+  [PASS] 04 zebra 显示类型 G、管理距离 140                       0.5s  JSON protocol=egp distance=140；文本 R1: G>* 172.16.0.0/16 [140/1]  R2: G>* 10.0.0.0/8 [140/1]
+  [PASS] 05 内核路由表存在学习到的路由                               0.2s  R1: 172.16.0.0/16 via 198.18.126.2 proto zebra；R2: 10.0.0.0/8 via 198.18.126.1 proto zebra
+  [PASS] 06 两个 Stub 网络之间 UDP 双向通信                       0.5s  10.0.0.1->172.16.0.1: OK ECHO:p1-to-p2 ; 172.16.0.1->10.0.0.1: OK ECHO:p2-to-p1
+  [PASS] 07 取消 network 通告后对端撤路                          2.6s  撤宣告后 3s：egp-deb-r2 的 RIB 与内核均无 10.0.0.0/8
+  [PASS] 08 重新宣告后路由恢复                                   6.0s  重宣告后 6s：egp-deb-r2 恢复 10.0.0.0/8 via 198.18.126.1
+  [PASS] 09 egpd 异常退出后过期路由撤销                            8.5s  SIGKILL egpd@egp-deb-r2(pid=17) 后 8s：egp-deb-r1 撤掉 172.16.0.0/16
+  [PASS] 10 egpd 重启后邻居与路由重建                             8.6s  重启 egpd@egp-deb-r2 后 7s：邻居 Up、双向路由恢复
+  [PASS] 11 zebra 重启后 egpd 重新下发路由                       4.8s  重启 zebra@egp-deb-r1 后 0s：172.16.0.0/16 重新出现在 zebra 与内核
+  [PASS] 12 删除 EGP 邻居后路由撤销                              0.5s  删邻居后 0s egp-deb-r1 撤路、0s egp-deb-r2 撤路；邻居已重新配置
+  [PASS] 13 实验恢复（收尾校验）                                  0.0s  8s 内双方邻居 Up、双向路由齐备

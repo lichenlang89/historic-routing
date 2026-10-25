@@ -1,0 +1,211 @@
+# S8-B DEB 产物与检查记录（真实输出，未编辑）
+# 源码提交: 31d801c（git clone 后 git archive 出 tarball）
+# 版本: 0.1.1~dev31d801c-1（开发验证构建，未发布）
+# 环境: Debian 13.7 amd64 / dpkg 1.22.22 / debhelper 13.24.2 / lintian 2.122.0
+historic-routing DEB 产物（S8-B 开发验证构建，未发布）
+构建环境: 13.7 / amd64 / dpkg 1.22.22 / debhelper 13.24.2 / lintian 2.122.0
+源码提交: 
+生成时间(UTC): 2026-10-25T02:27:45Z
+
+== 文件名 / 大小 / SHA256
+69da11f44d0382ee8b9dafbb106226e5e62c0bbbb4df072808359baffca9034e  historic-routing-runtime_0.1.1~dev31d801c-1_amd64.deb
+71addb1ddb6f87d285c64dd222bde03eee3f9010824bf449fde926b8aa469fcb  historic-routing-egp_0.1.1~dev31d801c-1_amd64.deb
+historic-routing-runtime_0.1.1~dev31d801c-1_amd64.deb 2235864 bytes
+historic-routing-egp_0.1.1~dev31d801c-1_amd64.deb 20412 bytes
+
+== 升级测试用包（同源码提交，revision 2）
+4081cba375d934d9b852047f304d85c77903e92930be81c2105bbf20c6fd2fe0  /work/build2/src/historic-routing-runtime_0.1.1~dev31d801c-2_amd64.deb
+
+== dpkg-deb -I（runtime）
+ new Debian package, version 2.0.
+ size 2235864 bytes: control archive=2396 bytes.
+     100 bytes,     2 lines      conffiles
+    1336 bytes,    28 lines      control
+    1108 bytes,    13 lines      md5sums
+    1119 bytes,    26 lines   *  postinst             #!/bin/sh
+     597 bytes,    19 lines   *  postrm               #!/bin/sh
+     264 bytes,     7 lines   *  preinst              #!/bin/sh
+     243 bytes,     8 lines   *  prerm                #!/bin/sh
+      57 bytes,     1 lines      shlibs
+      68 bytes,     2 lines      triggers
+ Package: historic-routing-runtime
+ Source: historic-routing
+ Version: 0.1.1~dev31d801c-1
+ Architecture: amd64
+ Maintainer: Chenlang Li <Cc1580155hsg@163.com>
+ Installed-Size: 17243
+ Depends: libc6 (>= 2.38), libcap2 (>= 1:2.10), libcrypt1 (>= 1:4.1.0), libjson-c5 (>= 0.15), libreadline8t64 (>= 7.0~rc1), libyang3 (>= 3.12.2)
+ Provides: historic-routing-abi (= 0.31d801c-27f287be9)
+ Section: net
+ Priority: optional
+ Homepage: https://github.com/lichenlang89/historic-routing
+ Description: FRRouting-based framework for historic routing protocols
+  (development build, NOT released)
+  .
+  historic-routing 是一个独立项目：以 FRRouting 为底层框架，
+  复活已经退出主流使用的历史路由协议（EGP、GGP、HELLO…）。
+  本项目不是 FRRouting 官方项目。
+  .
+  This package ships the shared framework of one specific build:
+  the runtime library (libfrr.so.0), zebra, vtysh and the configuration
+  skeleton. Everything is installed under the project prefix
+  recorded in BUILD-INFO.txt and does not touch the distribution FRR
+  (/usr/sbin/frr*, /etc/frr, /usr/lib/*/frr, frr.service).
+  .
+  NOTE: this is a development build (see Version and BUILD-INFO.txt for the
+  source commit); it is not a released version. Its zebra and the distribution
+  frr.service both program the kernel RIB, so they must not run at the same
+  time.
+== dpkg-deb -I（egp）
+ new Debian package, version 2.0.
+ size 20412 bytes: control archive=1960 bytes.
+      50 bytes,     1 lines      conffiles
+    1045 bytes,    24 lines      control
+     577 bytes,     7 lines      md5sums
+    1114 bytes,    26 lines   *  postinst             #!/bin/sh
+     596 bytes,    19 lines   *  postrm               #!/bin/sh
+     263 bytes,     7 lines   *  preinst              #!/bin/sh
+     242 bytes,     8 lines   *  prerm                #!/bin/sh
+ Package: historic-routing-egp
+ Source: historic-routing
+ Version: 0.1.1~dev31d801c-1
+ Architecture: amd64
+ Maintainer: Chenlang Li <Cc1580155hsg@163.com>
+ Installed-Size: 68
+ Depends: historic-routing-runtime (= 0.1.1~dev31d801c-1), libc6 (>= 2.38), historic-routing-abi (= 0.31d801c-27f287be9)
+ Section: net
+ Priority: optional
+ Homepage: https://github.com/lichenlang89/historic-routing
+ Description: experimental EGP (RFC 904) daemon for historic-routing
+  (development build, NOT released)
+  .
+  historic-routing 的 EGP（RFC 904）守护进程 egpd。这是实验性的
+  stub gateway 实现，不是 RFC 904 意义上的 core gateway，
+  也不建议用于生产网络。
+  .
+  This package is bound to one exact build of the runtime:
+  it requires both the same version-release of historic-routing-runtime and
+  the same historic-routing-abi marker (source commit + FRR base commit),
+  because the ZAPI enums, the EGP route-type number and the vtysh bit are
+  compile-time constants shared with libfrr and zebra.
+  .
+  NOTE: development build, not a release.
+
+== dpkg-deb -c（runtime）
+drwxr-xr-x 0 ./
+drwxr-xr-x 0 ./opt/
+drwxr-xr-x 0 ./opt/historic-routing/
+drwxr-xr-x 0 ./opt/historic-routing/27f287be9/
+-rw-r--r-- 3492 ./opt/historic-routing/27f287be9/BUILD-INFO.txt
+drwxr-xr-x 0 ./opt/historic-routing/27f287be9/bin/
+-rwxr-xr-x 12881216 ./opt/historic-routing/27f287be9/bin/vtysh
+drwxr-xr-x 0 ./opt/historic-routing/27f287be9/etc/
+drwxr-xr-x 0 ./opt/historic-routing/27f287be9/etc/frr/
+-rw-r--r-- 323 ./opt/historic-routing/27f287be9/etc/frr/frr.conf
+-rw-r--r-- 53 ./opt/historic-routing/27f287be9/etc/frr/vtysh.conf
+drwxr-xr-x 0 ./opt/historic-routing/27f287be9/lib/
+-rw-r--r-- 2384952 ./opt/historic-routing/27f287be9/lib/libfrr.so.0.0.0
+drwxr-xr-x 0 ./opt/historic-routing/27f287be9/sbin/
+-rwxr-xr-x 2326952 ./opt/historic-routing/27f287be9/sbin/zebra
+drwxr-xr-x 0 ./usr/
+drwxr-xr-x 0 ./usr/lib/
+drwxr-xr-x 0 ./usr/lib/systemd/
+drwxr-xr-x 0 ./usr/lib/systemd/system/
+-rw-r--r-- 1006 ./usr/lib/systemd/system/historic-routing-zebra.service
+drwxr-xr-x 0 ./usr/share/
+drwxr-xr-x 0 ./usr/share/doc/
+drwxr-xr-x 0 ./usr/share/doc/historic-routing-runtime/
+-rw-r--r-- 5842 ./usr/share/doc/historic-routing-runtime/ARCHITECTURE.md.gz
+-rw-r--r-- 3760 ./usr/share/doc/historic-routing-runtime/FIDELITY.md.gz
+-rw-r--r-- 4018 ./usr/share/doc/historic-routing-runtime/PACKAGING.md.gz
+-rw-r--r-- 3547 ./usr/share/doc/historic-routing-runtime/README.md.gz
+-rw-r--r-- 726 ./usr/share/doc/historic-routing-runtime/changelog.Debian.gz
+-rw-r--r-- 2980 ./usr/share/doc/historic-routing-runtime/changelog.gz
+-rw-r--r-- 1867 ./usr/share/doc/historic-routing-runtime/copyright
+drwxr-xr-x 0 ./usr/share/lintian/
+drwxr-xr-x 0 ./usr/share/lintian/overrides/
+-rw-r--r-- 725 ./usr/share/lintian/overrides/historic-routing-runtime
+lrwxrwxrwx 0 ./opt/historic-routing/27f287be9/lib/libfrr.so.0
+
+== dpkg-deb -c（egp）
+drwxr-xr-x 0 ./
+drwxr-xr-x 0 ./opt/
+drwxr-xr-x 0 ./opt/historic-routing/
+drwxr-xr-x 0 ./opt/historic-routing/27f287be9/
+drwxr-xr-x 0 ./opt/historic-routing/27f287be9/etc/
+drwxr-xr-x 0 ./opt/historic-routing/27f287be9/etc/frr/
+-rw-r--r-- 193 ./opt/historic-routing/27f287be9/etc/frr/egpd.conf
+drwxr-xr-x 0 ./opt/historic-routing/27f287be9/sbin/
+-rwxr-xr-x 33392 ./opt/historic-routing/27f287be9/sbin/egpd
+drwxr-xr-x 0 ./usr/
+drwxr-xr-x 0 ./usr/lib/
+drwxr-xr-x 0 ./usr/lib/systemd/
+drwxr-xr-x 0 ./usr/lib/systemd/system/
+-rw-r--r-- 975 ./usr/lib/systemd/system/historic-routing-egpd.service
+drwxr-xr-x 0 ./usr/share/
+drwxr-xr-x 0 ./usr/share/doc/
+drwxr-xr-x 0 ./usr/share/doc/historic-routing-egp/
+-rw-r--r-- 2201 ./usr/share/doc/historic-routing-egp/README.md.gz
+-rw-r--r-- 726 ./usr/share/doc/historic-routing-egp/changelog.Debian.gz
+-rw-r--r-- 2980 ./usr/share/doc/historic-routing-egp/changelog.gz
+-rw-r--r-- 1867 ./usr/share/doc/historic-routing-egp/copyright
+drwxr-xr-x 0 ./usr/share/lintian/
+drwxr-xr-x 0 ./usr/share/lintian/overrides/
+-rw-r--r-- 725 ./usr/share/lintian/overrides/historic-routing-egp
+
+== 包内 BUILD-INFO.txt
+# historic-routing DEB build info
+package_version=0.1.1~dev31d801c-1
+source_commit=31d801cec6245ec5692a7550d4264d3707e0481e
+frr_commit=27f287be9210d4024a140486b7b8ddd5eb41fe04
+abi=0.31d801c-27f287be9
+abi_raw=31d801c-27f287be9
+prefix=/opt/historic-routing/27f287be9
+runstatedir=/run/historic-routing
+built_at=2026-10-25T02:04:36Z
+---- fingerprint.txt ----
+# historic-routing build fingerprint
+GENERATED_AT=2026-10-25T02:04:36Z
+REPO_COMMIT=31d801cec6245ec5692a7550d4264d3707e0481e
+REPO_COMMIT_SOURCE=env
+FRR_REPO=https://github.com/FRRouting/frr
+FRR_REPO_EFFECTIVE=https://github.com/FRRouting/frr
+FRR_COMMIT=27f287be9210d4024a140486b7b8ddd5eb41fe04
+FRR_DESCRIBE=10.9.0-dev
+FRR_SRC_TREE_DIRTY=13
+FRR_PATCHED_DIFF_SHA256=c0ef912c8c0e570a95ffbdc093a528545d88fde72f645007d558b9e2f93fd118
+OPTIONAL_PATCH_0005=disabled
+PATCH_0001-lib-add-egp-route-type.patch sha256=f1c4a7b88511c458f78e84e4371169572762b5c035f85a00c4aefe05789e167b
+PATCH_0002-zebra-install-egp-routes-with-distance-140.patch sha256=09c7697dfac59292c30f20d750efef647516948f5a7c60afc83a4604e1983212
+PATCH_0003-vtysh-add-egpd-client-and-node.patch sha256=051afd3d3c6fd583ab673465cecc1d5126647904a6b3c1caee24fc7955d6d276
+PATCH_0004-build-enable-egpd-and-keep-existing-tests.patch sha256=fe0cc298be589583aeadd57c5307ace85a084806b04fe35473332b6abc211e77
+PROTO_SRC_egpd.c_SHA256=bd5f722a76be985e85a73f25835e3b32801f4e5c9e62bbad372a1499728b911d
+PROTO_SRC_egp_packet.c_SHA256=0e1440f786645d7f09ba117e6063560cbab83ba0bedaaac06e3a8ef72c3bfd6e
+PROTO_SRC_egp_packet.h_SHA256=44318c88fbaa7e0dbfd21d9dc3be1d5a082b4625b6f40bb4b6d093c0ef86fbb7
+PROTO_SRC_test_packet.c_SHA256=556f859064d0c9c455ff1f3b56eee7686f85c10be72bd2280c2cd2767040e33e
+PROTO_SRC_egpd.subdir.am_SHA256=89e08e8c584c9c367813c1659c684aac1fe563e5b18f1d1307ff178cb4ff5f84
+PROTO_SRC_README.md_SHA256=57cc0d253efb9817d5e91ce290ec1f25ddad3f84eaa0c21aa4140de26f3680a5
+PROTO_SRC_lab.sh_SHA256=2c50a96398fab497f04232e46ddcf3c0a1b1865751527160cb193c01a3b3f39b
+PROTO_SRC_test_lab.py_SHA256=923350bacc3d8808321f767e002509f76a5b9109c0292ed10bbb2d1822e5eda3
+CC=14.2.0
+CC_VERSION=gcc (Debian 14.2.0-19) 14.2.0
+MAKE_JOBS=4
+CONFIGURE_ARGS=--prefix=/opt/historic-routing/27f287be9 --sysconfdir=/opt/historic-routing/27f287be9/etc --localstatedir=/opt/historic-routing/27f287be9/var --runstatedir=/opt/historic-routing/27f287be9/run --enable-user=root --enable-group=root --enable-vty-group=root --disable-doc --disable-protobuf --disable-ospfapi --disable-ospfclient --disable-isisd --disable-pimd --disable-pim6d --disable-ldpd --disable-nhrpd --disable-babeld --disable-pbrd --disable-fabricd --disable-vrrpd --disable-pathd --enable-egpd --runstatedir=/run/historic-routing 
+INSTALL_PREFIX=/opt/historic-routing/27f287be9
+MAKE_RESULT=ok
+EGPD_TEST_PACKET=passed
+MAKE_CHECK_RC=2
+MAKE_CHECK_FAILED_DIRS=isisd pimd 
+MAKE_CHECK_SUMMARY=check-TESTS: 1/1 passed; make check rc=2: 仅在已 --disable 的模块 (isisd pimd ) 失败，14 failed, 514 passed, 5 skipped in 16.07s
+MAKE_DIST=ok: frr-10.9.0-dev.tar.gz (8.1M), egpd/ 全部文件在内
+PROTOCOL_EGP_BINARY_SHA256=88dc247236af647194e7a666792d3cc9c8d869885fc69918309e300caa230e7a
+ZEBRA_BINARY_SHA256=8a7df3e06bf72ec9e35c5e8ec615a824f00d7aa30d4bf0fe9bfc7a9c8e2da6cb
+VTYSH_BINARY_SHA256=ca0717113dc614b388be14736a37385c9cc40a66f0ebeb575909389b2c063363
+PROTOCOLS=egp 
+PROTOCOL_EGP_ROUTE_TYPE_ID=32
+PROTOCOL_EGP_DISPLAY_CHAR=G
+PROTOCOL_EGP_DISTANCE=140
+PROTOCOL_EGP_VTYSH_BIT=0x400000
+PROTOCOL_EGP_DAEMON=egpd
+ZEBRA_ROUTE_ALL_ID=33
+ZEBRA_ROUTE_MAX=34

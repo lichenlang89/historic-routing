@@ -9,6 +9,15 @@
 
 ### Added
 
+- Debian 原生打包（S8-B，Debian 13 amd64 用户态实测，**开发验证构建，未发布**）：
+  `packaging/debian/`（control/rules/changelog/copyright/conffiles/install/units/postinst 等）、
+  `scripts/package-deb.sh`；两个包 `historic-routing-runtime` 与 `historic-routing-egp`，
+  版本 `0.1.1~dev<源码短提交>-<revision>`，装到 `/opt/historic-routing/27f287be9`；
+  socket/PID 改由 systemd `RuntimeDirectory=/run/historic-routing/frr` 管理。
+- `scripts/vendor-frr.sh` + `fetch-frr.sh` 的 `HR_FRR_MIRROR_TARBALL`：把固定 FRR 提交做成
+  带 SHA256 与 commit/tree 校验的离线构建输入，正式打包不再依赖构建时联网。
+- `docs/PACKAGING.md` §9–§11：DEB 实现状态、RuntimeDirectory 设计（含 RPM 侧改法）、
+  离线构建输入设计。
 - RPM 原生打包（S8-A，RHEL 10.1 x86_64，**开发验证构建，未发布**）：
   `packaging/rpm/`（SPEC + 两个 systemd unit + `rpmlintrc` + `verify-rpm.sh` + README）、
   `scripts/package-rpm.sh`；一个 SPEC 出 `historic-routing-runtime` 与

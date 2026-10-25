@@ -1,0 +1,168 @@
+# S8-B 构建日志：scripts/package-deb.sh 的完整输出（含依赖自检与 lintian）
+# 命令: ./scripts/package-deb.sh --work /work/build --keep
+#       （HR_FRR_MIRROR_TARBALL 指向离线 FRR 镜像；%build 里真跑 scripts/build.sh）
+== 构建环境: Debian 13.7 / amd64 / dpkg 1.22.22
+== 源码提交: 31d801cec6245ec5692a7550d4264d3707e0481e
+== Debian 版本: 0.1.1~dev31d801c-1（上游 0.1.1~dev31d801c，revision 1）
+== 安装前缀: /opt/historic-routing/27f287be9   runstatedir: /run/historic-routing   ABI: 0.31d801c-27f287be9（原始 31d801c-27f287be9）
+== FRR 基线: 27f287be9210d4024a140486b7b8ddd5eb41fe04
+== 工作目录: /work/build
+== 开始 dpkg-buildpackage -b（%build 会从固定 FRR 基线完整构建，约数分钟）
+== 构建成功（日志: /work/build/dpkg-buildpackage.log）
+
+================ historic-routing-runtime_0.1.1~dev31d801c-1_amd64.deb
+大小   : 2235864 bytes
+69da11f44d0382ee8b9dafbb106226e5e62c0bbbb4df072808359baffca9034e  /work/build/src/historic-routing-runtime_0.1.1~dev31d801c-1_amd64.deb
+---- dpkg-deb -I（元数据）
+ new Debian package, version 2.0.
+ size 2235864 bytes: control archive=2396 bytes.
+     100 bytes,     2 lines      conffiles
+    1336 bytes,    28 lines      control
+    1108 bytes,    13 lines      md5sums
+    1119 bytes,    26 lines   *  postinst             #!/bin/sh
+     597 bytes,    19 lines   *  postrm               #!/bin/sh
+     264 bytes,     7 lines   *  preinst              #!/bin/sh
+     243 bytes,     8 lines   *  prerm                #!/bin/sh
+      57 bytes,     1 lines      shlibs
+      68 bytes,     2 lines      triggers
+ Package: historic-routing-runtime
+ Source: historic-routing
+ Version: 0.1.1~dev31d801c-1
+ Architecture: amd64
+ Maintainer: Chenlang Li <Cc1580155hsg@163.com>
+ Installed-Size: 17243
+ Depends: libc6 (>= 2.38), libcap2 (>= 1:2.10), libcrypt1 (>= 1:4.1.0), libjson-c5 (>= 0.15), libreadline8t64 (>= 7.0~rc1), libyang3 (>= 3.12.2)
+ Provides: historic-routing-abi (= 0.31d801c-27f287be9)
+ Section: net
+ Priority: optional
+ Homepage: https://github.com/lichenlang89/historic-routing
+ Description: FRRouting-based framework for historic routing protocols
+  (development build, NOT released)
+  .
+  historic-routing 是一个独立项目：以 FRRouting 为底层框架，
+  复活已经退出主流使用的历史路由协议（EGP、GGP、HELLO…）。
+  本项目不是 FRRouting 官方项目。
+  .
+  This package ships the shared framework of one specific build:
+  the runtime library (libfrr.so.0), zebra, vtysh and the configuration
+  skeleton. Everything is installed under the project prefix
+  recorded in BUILD-INFO.txt and does not touch the distribution FRR
+  (/usr/sbin/frr*, /etc/frr, /usr/lib/*/frr, frr.service).
+  .
+  NOTE: this is a development build (see Version and BUILD-INFO.txt for the
+  source commit); it is not a released version. Its zebra and the distribution
+  frr.service both program the kernel RIB, so they must not run at the same
+  time.
+---- dpkg-deb -c（文件清单）
+drwxr-xr-x 0 ./
+drwxr-xr-x 0 ./opt/
+drwxr-xr-x 0 ./opt/historic-routing/
+drwxr-xr-x 0 ./opt/historic-routing/27f287be9/
+-rw-r--r-- 3492 ./opt/historic-routing/27f287be9/BUILD-INFO.txt
+drwxr-xr-x 0 ./opt/historic-routing/27f287be9/bin/
+-rwxr-xr-x 12881216 ./opt/historic-routing/27f287be9/bin/vtysh
+drwxr-xr-x 0 ./opt/historic-routing/27f287be9/etc/
+drwxr-xr-x 0 ./opt/historic-routing/27f287be9/etc/frr/
+-rw-r--r-- 323 ./opt/historic-routing/27f287be9/etc/frr/frr.conf
+-rw-r--r-- 53 ./opt/historic-routing/27f287be9/etc/frr/vtysh.conf
+drwxr-xr-x 0 ./opt/historic-routing/27f287be9/lib/
+-rw-r--r-- 2384952 ./opt/historic-routing/27f287be9/lib/libfrr.so.0.0.0
+drwxr-xr-x 0 ./opt/historic-routing/27f287be9/sbin/
+-rwxr-xr-x 2326952 ./opt/historic-routing/27f287be9/sbin/zebra
+drwxr-xr-x 0 ./usr/
+drwxr-xr-x 0 ./usr/lib/
+drwxr-xr-x 0 ./usr/lib/systemd/
+drwxr-xr-x 0 ./usr/lib/systemd/system/
+-rw-r--r-- 1006 ./usr/lib/systemd/system/historic-routing-zebra.service
+drwxr-xr-x 0 ./usr/share/
+drwxr-xr-x 0 ./usr/share/doc/
+drwxr-xr-x 0 ./usr/share/doc/historic-routing-runtime/
+-rw-r--r-- 5842 ./usr/share/doc/historic-routing-runtime/ARCHITECTURE.md.gz
+-rw-r--r-- 3760 ./usr/share/doc/historic-routing-runtime/FIDELITY.md.gz
+-rw-r--r-- 4018 ./usr/share/doc/historic-routing-runtime/PACKAGING.md.gz
+-rw-r--r-- 3547 ./usr/share/doc/historic-routing-runtime/README.md.gz
+-rw-r--r-- 726 ./usr/share/doc/historic-routing-runtime/changelog.Debian.gz
+-rw-r--r-- 2980 ./usr/share/doc/historic-routing-runtime/changelog.gz
+-rw-r--r-- 1867 ./usr/share/doc/historic-routing-runtime/copyright
+drwxr-xr-x 0 ./usr/share/lintian/
+drwxr-xr-x 0 ./usr/share/lintian/overrides/
+-rw-r--r-- 725 ./usr/share/lintian/overrides/historic-routing-runtime
+lrwxrwxrwx 0 ./opt/historic-routing/27f287be9/lib/libfrr.so.0
+
+================ historic-routing-egp_0.1.1~dev31d801c-1_amd64.deb
+大小   : 20412 bytes
+71addb1ddb6f87d285c64dd222bde03eee3f9010824bf449fde926b8aa469fcb  /work/build/src/historic-routing-egp_0.1.1~dev31d801c-1_amd64.deb
+---- dpkg-deb -I（元数据）
+ new Debian package, version 2.0.
+ size 20412 bytes: control archive=1960 bytes.
+      50 bytes,     1 lines      conffiles
+    1045 bytes,    24 lines      control
+     577 bytes,     7 lines      md5sums
+    1114 bytes,    26 lines   *  postinst             #!/bin/sh
+     596 bytes,    19 lines   *  postrm               #!/bin/sh
+     263 bytes,     7 lines   *  preinst              #!/bin/sh
+     242 bytes,     8 lines   *  prerm                #!/bin/sh
+ Package: historic-routing-egp
+ Source: historic-routing
+ Version: 0.1.1~dev31d801c-1
+ Architecture: amd64
+ Maintainer: Chenlang Li <Cc1580155hsg@163.com>
+ Installed-Size: 68
+ Depends: historic-routing-runtime (= 0.1.1~dev31d801c-1), libc6 (>= 2.38), historic-routing-abi (= 0.31d801c-27f287be9)
+ Section: net
+ Priority: optional
+ Homepage: https://github.com/lichenlang89/historic-routing
+ Description: experimental EGP (RFC 904) daemon for historic-routing
+  (development build, NOT released)
+  .
+  historic-routing 的 EGP（RFC 904）守护进程 egpd。这是实验性的
+  stub gateway 实现，不是 RFC 904 意义上的 core gateway，
+  也不建议用于生产网络。
+  .
+  This package is bound to one exact build of the runtime:
+  it requires both the same version-release of historic-routing-runtime and
+  the same historic-routing-abi marker (source commit + FRR base commit),
+  because the ZAPI enums, the EGP route-type number and the vtysh bit are
+  compile-time constants shared with libfrr and zebra.
+  .
+  NOTE: development build, not a release.
+---- dpkg-deb -c（文件清单）
+drwxr-xr-x 0 ./
+drwxr-xr-x 0 ./opt/
+drwxr-xr-x 0 ./opt/historic-routing/
+drwxr-xr-x 0 ./opt/historic-routing/27f287be9/
+drwxr-xr-x 0 ./opt/historic-routing/27f287be9/etc/
+drwxr-xr-x 0 ./opt/historic-routing/27f287be9/etc/frr/
+-rw-r--r-- 193 ./opt/historic-routing/27f287be9/etc/frr/egpd.conf
+drwxr-xr-x 0 ./opt/historic-routing/27f287be9/sbin/
+-rwxr-xr-x 33392 ./opt/historic-routing/27f287be9/sbin/egpd
+drwxr-xr-x 0 ./usr/
+drwxr-xr-x 0 ./usr/lib/
+drwxr-xr-x 0 ./usr/lib/systemd/
+drwxr-xr-x 0 ./usr/lib/systemd/system/
+-rw-r--r-- 975 ./usr/lib/systemd/system/historic-routing-egpd.service
+drwxr-xr-x 0 ./usr/share/
+drwxr-xr-x 0 ./usr/share/doc/
+drwxr-xr-x 0 ./usr/share/doc/historic-routing-egp/
+-rw-r--r-- 2201 ./usr/share/doc/historic-routing-egp/README.md.gz
+-rw-r--r-- 726 ./usr/share/doc/historic-routing-egp/changelog.Debian.gz
+-rw-r--r-- 2980 ./usr/share/doc/historic-routing-egp/changelog.gz
+-rw-r--r-- 1867 ./usr/share/doc/historic-routing-egp/copyright
+drwxr-xr-x 0 ./usr/share/lintian/
+drwxr-xr-x 0 ./usr/share/lintian/overrides/
+-rw-r--r-- 725 ./usr/share/lintian/overrides/historic-routing-egp
+
+================ 依赖自检
+egp Depends: historic-routing-runtime (= 0.1.1~dev31d801c-1), libc6 (>= 2.38), historic-routing-abi (= 0.31d801c-27f287be9)
+PASS egp 精确依赖 runtime 的同一版本
+PASS egp 依赖 ABI 标识
+PASS runtime 不依赖外部 libfrr
+PASS runtime 提供 historic-routing-abi = 0.31d801c-27f287be9
+
+================ lintian
+A future release will drop --no-tag-display-limit; please use '--tag-display-limit 0' instead.
+running with root privileges is not recommended!
+W: historic-routing-egp: debian-changelog-line-too-long [usr/share/doc/historic-routing-egp/changelog.Debian.gz:4]
+W: historic-routing-runtime: debian-changelog-line-too-long [usr/share/doc/historic-routing-runtime/changelog.Debian.gz:4]
+(lintian 退出码 0；逐条在报告里说明)
+== 保留工作目录: /work/build

@@ -111,7 +111,7 @@ ldconfig 缓存），而是在打包时用 `patchelf --set-rpath '$ORIGIN/../lib
   `<prefix>/var/lib/frr`、`<prefix>/run/frr` 里由 daemon 产生的运行期状态（socket/pid）
   不会被删（RPM 不删非空目录），重装会复用——这是刻意选择：宁愿留状态也不做 `rm -rf`。
 
-## 7. 构建流水线（将来）
+## 7. 构建流水线（设计稿；RPM 已在 S8-A、DEB 已在 S8-B 实现，见 §9）
 
 ```
 make dist → 拿到含 egpd/ 的 tarball（已实现）
@@ -124,12 +124,84 @@ rpmbuild / dpkg-buildpackage：改 --prefix 为 /opt/historic-routing/<commit>
 每个包记录 fingerprint.txt 的一行（提交、补丁、源码哈希、二进制 SHA256）
 ```
 
-## 8. 待解决的问题
+## 8. 当时待解决的问题（现状：1–3 已由 S8-A/S8-B 解决，4–5 仍未做）
 
-1. **`ld.so` 方案未定型**：`RPATH=$ORIGIN/../lib` 需要在 configure 里加 `-Wl,-rpath`，
-   当前 `build.sh` 没有；临时用 `LD_LIBRARY_PATH`。
-2. **systemd unit 未验证**：`frrinit`/`watchfrr` 路径与参数没在包场景下跑过（S6 的"未实现"项）。
-3. **多协议 `daemons` 文件的合并**：`%config(noreplace)` 的追加语义在 RPM 里需要
-   `%post` 脚本，DEB 里需要 `ucf`/`dpkg-maintscript-helper`，两种实现都要测。
+1. ~~**`ld.so` 方案未定型**~~ → 已定：打包时用 `patchelf` 写 `RUNPATH=$ORIGIN/../lib`
+   （RPM 与 DEB 都这么做），不写 `ld.so.conf.d`。
+2. ~~**systemd unit 未验证**~~ → 已在 RPM（RHEL 10.1）与 DEB（Debian 13）上真实起停验证，
+   包括 `vtysh -c 'show daemons'` 同时看到 zebra/egpd。
+3. ~~**多协议 `daemons` 文件的合并**~~ → 目前只用 systemd unit（不读 `daemons` 文件），
+   多协议合并问题暂时不存在；等真的要在一个包里装多个协议时再处理。
 4. **SELinux 策略**：`frr_t` 域下 zebra 需要的能力与容器实验不同，未验证。
 5. 包签名与仓库托管：未规划（不属于 S7）。
+
+## 9. DEB 实现状态（S8-B，已在 Debian 13 实测）
+
+`packaging/debian/` + `scripts/package-deb.sh`，两个包 `historic-routing-runtime` /
+`historic-routing-egp`，版本 `0.1.1~dev<源码短提交>-<revision>`，装到
+`/opt/historic-routing/<FRR 短提交>/`。与 RPM 的差异见 `packaging/debian/README.md` §5。
+
+实现过程中被实测推翻/修正的三处（都记在 README 里）：`-ffile-prefix-map` 破坏 FRR 的
+vtysh 命令生成、`dh_installsystemd` 在该环境收不到 unit（改为显式安装）、ABI 标识必须以
+数字开头（`0.<sha>-<frr>`）。
+
+## 10. 可复用设计①：socket / PID 放到 /run（systemd RuntimeDirectory）
+
+**问题**：RPM（S8-A）把 pid/socket 放在 `<prefix>/run/`，属于"包内目录 + 运行期写入"，
+卸载后必然残留（RPM 不删非空目录）。
+
+**设计（已在 DEB 实测通过）**：
+
+1. configure 时 `--runstatedir=/run/historic-routing`（FRR 会在其下再建 `frr/` 子目录，
+   并把 `vtysh` 的默认 socket 目录也定到那里）；
+2. unit 里：
+   ```ini
+   RuntimeDirectory=historic-routing/frr
+   RuntimeDirectoryMode=0755
+   ExecStart=<prefix>/sbin/zebra -f <prefix>/etc/frr/frr.conf              -i /run/historic-routing/frr/zebra.pid              -z /run/historic-routing/frr/zserv.api              --vty_socket /run/historic-routing/frr -u root -g root
+   ```
+3. 结果（S8-B 实测）：
+   - 安装前缀里**没有** `run/` 目录；
+   - 服务运行时 `/run/historic-routing/frr/` 里有 `zebra.pid`、`zebra.vty`、`zserv.api`；
+   - `systemctl stop` 后 systemd 删掉 `.../frr`（顶层 `/run/historic-routing` 会保留到重启）；
+   - `vtysh` 不带参数即可连上（编译期 runstatedir 与 unit 一致）；
+   - `dpkg -P` 之后前缀整个消失，没有 socket/pid 残留。
+
+**RPM 侧怎么改（本轮不动，等验证）**：把 `BuildRequires` 不变，`%build` 里给
+`scripts/build.sh` 加 `--configure-args "--runstatedir=/run/historic-routing"`，两个 unit 改成
+上面的 `RuntimeDirectory=` 形式，`%files` 去掉 `%dir %{prefix}/run{,/frr}`，`%post` 不需要
+mkdir。注意 `%dir %{prefix}/var/lib/frr` 仍保留（FRR 的 state 目录）。
+
+## 11. 可复用设计②：自包含的构建源码输入（离线可构建）
+
+**问题**：`%build` / `override_dh_auto_build` 都要从 GitHub 取固定 FRR 提交，正式打包不该依赖
+构建时联网；而且"能联网"不是可复现性。
+
+**设计（已实现并验证）**：
+
+```
+./scripts/vendor-frr.sh --from /root/frr-mirror.git --out vendor
+  → vendor/frr-27f287be9.git.tar.xz   （含固定提交的 bare git 仓库）
+  → vendor/VENDOR.txt                 （FRR_COMMIT / TREE / DESCRIBE / REPO_DIRNAME）
+  → vendor/SHA256SUMS
+./scripts/vendor-frr.sh --verify vendor/frr-27f287be9.git.tar.xz
+  → PASS 校验通过: commit=27f287be… tree=514d1289…
+```
+
+构建时：
+
+```sh
+HR_FRR_MIRROR_TARBALL=vendor/frr-27f287be9.git.tar.xz ./scripts/package-deb.sh ...
+```
+
+`fetch-frr.sh` 的流程是：先 `sha256sum -c SHA256SUMS`，再解包到 `<build-root>/frr-mirror`，
+把它当作 `origin` 克隆，最后仍然用 `patches/frr/BASELINE` 的 40 位 `FRR_COMMIT` 强制校验
+（`apply-patches.sh` 还会再验一次 HEAD 与工作树干净）。所以**镜像只是传输方式**，内容由
+commit + 补丁 SHA256 决定；指纹里 `FRR_REPO_EFFECTIVE` 会写实际来源。
+
+本次 S8-B 的 DEB 就是用这个离线镜像从零构建的（S8-A 的 RPM 阶段用的是同一个仓库的
+`file://` 路径）。
+
+**仍然缺的一环**：`vendor/` 目录默认不进 git（体积 14 MB）。正式发布时应把
+`vendor/frr-<short>.git.tar.xz` + `SHA256SUMS` + `VENDOR.txt` 一起放进发布源码包
+（`dpkg-buildpackage -S` 的 orig tar / RPM 的 SRPM），这样别人拿到源码包即可离线构建。
