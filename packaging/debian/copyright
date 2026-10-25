@@ -1,0 +1,42 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: historic-routing
+Upstream-Contact: Chenlang Li <Cc1580155hsg@163.com>
+Source: https://github.com/lichenlang89/historic-routing
+Comment: This is an independent project. It is NOT an official FRRouting
+ project, although it uses FRRouting as its framework and ships binaries
+ built from an unmodified FRRouting base commit plus the patches in
+ patches/frr/ (GPL-2.0-or-later, same license as FRRouting).
+
+Files: *
+Copyright: 2026 Chenlang Li <Cc1580155hsg@163.com>
+License: GPL-2.0-or-later
+ This program is free software; you can redistribute it and/or modify it
+ under the terms of the GNU General Public License as published by the Free
+ Software Foundation; either version 2 of the License, or (at your option)
+ any later version.
+ .
+ This program is distributed in the hope that it will be useful, but WITHOUT
+ ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ details.
+ .
+ On Debian systems, the complete text of the GNU General Public License
+ version 2 can be found in "/usr/share/common-licenses/GPL-2".
+
+Files: protocols/egp/src/*
+Copyright: 2026 Chenlang Li <Cc1580155hsg@163.com>
+License: GPL-2.0-or-later
+ The EGP daemon (RFC 904 stub gateway) sources are original work of this
+ project and are licensed under the same terms as above.
+
+Files: patches/frr/*
+Copyright: 2026 Chenlang Li <Cc1580155hsg@163.com>
+License: GPL-2.0-or-later
+ These patches adapt an unmodified FRRouting tree (GPL-2.0-or-later) and are
+ therefore distributed under the same license.
+
+Files: LICENSE
+Copyright: 1998-2026 Kunihiro Ishiguro, et al. (FRRouting contributors)
+License: GPL-2.0-or-later
+ The license text is copied verbatim from the FRRouting source tree
+ (doc/licenses/GPL-2.0).

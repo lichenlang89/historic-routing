@@ -34,13 +34,33 @@ hr_require_cmd git
 hr_read_baseline
 # 离线/镜像构建：HR_FRR_REPO 可覆盖传输来源（内容仍由 $FRR_COMMIT + 补丁 SHA256 校验，
 # BASELINE 里的 FRR_COMMIT 不会变；使用了覆盖会写进日志与指纹）
+case "$DIR" in /*) ;; *) DIR="$(cd "$(dirname "$DIR")" 2>/dev/null && pwd || echo "$PWD")/$(basename "$DIR")" ;; esac
 FRR_REPO_ORIG="$FRR_REPO"
 if [ -n "${HR_FRR_REPO:-}" ]; then
 	FRR_REPO="$HR_FRR_REPO"
 	log "WARN 源码来源被 HR_FRR_REPO 覆盖: $FRR_REPO_ORIG -> $FRR_REPO（提交仍须等于 BASELINE）"
 fi
 
-case "$DIR" in /*) ;; *) DIR="$(cd "$(dirname "$DIR")" 2>/dev/null && pwd || echo "$PWD")/$(basename "$DIR")" ;; esac
+# 真正离线的构建输入（S8-B）：vendor/frr-<short>.git.tar.xz + SHA256SUMS + VENDOR.txt。
+# 解包前先校验 SHA256，解包后仍然要用 BASELINE 的 FRR_COMMIT 强校验（下面的 fetch 流程不变）。
+if [ -n "${HR_FRR_MIRROR_TARBALL:-}" ]; then
+	hr_require_cmd tar
+	[ -f "$HR_FRR_MIRROR_TARBALL" ] || die "HR_FRR_MIRROR_TARBALL 不存在: $HR_FRR_MIRROR_TARBALL"
+	_mdir="$(cd "$(dirname "$HR_FRR_MIRROR_TARBALL")" && pwd)"
+	[ -f "$_mdir/SHA256SUMS" ] || die "缺少 $_mdir/SHA256SUMS（离线镜像必须自带校验和）"
+	( cd "$_mdir" && sha256sum -c SHA256SUMS --status ) \
+		|| die "离线镜像 SHA256 校验失败: $(basename "$HR_FRR_MIRROR_TARBALL")"
+	_repo_dirname="$(sed -n 's/^REPO_DIRNAME=//p' "$_mdir/VENDOR.txt" 2>/dev/null | head -1)"
+	[ -n "$_repo_dirname" ] || die "VENDOR.txt 里没有 REPO_DIRNAME"
+	_unpack="${DIR%/frr-src}/frr-mirror"
+	hr_safe_rm_rf "$_unpack" "frr-mirror"
+	mkdir -p "$_unpack"
+	tar -xJf "$HR_FRR_MIRROR_TARBALL" -C "$_unpack" || die "解包离线镜像失败"
+	FRR_REPO="$_unpack/$_repo_dirname"
+	log "WARN 使用离线镜像（已校验 SHA256）: $(basename "$HR_FRR_MIRROR_TARBALL") -> $FRR_REPO"
+fi
+
+
 
 log "上游仓库 : $FRR_REPO"
 log "固定基线 : $FRR_COMMIT ($FRR_DESCRIBE)"

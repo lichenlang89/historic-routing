@@ -1,0 +1,27 @@
+[Unit]
+# SPDX-License-Identifier: GPL-2.0-or-later
+# historic-routing 的 EGP daemon（实验性 RFC 904 stub gateway，开发验证构建）。
+# 依赖同一次构建的 historic-routing-zebra（通过 ZAPI 下发路由）。
+Description=historic-routing EGP daemon (experimental, development build)
+Documentation=https://github.com/lichenlang89/historic-routing
+After=network.target historic-routing-zebra.service
+Wants=historic-routing-zebra.service
+ConditionPathExists=@PREFIX@/sbin/egpd
+
+[Service]
+Type=simple
+RuntimeDirectory=historic-routing/frr
+RuntimeDirectoryMode=0755
+ExecStart=@PREFIX@/sbin/egpd \
+	-f @PREFIX@/etc/frr/egpd.conf \
+	-i @RUNSTATEDIR@/frr/egpd.pid \
+	-z @RUNSTATEDIR@/frr/zserv.api \
+	--vty_socket @RUNSTATEDIR@/frr \
+	-u root -g root
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=mixed
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

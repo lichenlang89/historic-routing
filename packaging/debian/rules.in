@@ -1,0 +1,84 @@
+#!/usr/bin/make -f
+# SPDX-License-Identifier: GPL-2.0-or-later
+#
+# historic-routing 的 Debian 打包规则。
+#
+# 关键点：
+#   * 构建不重写 FRR 的构建系统，直接复用仓库里的 scripts/build.sh（与 RPM 同一条
+#     构建路径：固定 FRR 提交 → 补丁 → 协议源码 → configure → make → 单测 →
+#     make check → 暂存安装）。
+#   * 安装前缀在 configure 阶段就固定为 /opt/historic-routing/<FRR 短提交>，
+#     构建产物写进 debian/hr-dest（--destdir），不写宿主机真实 /opt。
+#   * runstatedir 指到 /run/historic-routing：socket/PID 不在安装前缀里，
+#     由 systemd 的 RuntimeDirectory 管理（S8-B 的设计验证项）。
+
+PREFIX       := @PREFIX@
+RUNSTATEDIR  := @RUNSTATEDIR@
+BUILD_ROOT   := $(CURDIR)/debian/hr-build
+STAGE_ROOT   := $(CURDIR)/debian/hr-dest
+TMP          := $(CURDIR)/debian/tmp
+
+export HR_SOURCE_COMMIT=@COMMIT@
+export DH_VERBOSE=1
+
+%:
+	dh $@
+
+override_dh_auto_configure:
+	@echo "== configure 由 scripts/build.sh 执行（含固定 FRR 基线与补丁校验）"
+
+override_dh_auto_build:
+	./scripts/build.sh \
+		--jobs $(shell nproc) \
+		--build-root $(BUILD_ROOT) \
+		--prefix $(PREFIX) \
+		--destdir $(STAGE_ROOT) \
+		--configure-args "--runstatedir=$(RUNSTATEDIR)"
+
+override_dh_auto_test:
+	@echo "== 单元测试（egpd/test_packet）与 make check 已在 scripts/build.sh 内执行"
+	@echo "== 结果记录在 debian/hr-build/fingerprint.txt 与 logs/build.log"
+
+override_dh_auto_install:
+	# 只挑要装的文件（不是把整个 dest 目录塞进包）
+	install -d $(TMP)$(PREFIX)/bin $(TMP)$(PREFIX)/sbin $(TMP)$(PREFIX)/lib \
+		$(TMP)$(PREFIX)/etc/frr
+	install -m 0755 $(STAGE_ROOT)$(PREFIX)/sbin/zebra  $(TMP)$(PREFIX)/sbin/zebra
+	install -m 0755 $(STAGE_ROOT)$(PREFIX)/bin/vtysh   $(TMP)$(PREFIX)/bin/vtysh
+	install -m 0755 $(STAGE_ROOT)$(PREFIX)/sbin/egpd   $(TMP)$(PREFIX)/sbin/egpd
+	cp -a $(STAGE_ROOT)$(PREFIX)/lib/libfrr.so.0*      $(TMP)$(PREFIX)/lib/
+	# RUNPATH 必须是 $ORIGIN/../lib（与 RPM 一致：只用自己前缀里的 libfrr）
+	patchelf --set-rpath '$$ORIGIN/../lib' \
+		$(TMP)$(PREFIX)/sbin/zebra $(TMP)$(PREFIX)/bin/vtysh $(TMP)$(PREFIX)/sbin/egpd
+	# 配置骨架 + 许可证/构建溯源
+	install -m 0644 debian/config/frr.conf   $(TMP)$(PREFIX)/etc/frr/frr.conf
+	install -m 0644 debian/config/vtysh.conf $(TMP)$(PREFIX)/etc/frr/vtysh.conf
+	install -m 0644 debian/config/egpd.conf  $(TMP)$(PREFIX)/etc/frr/egpd.conf
+	{ echo "# historic-routing DEB build info"; \
+	  echo "package_version=@VERSION@"; \
+	  echo "source_commit=@COMMIT@"; \
+	  echo "frr_commit=@FRR_COMMIT@"; \
+	  echo "abi=@ABI@"; \
+	  echo "prefix=$(PREFIX)"; \
+	  echo "runstatedir=$(RUNSTATEDIR)"; \
+	  echo "built_at=$(shell date -u +%Y-%m-%dT%H:%M:%SZ)"; \
+	  echo "---- fingerprint.txt ----"; \
+	  cat $(BUILD_ROOT)/fingerprint.txt; } > $(TMP)$(PREFIX)/BUILD-INFO.txt
+	chmod 0644 $(TMP)$(PREFIX)/BUILD-INFO.txt
+
+override_dh_auto_clean:
+	rm -rf $(BUILD_ROOT) $(STAGE_ROOT)
+
+# 私有 libfrr 的依赖关系：libfrr.so.0 由本项目的 runtime 包提供，
+# 走 debian/historic-routing-runtime.shlibs，而不是让 dpkg-shlibdeps 去系统里找。
+override_dh_shlibdeps:
+	dh_shlibdeps -l$(TMP)$(PREFIX)/lib
+
+override_dh_missing:
+	dh_missing --fail-missing
+
+override_dh_strip:
+	dh_strip --no-automatic-dbgsym
+
+override_dh_installsystemd:
+	dh_installsystemd --no-start --no-enable
