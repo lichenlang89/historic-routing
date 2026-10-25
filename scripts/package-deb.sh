@@ -16,6 +16,7 @@ HR_REPO_ROOT="$(cd "$SELF_DIR/.." && pwd)"
 
 WORK=""
 VERSION=""
+REVISION="1"
 RUN_LINTIAN=1
 KEEP=0
 ALLOW_DIRTY=0
@@ -26,6 +27,7 @@ usage() {
 
   --work DIR        构建工作目录（默认 <repo>/build-deb）
   --version V       覆盖上游版本（默认 0.1.1~dev<源码短提交>）
+  --revision N      Debian revision（默认 1；升级测试时用 2）
   --no-lintian      跳过 lintian
   --allow-dirty     允许工作树脏（不推荐：包必须对应确定的提交）
   --keep            构建成功后保留工作目录
@@ -41,6 +43,7 @@ while [ $# -gt 0 ]; do
 	case "$1" in
 		--work)       WORK="${2:?}"; shift 2 ;;
 		--version)    VERSION="${2:?}"; shift 2 ;;
+		--revision)   REVISION="${2:?}"; shift 2 ;;
 		--no-lintian) RUN_LINTIAN=0; shift ;;
 		--allow-dirty) ALLOW_DIRTY=1; shift ;;
 		--keep)       KEEP=1; shift ;;
@@ -80,7 +83,7 @@ FRR_COMMIT="$(sed -n 's/^FRR_COMMIT=//p' patches/frr/BASELINE | head -1)"
 [ -n "$FRR_COMMIT" ] || die "patches/frr/BASELINE 里没有 FRR_COMMIT"
 FRR_SHORT="${FRR_COMMIT:0:9}"
 [ -n "$VERSION" ] || VERSION="0.1.1~dev$SHORT"
-DVERSION="$VERSION-1"           # Debian revision 固定为 1（本轮只有开发构建）
+DVERSION="$VERSION-$REVISION"
 PREFIX="/opt/historic-routing/$FRR_SHORT"
 ABI_RAW="$SHORT-$FRR_SHORT"
 # Debian 的版本号必须以数字开头（dpkg-deb 会拒绝 "cefbfc6-..."），
