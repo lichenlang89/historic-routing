@@ -148,9 +148,13 @@ probe_container() {
 		--security-opt label=disable \
 		-v "$LAB_PREFIX:$LAB_MOUNT:ro" \
 		"$LAB_IMAGE" sh -ec '
-			ldd /build/prefix/sbin/egpd 2>/dev/null \
-				| grep -q "libfrr.so.0 => /build/prefix/lib" \
-				|| { echo LIBFRR_NOT_FROM_PREFIX; exit 3; }
+			# libfrr 必须解析到挂载前缀里的 lib（RUNPATH=$ORIGIN/../lib 时 ldd 会显示
+			# /build/prefix/sbin/../lib，所以这里按"落在 /build/prefix 之下且文件名正确"判断）
+			lib=$(ldd /build/prefix/sbin/egpd 2>/dev/null | grep -F 'libfrr.so.0 =>' | awk '{print $3}')
+			case "$lib" in
+				/build/prefix/*lib/libfrr.so.0|/build/prefix/*/lib/libfrr.so.0) : ;;
+				*) echo LIBFRR_NOT_FROM_PREFIX; exit 3 ;;
+			esac
 			ip link add hrtest0 type dummy 2>/dev/null || { echo NO_NET_ADMIN; exit 4; }
 			ip link del hrtest0
 			python3 -c "import socket; s=socket.socket(socket.AF_INET, socket.SOCK_RAW, 8); s.close()" 2>/dev/null \
