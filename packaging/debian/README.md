@@ -78,7 +78,21 @@ RPM 侧**本轮不改**（未验证的重构不做），差异记在 `docs/PACKA
 | 私有库依赖 | `__provides_exclude_from` / `__requires_exclude` | `.shlibs` + `dh_shlibdeps -l` |
 | 构建输入 | `%build` 调 `scripts/build.sh` | `override_dh_auto_build` 调同一个脚本 |
 
-## 6. 本地构建
+## 6. 与 Debian 硬化编译参数的冲突（实测）
+
+Debian 的 `dpkg-buildflags` 给 CFLAGS 加 `-ffile-prefix-map=$(CURDIR)=.`。它会让 FRR 的
+xref 记录成相对路径（`./debian/hr-build/frr-src/lib/keychain_cli.c`），而
+`python/xref2vtysh.py` 用 `os.path.relpath(file, frr_top_src)` 得到的前缀不是 `lib/`，
+于是落到 `VTYSH_<目录名>` 的兜底分支，生成 `VTYSH_LIB` 这种不存在的宏：
+
+```
+vtysh/vtysh_cmd.c:19:8: error: 'VTYSH_LIB' undeclared here (not in a function)
+```
+
+`debian/rules` 的 `override_dh_auto_build` 只在调用 `scripts/build.sh` 时去掉这一个参数，
+其余加固参数保留。这是"为了能构建"而不是"为了过测试"——`make check`/单测照常执行。
+
+## 7. 本地构建
 
 ```sh
 # 在 Debian 13 amd64 上（需要 debhelper、lintian、patchelf 及 control 里的 Build-Depends）

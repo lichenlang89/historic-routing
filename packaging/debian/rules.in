@@ -28,6 +28,12 @@ override_dh_auto_configure:
 	@echo "== configure 由 scripts/build.sh 执行（含固定 FRR 基线与补丁校验）"
 
 override_dh_auto_build:
+	# Debian 的硬化编译参数带 -ffile-prefix-map=$(CURDIR)=.；它让 FRR 的 xref 记录
+	# 相对路径，python/xref2vtysh.py 于是匹配不上 daemon 位表，会生成 VTYSH_LIB 这类
+	# 不存在的符号（编译直接失败，实测见 S8-B 报告）。只去掉这一个参数，
+	# 其余加固参数（-fstack-protector-strong、-D_FORTIFY_SOURCE、relro）全部保留。
+	CFLAGS="$$(printf '%s' "$$CFLAGS" | sed -e 's/-ffile-prefix-map=[^ ]*//g')" \
+	CXXFLAGS="$$(printf '%s' "$$CXXFLAGS" | sed -e 's/-ffile-prefix-map=[^ ]*//g')" \
 	./scripts/build.sh \
 		--jobs $(shell nproc) \
 		--build-root $(BUILD_ROOT) \
