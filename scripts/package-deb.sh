@@ -216,7 +216,8 @@ if [ "$RUN_LINTIAN" = 1 ]; then
 	if command -v lintian >/dev/null 2>&1; then
 		echo
 		echo "================ lintian"
-		lintian --no-tag-display-limit "${DEBS[@]}" 2>&1 | tee "$WORK/lintian.log"
+		# 在源码树里跑，才能读到 debian/<pkg>.lintian-overrides
+		( cd "$SRC" && lintian --no-tag-display-limit "${DEBS[@]}" 2>&1 ) | tee "$WORK/lintian.log"
 		echo "(lintian 退出码 $?；逐条在报告里说明)"
 	else
 		log "SKIP 没有 lintian（apt install lintian 后可复查）"
