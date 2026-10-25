@@ -1,0 +1,59 @@
+# S8-D 正式 DEB 构建：podman run --network none（容器无网络）+ 发布源码包 vendor/ 镜像
+== 源码包: /work/relsrc5/historic-routing-81c494688b
+SOURCE-COMMIT: 81c494688b8ae5335a3613cf5b7748c8ddf8a60f / version=0.1.1
+.git: ls: cannot access '.git': No such file or directory
+PASS 校验通过: commit=27f287be9210d4024a140486b7b8ddd5eb41fe04 tree=514d1289590e0781255f4716c087ea2e3365cc8a
+===== 正式 DEB（0.1.1-1）
+DEB_RC=0
+PASS egp 精确依赖 runtime 的同一版本
+PASS egp 依赖 ABI 标识
+PASS runtime 不依赖外部 libfrr
+PASS runtime 提供 historic-routing-abi = 0.81c4946-27f287be9
+(lintian 退出码 0；逐条在报告里说明)
+===== 升级测试用 DEB（0.1.2-1，不是产物）
+UP_RC=0
+-rw-r--r--. 1 root root   21492 Oct 25 11:46 /work/rel/build/src/historic-routing-egp_0.1.1-1_amd64.deb
+-rw-r--r--. 1 root root 2232236 Oct 25 11:46 /work/rel/build/src/historic-routing-runtime_0.1.1-1_amd64.deb
+-rw-r--r--. 1 root root   21512 Oct 25 11:53 /work/rel/build2/src/historic-routing-egp_0.1.2-1_amd64.deb
+-rw-r--r--. 1 root root 2234392 Oct 25 11:53 /work/rel/build2/src/historic-routing-runtime_0.1.2-1_amd64.deb
+== 包内 BUILD-INFO
+package_version=0.1.1-1
+frr_commit=27f287be9210d4024a140486b7b8ddd5eb41fe04
+abi=0.81c4946-27f287be9
+abi_raw=81c4946-27f287be9
+runstatedir=/run/historic-routing
+FRR_REPO_EFFECTIVE=mirror:frr-27f287be9.git.tar.xz
+FRR_MIRROR_SHA256=c63a99151bac02c272c9b657223ad85c3b2733cbb0390f837fd8a1f812ffb795
+== 控制字段
+Package: historic-routing-runtime
+Version: 0.1.1-1
+Depends: libc6 (>= 2.38), libcap2 (>= 1:2.10), libcrypt1 (>= 1:4.1.0), libjson-c5 (>= 0.15), libreadline8t64 (>= 7.0~rc1), libyang3 (>= 3.12.2)
+Provides: historic-routing-abi (= 0.81c4946-27f287be9)
+FRRouting-based framework for historic routing protocols
+ (official release 0.1.1)
+ .
+Depends: historic-routing-runtime (= 0.1.1-1), libc6 (>= 2.38), historic-routing-abi (= 0.81c4946-27f287be9)
+== lintian 明细
+   W: historic-routing-egp: debian-changelog-line-too-long [usr/share/doc/historic-routing-egp/changelog.Debian.gz:4]
+   W: historic-routing-runtime: debian-changelog-line-too-long [usr/share/doc/historic-routing-runtime/changelog.Debian.gz:4]
+   W: historic-routing-runtime: extended-description-line-too-long line 13
+== sha256
+9e4b7fe6926e78668bef3ffd239c4aaa48a57e714a13c1fb788bb959101f5e7e  /work/rel/build/src/historic-routing-egp_0.1.1-1_amd64.deb
+f0469ea32c0ade2c086ff42c734ab86022270a89d3750a60aead5c296f6f3fb1  /work/rel/build/src/historic-routing-runtime_0.1.1-1_amd64.deb
+12d3fd4a8b8198019be0591ea73eb8ddc14fe6897f83730997cc80ab9e7f862f  /work/rel/build2/src/historic-routing-egp_0.1.2-1_amd64.deb
+868e4a1df7361d37c23792940bbb5582ff41180b961bef5a7c7e763741fa5c15  /work/rel/build2/src/historic-routing-runtime_0.1.2-1_amd64.deb
+/work/rel/build/src/historic-routing-egp_0.1.1-1_amd64.deb 21492
+/work/rel/build/src/historic-routing-runtime_0.1.1-1_amd64.deb 2232236
+/work/rel/build2/src/historic-routing-egp_0.1.2-1_amd64.deb 21512
+/work/rel/build2/src/historic-routing-runtime_0.1.2-1_amd64.deb 2234392
+== 交付给安装测试
+/work/debs:
+total 2204
+-rw-r--r--. 1 root root   21492 Oct 25 11:53 historic-routing-egp_0.1.1-1_amd64.deb
+-rw-r--r--. 1 root root 2232236 Oct 25 11:53 historic-routing-runtime_0.1.1-1_amd64.deb
+drwxr-xr-x. 2 root root     102 Oct 25 11:53 new
+
+/work/debs/new:
+total 2208
+-rw-r--r--. 1 root root   21512 Oct 25 11:53 historic-routing-egp_0.1.2-1_amd64.deb
+-rw-r--r--. 1 root root 2234392 Oct 25 11:53 historic-routing-runtime_0.1.2-1_amd64.deb

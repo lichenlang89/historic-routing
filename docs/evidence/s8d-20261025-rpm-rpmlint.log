@@ -1,0 +1,144 @@
+# S8-D 正式 RPM 构建 + rpmlint（scripts/package-rpm.sh --kind release）
+[11:21:38Z] package-rpm.sh         源码提交 : 81c494688b8ae5335a3613cf5b7748c8ddf8a60f
+[11:21:38Z] package-rpm.sh         FRR 基线 : 27f287be9210d4024a140486b7b8ddd5eb41fe04
+[11:21:38Z] package-rpm.sh         版本     : 0.1.1-1%{?dist}（正式发布构建）
+[11:21:38Z] package-rpm.sh         rpmbuild : /root/rel/rpm
+[11:21:38Z] package-rpm.sh         源码 tarball: historic-routing-0.1.1.tar.gz 9d10182a60066941… 188K
+[11:21:38Z] package-rpm.sh         SPEC/units 已就位
+[11:21:38Z] package-rpm.sh         开始 rpmbuild -bb（%build 会从固定 FRR 基线完整构建，约几分钟）
+[11:21:38Z] package-rpm.sh         QA_RPATHS=17
+[11:21:38Z] package-rpm.sh         FRR 源码来源覆盖为 file:///root/frr-mirror.git（提交与补丁哈希仍强制校验）
+[11:27:14Z] package-rpm.sh         rpmbuild 成功（日志: /root/rel/rpm/build.log）
+
+================ historic-routing-egp-0.1.1-1.el10.x86_64.rpm
+大小   : 24K
+SHA256 : 1ec43df88b319e4afa50cb388f4dcb4b4edf11858c9977324731df0fb7845dcb
+---- rpm -qpR（依赖）
+  config(historic-routing-egp) = 0.1.1-1.el10
+  historic-routing-abi = 81c4946-27f287be9
+  historic-routing-runtime(x86-64) = 0.1.1-1.el10
+  libc.so.6()(64bit)
+  libc.so.6(GLIBC_2.17)(64bit)
+  libc.so.6(GLIBC_2.2.5)(64bit)
+  libc.so.6(GLIBC_2.3.4)(64bit)
+  libc.so.6(GLIBC_2.34)(64bit)
+  libc.so.6(GLIBC_2.38)(64bit)
+  libc.so.6(GLIBC_2.4)(64bit)
+  libc.so.6(GLIBC_ABI_DT_RELR)(64bit)
+  rpmlib(CompressedFileNames) <= 3.0.4-1
+  rpmlib(FileDigests) <= 4.6.0-1
+  rpmlib(PayloadFilesHavePrefix) <= 4.0-1
+  rpmlib(PayloadIsZstd) <= 5.4.18-1
+  rtld(GNU_HASH)
+---- rpm -qpl（文件）
+  /opt/historic-routing/27f287be9
+  /opt/historic-routing/27f287be9/etc
+  /opt/historic-routing/27f287be9/etc/frr
+  /opt/historic-routing/27f287be9/etc/frr/egpd.conf
+  /opt/historic-routing/27f287be9/sbin
+  /opt/historic-routing/27f287be9/sbin/egpd
+  /usr/lib/.build-id
+  /usr/lib/.build-id/e9
+  /usr/lib/.build-id/e9/162ca246ffe4249388b05877a000fef7532f50
+  /usr/lib/systemd/system/historic-routing-egpd.service
+  /usr/share/doc/historic-routing-egp
+  /usr/share/doc/historic-routing-egp/README.md
+
+================ historic-routing-runtime-0.1.1-1.el10.x86_64.rpm
+大小   : 1.8M
+SHA256 : 04bf30acb65415eb87bfb7753ad52c8c05124bdf27e6f1856de49faa1829658e
+---- rpm -qpR（依赖）
+  /bin/sh
+  /bin/sh
+  /bin/sh
+  /bin/sh
+  config(historic-routing-runtime) = 0.1.1-1.el10
+  libatomic.so.1()(64bit)
+  libcap.so.2()(64bit)
+  libcrypt.so.2()(64bit)
+  libcrypt.so.2(XCRYPT_2.0)(64bit)
+  libc.so.6()(64bit)
+  libc.so.6(GLIBC_2.14)(64bit)
+  libc.so.6(GLIBC_2.17)(64bit)
+  libc.so.6(GLIBC_2.2.5)(64bit)
+  libc.so.6(GLIBC_2.25)(64bit)
+  libc.so.6(GLIBC_2.3.2)(64bit)
+  libc.so.6(GLIBC_2.32)(64bit)
+  libc.so.6(GLIBC_2.33)(64bit)
+  libc.so.6(GLIBC_2.3.4)(64bit)
+  libc.so.6(GLIBC_2.34)(64bit)
+  libc.so.6(GLIBC_2.3)(64bit)
+  libc.so.6(GLIBC_2.38)(64bit)
+  libc.so.6(GLIBC_2.4)(64bit)
+  libc.so.6(GLIBC_2.6)(64bit)
+  libc.so.6(GLIBC_2.7)(64bit)
+  libc.so.6(GLIBC_2.9)(64bit)
+  libc.so.6(GLIBC_ABI_DT_RELR)(64bit)
+  libgcc_s.so.1()(64bit)
+  libgcc_s.so.1(GCC_3.0)(64bit)
+  libgcc_s.so.1(GCC_3.3.1)(64bit)
+  libjson-c.so.5()(64bit)
+  libjson-c.so.5(JSONC_0.14)(64bit)
+  libjson-c.so.5(JSONC_PRIVATE)(64bit)
+  libm.so.6()(64bit)
+  libreadline.so.8()(64bit)
+  libyang.so.2()(64bit)
+  rpmlib(CompressedFileNames) <= 3.0.4-1
+  rpmlib(FileDigests) <= 4.6.0-1
+  rpmlib(PayloadFilesHavePrefix) <= 4.0-1
+  rpmlib(PayloadIsZstd) <= 5.4.18-1
+  rtld(GNU_HASH)
+---- rpm -qpl（文件）
+  /opt/historic-routing/27f287be9
+  /opt/historic-routing/27f287be9/RPM-BUILD-INFO.txt
+  /opt/historic-routing/27f287be9/bin
+  /opt/historic-routing/27f287be9/bin/vtysh
+  /opt/historic-routing/27f287be9/etc
+  /opt/historic-routing/27f287be9/etc/frr
+  /opt/historic-routing/27f287be9/etc/frr/daemons
+  /opt/historic-routing/27f287be9/etc/frr/frr.conf
+  /opt/historic-routing/27f287be9/etc/frr/vtysh.conf
+  /opt/historic-routing/27f287be9/lib
+  /opt/historic-routing/27f287be9/lib/libfrr.so.0
+  /opt/historic-routing/27f287be9/lib/libfrr.so.0.0.0
+  /opt/historic-routing/27f287be9/sbin
+  /opt/historic-routing/27f287be9/sbin/zebra
+  /opt/historic-routing/27f287be9/var
+  /opt/historic-routing/27f287be9/var/lib
+  /opt/historic-routing/27f287be9/var/lib/frr
+  /usr/lib/.build-id
+  /usr/lib/.build-id/06
+  /usr/lib/.build-id/06/7855b51de2e1fc6905df2b84b71b2603d12a3f
+  /usr/lib/.build-id/18
+  /usr/lib/.build-id/18/8d43e4cc026c5cc8b4e54179d575cd2154040b
+  /usr/lib/.build-id/74
+  /usr/lib/.build-id/74/b1bbb1157496077ef0777f96d8a28bb35d91dc
+  /usr/lib/systemd/system/historic-routing-zebra.service
+  /usr/share/doc/historic-routing-runtime
+  /usr/share/doc/historic-routing-runtime/ARCHITECTURE.md
+  /usr/share/doc/historic-routing-runtime/CHANGELOG.md
+  /usr/share/doc/historic-routing-runtime/FIDELITY.md
+  /usr/share/doc/historic-routing-runtime/PACKAGING.md
+  /usr/share/doc/historic-routing-runtime/README.md
+  /usr/share/licenses/historic-routing-runtime
+  /usr/share/licenses/historic-routing-runtime/LICENSE
+
+================ rpmlint
+============================ rpmlint session starts ============================
+rpmlint: 2.8.0
+configuration:
+    /usr/lib/python3.12/site-packages/rpmlint/configdefaults.toml
+    /etc/xdg/rpmlint/fedora-spdx-licenses.toml
+    /etc/xdg/rpmlint/fedora.toml
+    /etc/xdg/rpmlint/scoring.toml
+    /etc/xdg/rpmlint/users-groups.toml
+    /etc/xdg/rpmlint/warn-on-functions.toml
+rpmlintrc: [PosixPath('/root/rel/src/packaging/rpm/rpmlintrc')]
+checks: 30, packages: 2
+
+ 2 packages and 0 specfiles checked; 0 errors, 0 warnings, 55 filtered, 0 badness; has taken 0.8 s 
+(rpmlint 退出码 0；上面的 warning 逐条在报告里说明)
+
+[11:27:15Z] package-rpm.sh         RPM 目录: /root/rel/rpm/RPMS
+/root/rel/rpm/RPMS/x86_64/historic-routing-egp-0.1.1-1.el10.x86_64.rpm
+/root/rel/rpm/RPMS/x86_64/historic-routing-runtime-0.1.1-1.el10.x86_64.rpm

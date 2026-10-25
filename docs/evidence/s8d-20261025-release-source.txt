@@ -1,0 +1,18 @@
+# S8-D 发布源码包清单（version=0.1.1，源码提交 81c4946）
+historic-routing 发布源码包
+version=0.1.1
+source_commit=81c494688b8ae5335a3613cf5b7748c8ddf8a60f
+source_short=81c494688b
+source_tree=1bc515e85ddfcf910c9821ca8e50a4811a21f410
+frr_commit=27f287be9210d4024a140486b7b8ddd5eb41fe04
+file=historic-routing-81c494688b-src.tar.xz
+size=14692952
+sha256=4b5d5f5061bcbbb5cc0322a1cc6558c5e99b46c7eded43626283dc72cc5f311a
+vendor_sha256=c63a99151bac02c272c9b657223ad85c3b2733cbb0390f837fd8a1f812ffb795
+packaged_at=2026-10-25T11:21:38Z
+
+包含: 源码树（109 个文件，逐文件与 git 索引校验一致）
+      vendor/frr-27f287be9.git.tar.xz（离线 FRR 镜像，SHA256 校验通过）
+      vendor/VENDOR.txt（FRR_COMMIT / TREE / DESCRIBE）
+      vendor/SHA256SUMS
+      SOURCE-COMMIT（本清单的机器可读版本 + 构建命令）

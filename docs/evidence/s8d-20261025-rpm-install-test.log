@@ -1,0 +1,94 @@
+# S8-D 正式 RPM 0.1.1-1 安装/启动/升级(0.1.2)/降级/卸载实测（RHEL 10.1 x86_64，真实输出）
+# 34 项全 PASS；卸载后前缀删除、无 /run 残留、rpm -V frr 干净
+== 环境: Red Hat Enterprise Linux release 10.1 (Coughlan) / 6.12.0-124.8.1.el10_1.x86_64 / x86_64
+== 候选源码短提交: 81c4946
+== 系统 frr 现状（测试前）
+    frr-10.1-11.el10.x86_64
+    frr-selinux-10.1-11.el10.noarch
+    frr active=inactive
+    frr enabled=disabled
+    测试前 rpm -V frr 输出: (空=一致)
+    /etc/frr 权限: 750（frr 包默认 750；755 是本项目早期实验手动改的宿主漂移）
+    /etc/frr 哈希=4a4f14923bf81acf9f2b3b37f1441f3fae59faa83a98292d8905b16bdc430cbf
+
+########## 1. 只装 egp（应被依赖拒绝）
+  [PASS] 只装 egp 被拒绝（rc=1）
+
+########## 1b. 清掉 S8-A 时代留下的前缀残留（只动本项目自己的目录）
+  [PASS] 前缀不存在，从干净状态开始
+
+########## 2. 安装 runtime + egp
+  [PASS] dnf install 两个包
+    historic-routing-runtime-0.1.1-1.el10.x86_64
+    historic-routing-egp-0.1.1-1.el10.x86_64
+  [PASS] rpm -V 无差异
+
+########## 3. 安装前缀布局（不应有 run/）
+bin etc lib RPM-BUILD-INFO.txt sbin var 
+  [PASS] 安装前缀内没有 run/ 目录
+  [PASS] 服务启动前 /run/historic-routing/frr 不存在
+
+########## 4. 服务默认不启用/不启动
+    historic-routing-zebra enabled=disabled active=inactive
+  [PASS] historic-routing-zebra 安装后未运行
+  [PASS] historic-routing-zebra 未被 enable
+    historic-routing-egpd enabled=disabled active=inactive
+  [PASS] historic-routing-egpd 安装后未运行
+  [PASS] historic-routing-egpd 未被 enable
+
+########## 5. systemd 启动（RuntimeDirectory 生效）
+    zebra: active / egpd: active
+  [PASS] zebra active
+  [PASS] egpd active
+    /run/historic-routing/frr:
+      total 8
+      -rw-r--r--. 1 root root 8 Oct 25 07:35 egpd.pid
+      srwxrwx---. 1 root root 0 Oct 25 07:35 egpd.vty
+      -rw-r--r--. 1 root root 8 Oct 25 07:35 zebra.pid
+      srwxrwx---. 1 root root 0 Oct 25 07:35 zebra.vty
+      srwx------. 1 root root 0 Oct 25 07:35 zserv.api
+  [PASS] RuntimeDirectory 已创建 /run/historic-routing/frr
+  [PASS] 存在 zserv.api
+  [PASS] 存在 zebra.pid
+  [PASS] 存在 egpd.pid
+  [PASS] 前缀内仍无 run/
+    vtysh（不带参数）:
+       zebra egpd
+  [PASS] vtysh 默认 socket 连上（看到 egpd）
+
+########## 6. 停止服务 → 运行期目录回收
+  [PASS] 停止后 /run/historic-routing/frr 已被 systemd 回收
+/run/historic-routing
+    （顶层 /run/historic-routing 仍在：空目录，systemd 语义如此，重启清空）
+  [PASS] 前缀内无 run/ 残留
+
+########## 7. 再次启动 → 停止（生命周期可重复）
+  [PASS] 第二次启动后 vtysh 仍可连
+  [PASS] 第二次停止后目录再次回收
+
+########## 8. 升级到同一提交的更高 release
+  [PASS] dnf upgrade（本地包）
+    historic-routing-runtime-0.1.2-1.el10.x86_64
+    historic-routing-egp-0.1.2-1.el10.x86_64
+  [PASS] 升级后配置文件仍在
+
+########## 9. 降级回候选版本
+  [PASS] dnf downgrade 回候选版本
+    historic-routing-runtime-0.1.1-1.el10.x86_64
+
+########## 10. 卸载 + 残留检查
+  [PASS] rpm -e 两个包
+  [PASS] 包记录已清除
+  [PASS] 安装前缀已删除
+  [PASS] 无 pid/vty/zserv.api 残留
+  [PASS] /run/historic-routing/frr 已不存在
+  [PASS] unit 文件已删除
+
+########## 11. 系统 FRR 未被影响
+  [PASS] /etc/frr 内容未变
+  [PASS] frr 包文件清单未变
+  [PASS] rpm -V frr 与测试前完全一致（）
+    frr active=inactive enabled=disabled
+
+########## 12. 结论
+ALL_PASS
