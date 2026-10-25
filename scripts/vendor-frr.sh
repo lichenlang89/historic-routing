@@ -52,7 +52,7 @@ verify_one() {
 	local sums
 	sums="$(dirname "$tarfile")/SHA256SUMS"
 	[ -f "$sums" ] || die "缺少 $sums（无法校验）"
-	( cd "$(dirname "$tarfile")" && grep -F "  $(basename "$tarfile")" "$sums" >/dev/null ) \
+	( cd "$(dirname "$tarfile")" && grep -F "  $(basename "$tarfile")" "$(basename "$sums")" >/dev/null ) \
 		|| die "$(basename "$tarfile") 不在 SHA256SUMS 里"
 	( cd "$(dirname "$tarfile")" && sha256sum -c SHA256SUMS --status ) \
 		|| die "$(basename "$tarfile") SHA256 校验失败"
