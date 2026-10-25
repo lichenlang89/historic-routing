@@ -1,2 +1,2 @@
-opt/historic-routing/27f287be9/etc/frr/frr.conf
-opt/historic-routing/27f287be9/etc/frr/vtysh.conf
+@PREFIX@/etc/frr/frr.conf
+@PREFIX@/etc/frr/vtysh.conf
