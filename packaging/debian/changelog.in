@@ -5,7 +5,9 @@ historic-routing (@VERSION@) unstable; urgency=low
   * Package split: historic-routing-runtime (libfrr.so.0, zebra, vtysh,
     configuration skeleton) and historic-routing-egp (egpd + its unit).
   * Both packages are bound to one build: exact version dependency plus the
-    historic-routing-abi marker @ABI@ (source commit + FRR base commit).
+    historic-routing-abi marker @ABI@ (raw identity @ABI_RAW@ = source commit +
+    FRR base commit; the leading "0." exists only because Debian version numbers
+    must start with a digit).
   * Installed under @PREFIX@; the distribution FRR (/etc/frr, /usr/sbin/frr*,
     frr.service, libfrr in /usr/lib) is not modified.
   * Sockets and PID files live in @RUNSTATEDIR@ (systemd RuntimeDirectory),

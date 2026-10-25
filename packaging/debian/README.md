@@ -17,6 +17,9 @@
 
 只靠 `libfrr.so.0` 的 SONAME 不够（不同构建 SONAME 相同、ZAPI 枚举可能不同），所以第 2 条是硬约束。
 
+ABI 标识在 Debian 里写成 `0.<源码短提交>-<FRR短提交>`：dpkg 要求版本号以数字开头，原始标识
+（`<源码短提交>-<FRR短提交>`）记录在 changelog 与包内 `BUILD-INFO.txt` 的 `abi_raw`。
+
 ## 2. 安装布局与隔离
 
 ```

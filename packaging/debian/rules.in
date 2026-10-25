@@ -65,6 +65,7 @@ override_dh_auto_install:
 	  echo "source_commit=@COMMIT@"; \
 	  echo "frr_commit=@FRR_COMMIT@"; \
 	  echo "abi=@ABI@"; \
+	  echo "abi_raw=@ABI_RAW@"; \
 	  echo "prefix=$(PREFIX)"; \
 	  echo "runstatedir=$(RUNSTATEDIR)"; \
 	  echo "built_at=$(shell date -u +%Y-%m-%dT%H:%M:%SZ)"; \
