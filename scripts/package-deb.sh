@@ -82,13 +82,16 @@ FRR_SHORT="${FRR_COMMIT:0:9}"
 [ -n "$VERSION" ] || VERSION="0.1.1~dev$SHORT"
 DVERSION="$VERSION-1"           # Debian revision 固定为 1（本轮只有开发构建）
 PREFIX="/opt/historic-routing/$FRR_SHORT"
-ABI="$SHORT-$FRR_SHORT"
+ABI_RAW="$SHORT-$FRR_SHORT"
+# Debian 的版本号必须以数字开头（dpkg-deb 会拒绝 "cefbfc6-..."），
+# 所以 Provides/Depends 里的 ABI 标识加 "0." 前缀；原始标识记在 BUILD-INFO 与 changelog 里。
+ABI="0.$ABI_RAW"
 RUNSTATEDIR="/run/historic-routing"
 STAMP="$(LC_ALL=C date -R)"
 
 log "== 源码提交: $SHA"
 log "== Debian 版本: $DVERSION（上游 $VERSION，revision 1）"
-log "== 安装前缀: $PREFIX   runstatedir: $RUNSTATEDIR   ABI: $ABI"
+log "== 安装前缀: $PREFIX   runstatedir: $RUNSTATEDIR   ABI: $ABI（原始 $ABI_RAW）"
 log "== FRR 基线: $FRR_COMMIT"
 
 # ---------- 2. 组装源码树 ----------
@@ -113,15 +116,18 @@ cp -a "$HR_REPO_ROOT/packaging/debian" "$SRC/debian"
 rm -f "$SRC"/debian/*.in.rej 2>/dev/null || true
 
 # ---------- 3. 变量替换 ----------
-# changelog 先由模板生成（dpkg 要求 debian/changelog 存在且版本匹配）
-sed -e "s|@VERSION@|$DVERSION|g" \
-    -e "s|@DATE@|$STAMP|g" \
-    -e "s|@COMMIT@|$SHA|g" \
-    -e "s|@FRR_COMMIT@|$FRR_COMMIT|g" \
-    -e "s|@ABI@|$ABI|g" \
-    -e "s|@PREFIX@|$PREFIX|g" \
-    -e "s|@RUNSTATEDIR@|$RUNSTATEDIR|g" \
-    "$SRC/debian/changelog.in" > "$SRC/debian/changelog"
+# 统一由一个 helper 做占位符替换（含 @ABI_RAW@）；顺序上 @ABI_RAW@ 必须在 @ABI@ 之前。
+subst() {
+	sed -e "s|@VERSION@|$DVERSION|g" \
+	    -e "s|@DATE@|$STAMP|g" \
+	    -e "s|@COMMIT@|$SHA|g" \
+	    -e "s|@FRR_COMMIT@|$FRR_COMMIT|g" \
+	    -e "s|@ABI_RAW@|$ABI_RAW|g" \
+	    -e "s|@ABI@|$ABI|g" \
+	    -e "s|@PREFIX@|$PREFIX|g" \
+	    -e "s|@RUNSTATEDIR@|$RUNSTATEDIR|g" "$1"
+}
+subst "$SRC/debian/changelog.in" > "$SRC/debian/changelog"
 rm -f "$SRC/debian/changelog.in"
 
 # 其余文件统一替换（含 .in 结尾的重命名、rwx 位）
@@ -129,12 +135,7 @@ for f in "$SRC"/debian/control.in "$SRC"/debian/rules.in \
          "$SRC"/debian/*.install "$SRC"/debian/*.conffiles "$SRC"/debian/*.docs \
          "$SRC"/debian/*.shlibs.in "$SRC"/debian/*.service.in "$SRC"/debian/config/*.conf; do
 	[ -f "$f" ] || continue
-	sed -i -e "s|@VERSION@|$DVERSION|g" \
-	       -e "s|@COMMIT@|$SHA|g" \
-	       -e "s|@FRR_COMMIT@|$FRR_COMMIT|g" \
-	       -e "s|@ABI@|$ABI|g" \
-	       -e "s|@PREFIX@|$PREFIX|g" \
-	       -e "s|@RUNSTATEDIR@|$RUNSTATEDIR|g" "$f"
+	subst "$f" > "$f.tmp" && mv "$f.tmp" "$f"
 done
 mv "$SRC/debian/control.in" "$SRC/debian/control"
 mv "$SRC/debian/rules.in"   "$SRC/debian/rules"
