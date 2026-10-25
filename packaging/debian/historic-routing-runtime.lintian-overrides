@@ -1,2 +1,11 @@
 initial-upload-closes-no-bugs
 package-has-unnecessary-activation-of-ldconfig-trigger
+# 安装到 /opt/historic-routing/<frr短提交>/ 是与发行版 FRR 隔离的手段（设计如此，
+# 见 packaging/debian/README.md）；Debian 政策对第三方软件包允许 /opt。
+dir-or-file-in-opt
+# 配置放在 <prefix>/etc/frr/ 而不是 /etc：不得覆盖发行版 /etc/frr，
+# 但仍要 dpkg 的 conffile 语义保护用户修改。
+non-etc-file-marked-as-conffile
+# 维护脚本只调用 systemctl daemon-reload（不 enable、不 start）。用 dh_installsystemd
+# 会自动加 deb-systemd-helper 逻辑，实测该环境它也收不到 unit 文件，故显式安装 + 手写脚本。
+maintainer-script-calls-systemctl
