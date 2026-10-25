@@ -11,6 +11,9 @@
 #     构建产物写进 debian/hr-dest（--destdir），不写宿主机真实 /opt。
 #   * runstatedir 指到 /run/historic-routing：socket/PID 不在安装前缀里，
 #     由 systemd 的 RuntimeDirectory 管理（S8-B 的设计验证项）。
+#   * dpkg-buildpackage 会清理环境变量（dpkg >= 1.22 的 sanitize-env），所以
+#     "离线 FRR 镜像"这类构建输入不能靠命令行环境传进来：scripts/package-deb.sh
+#     会把镜像拷进源码树并生成 debian/hroptions.mk，这里 include 后再 export。
 
 PREFIX       := @PREFIX@
 RUNSTATEDIR  := @RUNSTATEDIR@
@@ -26,6 +29,9 @@ export DH_VERBOSE=1
 
 override_dh_auto_configure:
 	@echo "== configure 由 scripts/build.sh 执行（含固定 FRR 基线与补丁校验）"
+
+-include debian/hroptions.mk
+export HR_FRR_MIRROR_TARBALL
 
 override_dh_auto_build:
 	# Debian 的硬化编译参数带 -ffile-prefix-map=$(CURDIR)=.；它让 FRR 的 xref 记录

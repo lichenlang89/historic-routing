@@ -126,6 +126,17 @@ git archive --format=tar HEAD 2>/dev/null | tar -x -C "$SRC" || {
 [ -d "$SRC/scripts" ] || die "源码快照不完整（缺 scripts/）"
 
 cp -a "$HR_REPO_ROOT/packaging/debian" "$SRC/debian"
+# 离线 FRR 构建输入：dpkg-buildpackage 会清环境变量，所以把它放进源码树，
+# 由 debian/rules include debian/hroptions.mk 后再 export 给 scripts/build.sh。
+if [ -n "${HR_FRR_MIRROR_TARBALL:-}" ]; then
+	[ -f "$HR_FRR_MIRROR_TARBALL" ] || die "HR_FRR_MIRROR_TARBALL 不存在: $HR_FRR_MIRROR_TARBALL"
+	mkdir -p "$SRC/vendor"
+	cp -f "$HR_FRR_MIRROR_TARBALL" "$SRC/vendor/"
+	VENDOR_REL="vendor/$(basename "$HR_FRR_MIRROR_TARBALL")"
+	printf 'HR_FRR_MIRROR_TARBALL := $(CURDIR)/%s
+' "$VENDOR_REL" > "$SRC/debian/hroptions.mk"
+	log "离线 FRR 构建输入: $VENDOR_REL（已拷入源码树，dpkg 清环境也生效）"
+fi
 rm -f "$SRC"/debian/*.in.rej 2>/dev/null || true
 
 # ---------- 3. 变量替换 ----------

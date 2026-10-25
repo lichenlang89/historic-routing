@@ -160,6 +160,18 @@ for _p in $PROTOS; do
 	CONFIGURE_ARGS+=("--enable-$P_CONFIGURE_ENABLE")
 done
 if [ -n "$EXTRA_CONF" ]; then
+	# 调用方显式覆盖 --runstatedir 时，去掉前缀内的那个默认值，避免同一个参数出现两次
+	# （autoconf 取最后一个，行为正确但指纹里会出现两个相互矛盾的路径）。
+	case " $EXTRA_CONF " in
+		*" --runstatedir="*)
+			_f=()
+			for _a in "${CONFIGURE_ARGS[@]}"; do
+				case "$_a" in --runstatedir=*) continue ;; esac
+				_f+=("$_a")
+			done
+			CONFIGURE_ARGS=("${_f[@]}")
+			;;
+	esac
 	# shellcheck disable=SC2206
 	CONFIGURE_ARGS+=($EXTRA_CONF)
 fi
