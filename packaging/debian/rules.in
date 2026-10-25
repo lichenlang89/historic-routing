@@ -91,6 +91,11 @@ override_dh_shlibdeps:
 override_dh_missing:
 	dh_missing --fail-missing
 
+# 服务只安装、不 enable、不 start（.install 已把 unit 放进包，这里只控制 debhelper 的
+# postinst 片段：daemon-reload 而已，不产生 enable 符号链接、不启动）。
+override_dh_installsystemd:
+	dh_installsystemd --no-start --no-enable
+
 override_dh_strip:
 	dh_strip --no-automatic-dbgsym
 
