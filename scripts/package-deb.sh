@@ -57,9 +57,10 @@ if [ ! -f /etc/debian_version ]; then
 	echo "     Debian 包必须在 Debian 环境里构建与验证；请勿在 RHEL 上用 alien 转换。" >&2
 	exit 2
 fi
-for t in dpkg-buildpackage dpkg-deb debhelper fakeroot; do
+for t in dpkg-buildpackage dpkg-deb dpkg-query fakeroot dh_installsystemd; do
 	command -v "$t" >/dev/null 2>&1 || { echo "FAIL 缺少工具: $t（apt install debhelper devscripts fakeroot）" >&2; exit 2; }
 done
+dpkg-query -W -f='${Status}' debhelper 2>/dev/null | grep -q "install ok installed" 	|| { echo "FAIL 没有安装 debhelper（apt install debhelper）" >&2; exit 2; }
 DEB_VER="$(cat /etc/debian_version)"
 log "== 构建环境: Debian $DEB_VER / $(dpkg --print-architecture) / dpkg $(dpkg-query -W -f='${Version}' dpkg)"
 
@@ -95,8 +96,14 @@ log "== FRR 基线: $FRR_COMMIT"
 case "$WORK" in /*) ;; *) WORK="$PWD/$WORK" ;; esac
 SRC_PARENT="$WORK/src"
 SRC="$SRC_PARENT/historic-routing-$VERSION"
-rm -rf "$WORK"
+# 安全边界：只删本脚本自己创建的工作目录（必须有标记文件），不做"无保护的 rm -rf"
+case "$WORK" in /|""|/root|/home|/usr|/var) die "拒绝把 $WORK 当作工作目录" ;; esac
+if [ -d "$WORK" ] && [ -n "$(ls -A "$WORK" 2>/dev/null)" ]; then
+	[ -f "$WORK/.hr-deb-work" ] || die "$WORK 非空且不是本脚本的工作目录（缺 .hr-deb-work 标记），拒绝删除"
+	rm -rf "$WORK"
+fi
 mkdir -p "$SRC"
+: > "$WORK/.hr-deb-work"
 log "== 工作目录: $WORK"
 
 git archive --format=tar HEAD | tar -x -C "$SRC" || die "git archive 失败"
