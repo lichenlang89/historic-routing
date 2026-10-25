@@ -138,6 +138,13 @@ systemctl is-active frr    # → 保持原状（inactive）
 cd lab/egp && LAB_PREFIX=/opt/historic-routing/27f287be9 ./lab.sh up && ./lab.sh test && ./lab.sh down
 ```
 
+## 7.5 运行期目录（socket / PID）
+
+与 DEB 统一：**安装前缀里没有 `run/`**。两个 unit 都用 `RuntimeDirectory=historic-routing/frr`，
+`zebra`/`egpd` 的 `-i`、`-z`、`--vty_socket` 指向 `/run/historic-routing/frr`；该目录由 systemd
+在服务启动时创建、停止时回收。configure 也带 `--runstatedir=/run/historic-routing`，所以
+`vtysh` 不带参数即可连上。卸载后不会有 `.pid`/`.vty`/`zserv.api` 残留。
+
 ## 8. 卸载
 
 `rpm -e historic-routing-egp historic-routing-runtime`：
@@ -150,7 +157,9 @@ cd lab/egp && LAB_PREFIX=/opt/historic-routing/27f287be9 ./lab.sh up && ./lab.sh
 ## 9. 已知限制
 
 1. 只在 RHEL 10.1 x86_64 验证；未验证其它发行版、aarch64、SELinux Enforcing 下的服务启动。
-2. `%build` 需要访问 GitHub 取固定 FRR 提交（离线构建需要预先准备镜像，尚未实现）。
+2. ~~`%build` 需要访问 GitHub 取固定 FRR 提交~~ → 已支持离线输入：`--frr-repo` /
+   `HR_FRR_REPO` 指向本地镜像，发布源码包里带的 `vendor/frr-<short>.git.tar.xz`
+   由 `scripts/release-source.sh` 生成并校验（sha256 + commit + tree）。
 3. 只打 `runtime` + `egp`；`devel`（头文件）、`lab`、`staticd`/其它 daemon 未打包。
 4. 未生成 SRPM 发布物（`rpmbuild -bs` 可用，但本轮不产出）。
 5. 二进制经 `brp-strip` 处理，与 `RPM-BUILD-INFO.txt` 里 fingerprint 记录的

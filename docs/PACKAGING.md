@@ -205,3 +205,46 @@ commit + 补丁 SHA256 决定；指纹里 `FRR_REPO_EFFECTIVE` 会写实际来�
 **仍然缺的一环**：`vendor/` 目录默认不进 git（体积 14 MB）。正式发布时应把
 `vendor/frr-<short>.git.tar.xz` + `SHA256SUMS` + `VENDOR.txt` 一起放进发布源码包
 （`dpkg-buildpackage -S` 的 orig tar / RPM 的 SRPM），这样别人拿到源码包即可离线构建。
+
+## 12. RPM / DEB 统一规范（S8-C 之后的唯一标准）
+
+两条打包链现在共用同一套约定；不一致就视为缺陷。
+
+| 维度 | 规范 | RPM 实现 | DEB 实现 |
+| --- | --- | --- | --- |
+| 安装前缀 | `/opt/historic-routing/<FRR 短提交>/` | `%{hr_prefix}` | `@PREFIX@` |
+| 运行目录 | `/run/historic-routing/frr`，systemd `RuntimeDirectory` 管 | unit 里 `RuntimeDirectory=` + `--runstatedir=` | 同 |
+| 安装前缀里的 `run/` | **不存在** | `%files` 已删 `%dir %{prefix}/run` | 从来不建 |
+| 动态库 | 二进制 `RUNPATH=$ORIGIN/../lib`，不写 `ld.so.conf.d` | `patchelf --set-rpath` | 同 |
+| 服务名 | `historic-routing-zebra.service`、`historic-routing-egpd.service` | 同 | 同 |
+| 默认不启动 | 只安装，不 enable、不 start | `%post` 只 `daemon-reload`（rpm 宏不做 enable） | `dh_installsystemd --no-start --no-enable` |
+| 配置文件 | conffile 语义（保留用户修改） | `%config(noreplace)` | `*.conffiles` + `dpkg-maintscript-helper` 无需 |
+| 版本绑定 | egp 精确依赖 runtime 的**同一**版本 + ABI 标识 | `Requires: = %{version}-%{release}` + `historic-routing-abi = <sha>-<frr>` | `(= ${binary:Version})` + `Provides/Depends: historic-routing-abi = 0.<sha>-<frr>` |
+| 构建入口 | 同一个 `scripts/build.sh` | `%build` | `override_dh_auto_build` |
+| 构建输入 | 固定 FRR 提交 + 补丁 SHA256 + 协议源码 SHA256 | `--frr-repo` / `HR_FRR_REPO` | `HR_FRR_MIRROR_TARBALL` |
+| 卸载残留 | 运行期文件一律不落在前缀内 | 无 `run/`，`/run/...` 由 systemd 回收 | 同 |
+
+`historic-routing-abi` 的取值两端相同：`<源码短提交>-<FRR 短提交>`（DEB 侧因为版本号必须
+以数字开头，写成 `0.<源码短提交>-<FRR 短提交>`，原始值记录在包内 `BUILD-INFO.txt` / `RPM-BUILD-INFO.txt`）。
+
+### 12.1 发布源码包的受校验构建输入
+
+`scripts/release-source.sh --frr-mirror <bare 仓库> [--out dist]` 产出：
+
+```
+dist/historic-routing-<10 位短提交>-src.tar.xz
+dist/MANIFEST.txt
+```
+
+包内含：该提交的完整源码树（逐文件 `git hash-object` 与索引比对，含可执行位）、
+`vendor/frr-<short>.git.tar.xz`、`vendor/VENDOR.txt`、`vendor/SHA256SUMS`、`SOURCE-COMMIT`。
+生成后脚本会解开成品，`sha256sum -c vendor/SHA256SUMS` 再验一遍——**网络下载不再是构建前提**。
+
+从发布源码包构建（没有 `.git`）：
+
+```sh
+tar xJf historic-routing-<short>-src.tar.xz && cd historic-routing-<short>
+./scripts/package-deb.sh --git-sha <完整提交> \
+    --work /tmp/build  # 加 HR_FRR_MIRROR_TARBALL=... 或直接用包内 vendor/
+./scripts/package-rpm.sh --git-sha <完整提交> --frr-repo file:///path/to/unpacked/mirror
+```

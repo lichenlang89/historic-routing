@@ -17,6 +17,7 @@ HR_REPO_ROOT="$(cd "$SELF_DIR/.." && pwd)"
 WORK=""
 VERSION=""
 REVISION="1"
+GIT_SHA_ARG=""
 RUN_LINTIAN=1
 KEEP=0
 ALLOW_DIRTY=0
@@ -43,6 +44,7 @@ while [ $# -gt 0 ]; do
 	case "$1" in
 		--work)       WORK="${2:?}"; shift 2 ;;
 		--version)    VERSION="${2:?}"; shift 2 ;;
+		--git-sha)    GIT_SHA_ARG="${2:?}"; shift 2 ;;
 		--revision)   REVISION="${2:?}"; shift 2 ;;
 		--no-lintian) RUN_LINTIAN=0; shift ;;
 		--allow-dirty) ALLOW_DIRTY=1; shift ;;
@@ -76,7 +78,11 @@ if [ -d .git ]; then
 	fi
 	SHA="$(git rev-parse HEAD)"
 else
-	die "这里不是 git 工作树：请在仓库内运行（构建需要 git archive 出确定的源码快照）"
+	# 发布源码包（tar 解出来的目录，没有 .git）：必须显式给出来源提交，
+	# 且构建输入必须带 vendor/ 里的离线 FRR 镜像（发布源码就是这样分发的）。
+	[ -n "$GIT_SHA_ARG" ] || die "当前目录不是 git 工作树：发布源码包请用 --git-sha 指定源码提交"
+	SHA="$GIT_SHA_ARG"
+	log "WARN 没有 .git：按发布源码包处理，源码提交取自 --git-sha $SHA"
 fi
 SHORT="${SHA:0:7}"
 FRR_COMMIT="$(sed -n 's/^FRR_COMMIT=//p' patches/frr/BASELINE | head -1)"
@@ -112,7 +118,11 @@ mkdir -p "$SRC"
 : > "$WORK/.hr-deb-work"
 log "== 工作目录: $WORK"
 
-git archive --format=tar HEAD | tar -x -C "$SRC" || die "git archive 失败"
+git archive --format=tar HEAD 2>/dev/null | tar -x -C "$SRC" || {
+	# 发布源码包（无 .git）：整棵源码树照抄，vendor/ 里的离线镜像一起带上
+	( cd "$HR_REPO_ROOT" && tar -cf - --exclude=./.git --exclude=./dist --exclude=./build-deb . ) \
+		| tar -x -C "$SRC"
+}
 [ -d "$SRC/scripts" ] || die "源码快照不完整（缺 scripts/）"
 
 cp -a "$HR_REPO_ROOT/packaging/debian" "$SRC/debian"

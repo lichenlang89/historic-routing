@@ -10,19 +10,20 @@ ConditionPathExists=@PREFIX@/sbin/egpd
 
 [Service]
 Type=simple
-# 与 zebra 用同一套 socket 目录（@PREFIX@/run/frr），vtysh 默认就能连上。
+# 与 zebra 同一套 socket 目录（@RUNSTATEDIR@/frr，由 systemd RuntimeDirectory 管理）
+RuntimeDirectory=historic-routing/frr
+RuntimeDirectoryMode=0755
 ExecStart=@PREFIX@/sbin/egpd \
 	-f @PREFIX@/etc/frr/egpd.conf \
-	-i @PREFIX@/run/frr/egpd.pid \
-	-z @PREFIX@/run/frr/zserv.api \
-	--vty_socket @PREFIX@/run/frr \
+	-i @RUNSTATEDIR@/frr/egpd.pid \
+	-z @RUNSTATEDIR@/frr/zserv.api \
+	--vty_socket @RUNSTATEDIR@/frr \
 	-u root -g root
 ExecReload=/bin/kill -HUP $MAINPID
 KillMode=mixed
 Restart=on-failure
 RestartSec=2
 StateDirectory=
-RuntimeDirectory=
 
 [Install]
 WantedBy=multi-user.target

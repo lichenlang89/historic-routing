@@ -9,21 +9,22 @@ ConditionPathExists=@PREFIX@/sbin/zebra
 
 [Service]
 Type=simple
-# socket/pid 都放在 @PREFIX@/run/frr（= 编译期 runstatedir），
-# 同前缀的 vtysh 不带参数即可连上（vtysh 默认找 runstatedir 下的 *.vty）。
+# socket / PID 不放安装前缀里：由 systemd 的 RuntimeDirectory 管理（与 DEB 一致），
+# 停止服务即回收；编译期 runstatedir 也是 @RUNSTATEDIR@，所以 vtysh 不带参数就能连上。
+RuntimeDirectory=historic-routing/frr
+RuntimeDirectoryMode=0755
 ExecStart=@PREFIX@/sbin/zebra \
 	-f @PREFIX@/etc/frr/frr.conf \
-	-i @PREFIX@/run/frr/zebra.pid \
-	-z @PREFIX@/run/frr/zserv.api \
-	--vty_socket @PREFIX@/run/frr \
+	-i @RUNSTATEDIR@/frr/zebra.pid \
+	-z @RUNSTATEDIR@/frr/zserv.api \
+	--vty_socket @RUNSTATEDIR@/frr \
 	-u root -g root
 ExecReload=/bin/kill -HUP $MAINPID
 KillMode=mixed
 Restart=on-failure
 RestartSec=2
-# 只写本项目前缀内的状态目录
+# 只写本项目前缀内的状态目录（/run 由 RuntimeDirectory 管理）
 StateDirectory=
-RuntimeDirectory=
 
 [Install]
 WantedBy=multi-user.target

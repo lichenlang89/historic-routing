@@ -23,6 +23,8 @@
 
 %global hr_prefix /opt/historic-routing/%{hr_frr_short}
 %global hr_abi %{hr_git_short}-%{hr_frr_short}
+# socket/PID 由 systemd RuntimeDirectory 管理（与 DEB 统一），不在安装前缀里
+%global hr_runstatedir /run/historic-routing
 
 %global debug_package %{nil}
 # 私有共享库不参与系统的 soname 命名空间：
@@ -118,6 +120,7 @@ export CFLAGS CXXFLAGS LDFLAGS
 	--build-root %{_builddir}/hr-build \
 	--prefix %{hr_prefix} \
 	--destdir %{_builddir}/hr-build/dest \
+	--configure-args "--runstatedir=%{hr_runstatedir}" \
 	--protocols egp
 
 %install
@@ -130,7 +133,7 @@ test -f %{_builddir}/hr-build/fingerprint.txt || {
 DEST=%{_builddir}/hr-build/dest%{hr_prefix}
 
 # 只装 runtime 需要的东西：共享库 + zebra + vtysh + 配置骨架
-install -d %{buildroot}%{hr_prefix}/{bin,sbin,lib,etc/frr,run/frr,var/lib/frr}
+install -d %{buildroot}%{hr_prefix}/{bin,sbin,lib,etc/frr,var/lib/frr}
 cp -a $DEST/lib/libfrr.so.0* %{buildroot}%{hr_prefix}/lib/
 # 说明：lib/frr/modules/*.so（bgpd_bmp / dplane_fpm_nl / zebra_cumulus_mlag）**不打包**。
 # 它们与本项目的 zebra/egpd 无关，而且需要额外的 libfrrcares.so.0 —— 一起打进来
@@ -178,7 +181,8 @@ chmod 0644 %{buildroot}%{hr_prefix}/etc/frr/vtysh.conf
 chmod 0644 %{buildroot}%{hr_prefix}/RPM-BUILD-INFO.txt
 
 install -d %{buildroot}%{_unitdir}
-sed 's|@PREFIX@|%{hr_prefix}|g' %{SOURCE1} > %{buildroot}%{_unitdir}/historic-routing-zebra.service
+sed -e 's|@PREFIX@|%{hr_prefix}|g' -e 's|@RUNSTATEDIR@|%{hr_runstatedir}|g' \
+	%{SOURCE1} > %{buildroot}%{_unitdir}/historic-routing-zebra.service
 chmod 0644 %{buildroot}%{_unitdir}/historic-routing-zebra.service
 
 # ---- egp 子包的文件 ----
@@ -205,8 +209,8 @@ log file %{hr_prefix}/run/egpd.log
 egp local-as 65001
 egp timers 30 120
 CONF
-install -m 0644 %{SOURCE2} %{buildroot}%{_unitdir}/historic-routing-egpd.service
-sed -i 's|@PREFIX@|%{hr_prefix}|g' %{buildroot}%{_unitdir}/historic-routing-egpd.service
+sed -e 's|@PREFIX@|%{hr_prefix}|g' -e 's|@RUNSTATEDIR@|%{hr_runstatedir}|g' \
+	%{SOURCE2} > %{buildroot}%{_unitdir}/historic-routing-egpd.service
 
 %post
 # 只刷新 unit 缓存：不 enable、不 start
@@ -230,8 +234,6 @@ systemctl daemon-reload >/dev/null 2>&1 || :
 %dir %{hr_prefix}/lib
 %dir %{hr_prefix}/etc
 %dir %{hr_prefix}/etc/frr
-%dir %{hr_prefix}/run
-%dir %{hr_prefix}/run/frr
 %dir %{hr_prefix}/var
 %dir %{hr_prefix}/var/lib
 %dir %{hr_prefix}/var/lib/frr
