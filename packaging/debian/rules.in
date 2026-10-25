@@ -97,9 +97,3 @@ override_dh_strip:
 override_dh_dwz:
 	@echo "== 跳过 dh_dwz（不提供 dbgsym，避免 /usr/lib/debug 进包）"
 
-# 私有库不在 ldconfig 搜索路径里，不需要 ldconfig trigger；shlibs 只在构建期用于
-# dpkg-shlibdeps，因此生成后从包里删掉。
-override_dh_makeshlibs:
-	dh_makeshlibs
-	rm -f $(CURDIR)/debian/historic-routing-runtime/DEBIAN/shlibs
-
