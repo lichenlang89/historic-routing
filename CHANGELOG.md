@@ -29,6 +29,12 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- EGP Update 按实际 distance 分组编码；distance 255 只撤销相应网络，不再拒绝整份
+  Update。保留其它可达网络及 distance 0 的处理；本地宣告仍使用 distance 1。
+- 新增距离分组金样本、255 路由边界测试和 `lab.sh test-updates` 原始报文回归。
+
 ### Added
 
 - **S8-C：RPM/DEB 统一 + v0.1.1 发布候选（未发布）**

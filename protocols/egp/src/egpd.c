@@ -148,7 +148,7 @@ static void receive(struct event *event)
 	socklen_t slen = sizeof(src);
 	struct egp_message m;
 	ssize_t len = recvfrom(n->fd, buf, sizeof(buf), 0, (struct sockaddr *)&src, &slen);
-	size_t ihl, i;
+	size_t ihl, i, count = 0;
 	time_t t = now();
 	event_add_read(master, receive, n, n->fd, &n->read);
 	if (len < 20 || src.sin_addr.s_addr != n->peer.s_addr || (buf[0] >> 4) != 4)
@@ -207,14 +207,17 @@ static void receive(struct event *event)
 	}
 	if (m.type != EGP_UPDATE || m.status != 1 || !n->poll_pending || m.seq != n->poll_seq)
 		return;
-	/* Stub-only: accept sender gateway, reject third-party transit claims. */
+	/* Stub-only: accept sender gateway, reject third-party transit claims.
+	 * RFC 888 section 5: distance 255 withdraws that net, not the Update. */
 	for (i = 0; i < m.count; i++) {
-		if (m.routes[i].gateway.s_addr != n->peer.s_addr || m.routes[i].distance == 255)
+		if (m.routes[i].gateway.s_addr != n->peer.s_addr)
 			return;
+		if (m.routes[i].distance != 255)
+			m.routes[count++] = m.routes[i];
 	}
 	n->poll_pending = false;
 	n->last_update = t;
-	replace_routes(n, m.routes, m.count);
+	replace_routes(n, m.routes, count);
 }
 static void tick(struct event *event)
 {
@@ -395,7 +398,7 @@ DEFUN(egp_network_cmd_fn, egp_network_cmd, "[no] egp network A.B.C.D", NO_STR "E
 	if (!no && i == network_count) {
 		if (network_count == EGP_MAX_ROUTES)
 			return CMD_WARNING_CONFIG_FAILED;
-		networks[network_count++].net = net;
+		networks[network_count++] = (struct egp_route){ .net = net, .distance = 1 };
 	}
 	return CMD_SUCCESS;
 }

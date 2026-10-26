@@ -43,6 +43,7 @@ usage() {
   vty N            进入路由器 N（1|2）的 vtysh
   exec N -- CMD..  在路由器 N 的容器里执行命令
   test             跑集成测试（test_lab.py，12 项）
+  test-updates     原始报文对端验证 Update 距离、逐网络撤路与恢复
   down             删除本实验的容器与网络（只删本实验的）
   env              打印当前生效的参数（不含任何凭据）
 
@@ -313,7 +314,7 @@ cmd_test() {
 	export LAB_MOUNT LAB_PREFIX LAB_NAME_PREFIX LAB_R1="$R1" LAB_R2="$R2" \
 		LAB_IP1 LAB_IP2 LAB_AS1 LAB_AS2 LAB_TIMERS LAB_NET1 LAB_HOST1 LAB_NET2 LAB_HOST2 \
 		LAB_UDP_PORT LAB_RUNDIR LAB_ENV_FILE="$ENV_FILE"
-	python3 "$HERE/test_lab.py"
+	python3 "$HERE/${1:-test_lab.py}"
 }
 
 cmd_down() {
@@ -367,6 +368,7 @@ case "$cmd" in
 	vty)    check_params; cmd_vty "$@" ;;
 	exec)   check_params; cmd_exec "$@" ;;
 	test)   check_params; cmd_test ;;
+	test-updates) check_params; cmd_test test_updates.py ;;
 	down)   check_params; cmd_down ;;
 	env)    cmd_env ;;
 	''|-h|--help|help) usage ;;

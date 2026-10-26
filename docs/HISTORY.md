@@ -1,5 +1,22 @@
 # 迁移历史与冻结记录（S0）
 
+## 2026-10-26：EGP Update 距离与显式撤路
+
+本轮单独修改协议核心源码，修复两处会影响互通的行为：编码器曾忽略
+`egp_route.distance`、总是发送 distance 1；接收器曾因一条 distance 255 的网络
+拒绝整份 Update，连带丢失其它网络的更新并保留旧路由直到超时。
+
+依据 [RFC 904 附录 A.4](https://www.rfc-editor.org/rfc/rfc904.html#appendix-A.4)
+和 [RFC 888 第 5 节](https://www.rfc-editor.org/rfc/rfc888.html#section-5)，
+现在按实际 distance 分组编码，配置的本地 network 显式使用 distance 1；
+接收普通、匹配未决 Poll 的 Update 时滤掉不可达项，再替换该邻居的路由集合。
+不改资源分配、FRR 补丁、ABI 编号或已发布 tag。
+
+新增独立报文金样本、255 路由/距离分组边界检查，以及
+`lab/egp/lab.sh test-updates` 原始报文对端测试。协议源码哈希清单随本次改动更新。
+验证记录见 [本轮证据](evidence/egp-update-rfc904-20261026.md)；
+剩余 stub/完整快照简化见 [忠实度矩阵](FIDELITY.md)。
+
 ## 冻结的源仓库
 
 | 项 | 值 |
