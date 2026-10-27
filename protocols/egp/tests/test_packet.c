@@ -2,6 +2,7 @@
 #include "egp_packet.h"
 #include "egp_reach.h"
 #include "egp_state.h"
+#include "egp_age.h"
 #include <assert.h>
 #include <arpa/inet.h>
 #include <string.h>
@@ -20,6 +21,43 @@ static void seal(uint8_t *b, size_t len)
 	c = egp_checksum(b, len);
 	b[4] = c >> 8;
 	b[5] = c;
+}
+static void test_aging(void)
+{
+	struct egp_route old[EGP_MAX_ROUTES], next[EGP_MAX_ROUTES];
+	uint8_t misses[EGP_MAX_ROUTES] = { 0 }, next_misses[EGP_MAX_ROUTES];
+	struct egp_message m = { 0 };
+	int count;
+	old[0] = (struct egp_route){ .net = addr("10.0.0.0"), .distance = 9 };
+	count = egp_age_update(old, 1, misses, &m, next, next_misses);
+	assert(count == 1 && next_misses[0] == 1 && next[0].distance == 9);
+	misses[0] = 1;
+	assert(egp_age_update(old, 1, misses, &m, next, next_misses) == 1);
+	assert(next_misses[0] == 2);
+	misses[0] = 2;
+	assert(egp_age_update(old, 1, misses, &m, next, next_misses) == 0);
+	m.count = 1;
+	m.routes[0] = old[0];
+	m.routes[0].distance = 0;
+	assert(egp_age_update(old, 1, misses, &m, next, next_misses) == 1);
+	assert(next_misses[0] == 0 && next[0].distance == 0);
+	m.routes[0].distance = 255;
+	misses[0] = 0;
+	assert(egp_age_update(old, 1, misses, &m, next, next_misses) == 0);
+	m.routes[1] = (struct egp_route){ .net = addr("172.16.0.0"), .distance = 7 };
+	m.count = 2;
+	assert(egp_age_update(old, 1, misses, &m, next, next_misses) == 1);
+	assert(next[0].net.s_addr == m.routes[1].net.s_addr && next_misses[0] == 0);
+	m.routes[1] = m.routes[0];
+	assert(egp_age_update(old, 1, misses, &m, next, next_misses) < 0);
+	/* Retained omissions plus new networks cannot exceed the resource limit. */
+	for (size_t i = 0; i < EGP_MAX_ROUTES; i++) {
+		old[i].net.s_addr = htonl(0xc6120000U + (i << 8));
+		misses[i] = 0;
+	}
+	m.count = 1;
+	m.routes[0] = (struct egp_route){ .net = addr("10.0.0.0"), .distance = 1 };
+	assert(egp_age_update(old, EGP_MAX_ROUTES, misses, &m, next, next_misses) < 0);
 }
 static void test_distances(void)
 {
@@ -83,6 +121,7 @@ int main(void)
 	int len;
 	size_t i;
 	test_distances();
+	test_aging();
 	/* Moving-window edges, duplicates, wraparound and delayed ticks (904 4.3). */
 	struct egp_reach reach = { 0 };
 	assert(egp_reach_record(&reach, 0, 2));

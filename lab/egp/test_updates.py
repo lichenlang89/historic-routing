@@ -79,14 +79,14 @@ def main():
     def absent(prefix):
         return lab.egp_route(lab.R1, prefix) is None and not lab.has_kernel(lab.R1, prefix)
 
-    def stage(routes, label, predicate):
+    def stage(routes, label, predicate, cycles=2):
         peer.stdin.write(json.dumps(routes) + "\n")
         peer.stdin.flush()
         if peer.stdout.readline().strip() != "PLAN":
             raise AssertionError("raw peer did not accept plan")
-        # Stay below egpd's 3*Poll stale-route timeout: expiry cannot pass
-        # a test that is meant to prove explicit withdrawal processing.
-        lab.wait(label, predicate, timeout=2 * poll, interval=0.25)
+        # Explicit withdrawals use two Poll periods, below the stale timer.
+        # Omission ordering is checked one packet at a time in test_protocol.
+        lab.wait(label, predicate, timeout=cycles * poll, interval=0.25)
         print("PASS " + label, flush=True)
 
     try:
@@ -104,7 +104,8 @@ def main():
         stage([["198.51.100.0", 255]], "all-unreachable Update removes last route",
               lambda: absent(lab.NET2_CIDR) and absent(extra))
         stage([[lab.NET2, 0]], "distance zero remains reachable", lambda: metric(lab.NET2_CIDR, 0))
-        stage([], "empty Update still withdraws routes", lambda: absent(lab.NET2_CIDR))
+        # Three accepted omissions are now needed; each refreshes last_update.
+        stage([], "three empty Updates age out an omitted route", lambda: absent(lab.NET2_CIDR), cycles=4)
     finally:
         try:
             if peer is not None:

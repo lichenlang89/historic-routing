@@ -209,11 +209,48 @@ def control_states():
         lab.wait('control state recovery', lambda: lab.both_up() and lab.both_routes(), timeout=70)
 
 
+def omission_aging():
+    try:
+        with Peer(lab.R2, lab.IP2, lab.IP1, lab.AS2) as p:
+            def update(routes):
+                p.command(plan={'hello': True, 'updates': False, 'routes': routes})
+                p.saved.clear()
+                poll = p.wait(lambda e: e.get('recv', [])[:2] == [2, 0])['recv'][3]
+                p.command(update=[poll, 1])
+                time.sleep(.3)
+            def metric():
+                return (lab.egp_route(lab.R1, lab.NET2_CIDR) or {}).get('metric')
+            update([[lab.NET2, 9]])
+            assert metric() == 9
+            update([])
+            assert metric() == 9 and lab.has_kernel(lab.R1, lab.NET2_CIDR)
+            update([])
+            assert metric() == 9 and lab.has_kernel(lab.R1, lab.NET2_CIDR)
+            print('PASS first two omissions retain the route', flush=True)
+            update([[lab.NET2, 7]])
+            assert metric() == 7
+            update([])
+            update([])
+            assert metric() == 7
+            print('PASS reappearance resets omission history', flush=True)
+            update([])
+            lab.wait('third omission removes route', lambda: metric() is None and not lab.has_kernel(lab.R1, lab.NET2_CIDR), timeout=1)
+            print('PASS third consecutive omission withdraws from RIB and kernel', flush=True)
+            update([[lab.NET2, 0]])
+            assert metric() == 0
+            update([[lab.NET2, 255]])
+            assert metric() is None and not lab.has_kernel(lab.R1, lab.NET2_CIDR)
+            print('PASS explicit 255 still withdraws on the first Update', flush=True)
+    finally:
+        lab.wait('aging recovery', lambda: lab.both_up() and lab.both_routes(), timeout=60)
+
+
 def main():
     if os.environ.get('LAB_TIMERS') != '1 1':
         raise SystemExit('test-protocol requires LAB_TIMERS="1 1" in lab.env')
     reachability()
     control_states()
+    omission_aging()
     print('PASS protocol regressions and original daemon recovery', flush=True)
 
 

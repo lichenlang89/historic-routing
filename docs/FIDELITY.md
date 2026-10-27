@@ -15,7 +15,7 @@ EGP 在 IETF 的状态是 **Historic**；这里的实现是实验性的 **stub g
 
 | 类型 | 编号 | 发送 | 接收 | 说明 |
 | --- | --- | --- | --- | --- |
-| Update | 1 | 是 | 是 | 携带 `(网络, 网关, distance)` 三元组；**空 Update 表示撤销全部** |
+| Update | 1 | 是 | 是 | 携带 `(网络, 网关, distance)`；255 立即撤路，连续三次遗漏后老化 |
 | Poll | 2 | 是 | 是 | 双方在 Up 时按 `poll` 间隔询问；收到 Poll 用 Update 回答 |
 | Acquisition | 3 | 是（code 0/1/3/4） | 是 | 邻居获取：Request/Confirm/Cease/Cease-ack；**code 2 = Refuse 能解码但从不发送** |
 | Reachability | 5 | 是（code 0/1） | 是 | 本实现用作邻居存活探询（code 0）与确认（code 1） |
@@ -28,6 +28,10 @@ EGP 在 IETF 的状态是 **Historic**；这里的实现是实验性的 **stub g
 - Update 编码按实际 distance 分组（RFC 904 附录 A.4）；本机配置的 network 使用
   distance 1。接收端按 RFC 888 第 5 节过滤 distance 255 的网络，再整体替换该邻居的
   路由集合，因此一份报文可以同时撤销不可达网络并学习其它可达网络；0–254 均视为可达。
+- 按 RFC 888 §5，连续遗漏需要多次确认；本实现选择三次有效 Update（RFC 未指定次数）。
+  第一次、第二次遗漏保留路由，第三次移除；网络重新出现会清零其遗漏次数。
+  空 Update 同样计入遗漏，显式 255 不等待老化。重复网络或超过 255 条保留容量的
+  更新被原子拒绝，不改变现有路由和遗漏次数。
 - 单包上限 `EGP_MAX_PKT = 1500`，单包路由上限 `EGP_MAX_ROUTES = 255`。
 - 只处理 `gateway == 邻居地址` 的路由，第三方网关（core gateway 的转发路由）一律丢弃：
   这正是 "stub gateway" 与 "core gateway" 的分界。
@@ -117,12 +121,12 @@ CLI 里可见的五个状态（`show ip egp neighbors`）：
 在 `lab/egp` 下执行 `./lab.sh up` 后，运行 `./lab.sh test-updates`。
 测试临时暂停实验 R2 的 egpd，用独立 Python 原始报文对端响应 Hello/Poll，
 检查非默认 distance、混合可达/不可达、全不可达、distance 0 与空 Update 的 RIB/内核结果；
-finally 恢复原 daemon 并确认双向路由恢复。撤路断言在两个 Poll 周期内完成，
+finally 恢复原 daemon 并确认双向路由恢复。显式撤路断言在两个 Poll 周期内完成，
 小于三个 Poll 周期的旧路由过期时间，避免把超时撤路当成显式撤路成功。
+`test-protocol` 另逐包检查首次/二次遗漏保留、重新出现复位、第三次遗漏撤路。
 使用快速实验 timers（默认 `2 6`），结束后执行 `./lab.sh down`。
 
-这组改进仍保留既有简化：未宣告的网络在下一份完整 Update 中立即删除；
-RFC 888 第 5 节描述的连续多次遗漏后老化尚未实现。含第三方网关的 Update 仍整包拒绝，
+含第三方网关的 Update 仍整包拒绝，
 只接收与未决 Poll 的序列号及共享网络匹配的普通响应，不处理 unsolicited Update。
 
 ## 6. 已占用的不可再生资源
