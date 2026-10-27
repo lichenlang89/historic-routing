@@ -5,6 +5,6 @@ RUN dnf -y install --setopt=install_weak_deps=False \
     pkgconf-pkg-config python3-devel python3-pytest python3-pytest-xdist \
     python3-pyyaml perl-JSON json-c-devel libyang-devel libcap-devel \
     readline-devel pcre2-devel c-ares-devel elfutils-libelf-devel systemd-devel \
-    libxcrypt-devel diffutils findutils which \
+    libxcrypt-devel libasan libubsan diffutils findutils which \
     && dnf clean all
 CMD ["sleep", "infinity"]

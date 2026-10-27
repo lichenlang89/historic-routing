@@ -32,10 +32,12 @@ jobs:
         run: sudo podman build -t localhost/hr-ci-builder -f packaging/ci/Containerfile .
       - name: Codec, sanitizers, hashes and allocations
         run: |
+          set -o pipefail
+          mkdir -p build
           chmod +x scripts/test-egp.sh
           sudo podman run --rm --security-opt label=disable \
             -v "$PWD:/workspace" -w /workspace localhost/hr-ci-builder \
-            ./scripts/test-egp.sh
+            ./scripts/test-egp.sh 2>&1 | tee build/codec.log
       - name: Full build and strict known-failure attribution
         run: |
           mkdir -p build/prefix
@@ -71,6 +73,7 @@ jobs:
         with:
           name: egp-${{ matrix.runner }}
           path: |
+            build/codec.log
             build/verify.json
             build/native/logs/
             /var/tmp/egp-lab/logs/
