@@ -12,19 +12,20 @@
 #include "lib/vrf.h"
 #include "lib/network.h"
 #include "egp_packet.h"
+#include "egp_reach.h"
 #include <time.h>
 
 #define MAX_PEERS 16
 enum state { IDLE, ACQUISITION, DOWN, UP };
 static const char *const states[] = { "Idle", "Acquisition", "Down", "Up" };
 struct neighbor {
-	bool used, active, answered, poll_pending;
+	bool used, active, hello_pending, poll_pending;
 	int fd;
 	struct in_addr peer, local, shared;
 	uint16_t as, seq, request_seq, hello_seq, poll_seq, hello, poll;
 	enum state state;
 	time_t next_hello, next_poll, last_update, last_seen;
-	unsigned history;
+	struct egp_reach reach;
 	struct event *read;
 	size_t count;
 	struct egp_route routes[EGP_MAX_ROUTES];
@@ -107,8 +108,8 @@ static void replace_routes(struct neighbor *n, const struct egp_route *routes, s
 static void reset(struct neighbor *n)
 {
 	n->state = ACQUISITION;
-	n->history = 0;
-	n->answered = false;
+	n->reach = (struct egp_reach){ 0 };
+	n->hello_pending = false;
 	n->poll_pending = false;
 	n->hello = hello_interval;
 	n->poll = poll_interval;
@@ -139,6 +140,24 @@ static void send_msg(struct neighbor *n, uint8_t type, uint8_t code, uint16_t se
 	len = egp_encode(buf, sizeof(buf), &m, n->local);
 	if (len > 0 && sendto(n->fd, buf, len, 0, (struct sockaddr *)&dst, sizeof(dst)) < 0)
 		zlog_warn("EGP send to %pI4: %s", &n->peer, safe_strerror(errno));
+}
+static void reachability(struct neighbor *n, time_t t)
+{
+	unsigned hits = egp_reach_hits(&n->reach, t, n->hello);
+	if (n->state == DOWN && hits >= (n->active ? 3U : 1U)) {
+		n->state = UP;
+		n->next_poll = t;
+	} else if (n->state == UP && hits <= (n->active ? 1U : 0U)) {
+		n->state = DOWN;
+		n->poll_pending = false;
+		replace_routes(n, NULL, 0);
+	}
+}
+static void indication(struct neighbor *n, time_t t)
+{
+	if (egp_reach_record(&n->reach, t, n->hello))
+		n->last_seen = t;
+	reachability(n, t);
 }
 static void receive(struct event *event)
 {
@@ -180,32 +199,35 @@ static void receive(struct event *event)
 		n->last_seen = t;
 		if (m.code == 0)
 			send_msg(n, EGP_ACQUIRE, 1, m.seq);
+		/* A Confirm is an active-mode reachability indication (3.3). */
+		if (m.code == 1 && n->active)
+			indication(n, t);
 		return;
 	}
 	if (n->state != DOWN && n->state != UP)
 		return;
 	if (m.type == EGP_REACH) {
 		if (!m.code) {
-			if (!n->active && m.status == 1) {
-				n->answered = true;
-				n->last_seen = t;
-			}
 			if (!n->active && m.status == 1)
-				n->state = UP;
+				indication(n, t);
 			send_msg(n, EGP_REACH, 1, m.seq);
-		} else if (n->active && m.seq == n->hello_seq) {
-			n->answered = true;
-			n->last_seen = t;
+		} else if (n->active && n->hello_pending && m.seq == n->hello_seq) {
+			n->hello_pending = false;
+			indication(n, t);
 		}
 		return;
 	}
-	if (n->state != UP || m.shared.s_addr != n->shared.s_addr)
+	if (m.shared.s_addr != n->shared.s_addr)
 		return;
 	if (m.type == EGP_POLL) {
-		send_msg(n, EGP_UPDATE, 0, m.seq);
+		if (!n->active && m.status == 1)
+			indication(n, t);
+		if (n->state == UP)
+			send_msg(n, EGP_UPDATE, 0, m.seq);
 		return;
 	}
-	if (m.type != EGP_UPDATE || m.status != 1 || !n->poll_pending || m.seq != n->poll_seq)
+	if (n->state != UP || m.type != EGP_UPDATE || (m.status & 0x80) ||
+	    !n->poll_pending || m.seq != n->poll_seq)
 		return;
 	/* Stub-only: accept sender gateway, reject third-party transit claims.
 	 * RFC 888 section 5: distance 255 withdraws that net, not the Update. */
@@ -216,6 +238,10 @@ static void receive(struct event *event)
 			m.routes[count++] = m.routes[i];
 	}
 	n->poll_pending = false;
+	if (n->active || m.status == 1)
+		indication(n, t);
+	if (n->state != UP)
+		return;
 	n->last_update = t;
 	replace_routes(n, m.routes, count);
 }
@@ -237,22 +263,12 @@ static void tick(struct event *event)
 			}
 			continue;
 		}
+		reachability(n, t);
 		if (t >= n->next_hello) {
-			n->history = ((n->history << 1) | n->answered) & 15;
-			n->answered = false;
 			if (n->active) {
-				int hits = __builtin_popcount(n->history);
-				if (n->state == DOWN && hits >= 3)
-					n->state = UP;
-				if (n->state == UP && hits <= 1) {
-					n->state = DOWN;
-					replace_routes(n, NULL, 0);
-				}
 				n->hello_seq = ++n->seq;
+				n->hello_pending = true;
 				send_msg(n, EGP_REACH, 0, n->hello_seq);
-			} else if (t - n->last_seen >= 4 * n->hello) {
-				n->state = DOWN;
-				replace_routes(n, NULL, 0);
 			}
 			n->next_hello = t + n->hello;
 		}

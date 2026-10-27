@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "egp_packet.h"
+#include "egp_reach.h"
 #include <assert.h>
 #include <arpa/inet.h>
 #include <string.h>
@@ -81,6 +82,19 @@ int main(void)
 	int len;
 	size_t i;
 	test_distances();
+	/* Moving-window edges, duplicates, wraparound and delayed ticks (904 4.3). */
+	struct egp_reach reach = { 0 };
+	assert(egp_reach_record(&reach, 0, 2));
+	assert(!egp_reach_record(&reach, 1, 2));
+	assert(egp_reach_record(&reach, 2, 2));
+	assert(egp_reach_record(&reach, 4, 2));
+	assert(egp_reach_hits(&reach, 4, 2) == 3);
+	assert(egp_reach_hits(&reach, 8, 2) == 2);
+	assert(egp_reach_hits(&reach, 10, 2) == 1);
+	assert(egp_reach_hits(&reach, 12, 2) == 0);
+	assert(egp_reach_record(&reach, 100, 2));
+	assert(egp_reach_record(&reach, 102, 2));
+	assert(egp_reach_hits(&reach, 102, 2) == 2);
 	seal(golden, sizeof(golden));
 	assert(egp_decode(golden, sizeof(golden), &m) == 0);
 	assert(m.count == 3 && m.as == 65000 && m.seq == 7);
