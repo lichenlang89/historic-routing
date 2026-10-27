@@ -1,9 +1,9 @@
 # EGP 协议源码的哈希基线（scripts/verify.sh 的 A3 检查读它；生成：sha256sum protocols/egp/{src,build,tests}/* protocols/egp/README.md protocols/egp/PROTOCOL.meta）
 # 路径相对仓库根；协议核心源码任何改动都必须单独提交并在 docs/HISTORY.md 记录原因。
-0e1440f786645d7f09ba117e6063560cbab83ba0bedaaac06e3a8ef72c3bfd6e  protocols/egp/src/egp_packet.c
+f7ca8ec9a84ccce292d7d7e7d874ef9a2c6e9ba6131056a35e4fa96da6e630b1  protocols/egp/src/egp_packet.c
 44318c88fbaa7e0dbfd21d9dc3be1d5a082b4625b6f40bb4b6d093c0ef86fbb7  protocols/egp/src/egp_packet.h
-bd5f722a76be985e85a73f25835e3b32801f4e5c9e62bbad372a1499728b911d  protocols/egp/src/egpd.c
+a71c91f45f061d5d536b7baff0ee5009a0b639361720471505ca67911a8a5902  protocols/egp/src/egpd.c
 89e08e8c584c9c367813c1659c684aac1fe563e5b18f1d1307ff178cb4ff5f84  protocols/egp/build/egpd.subdir.am
-556f859064d0c9c455ff1f3b56eee7686f85c10be72bd2280c2cd2767040e33e  protocols/egp/tests/test_packet.c
+565db685b89b9c8476c4842814a597afbe96b762764fa8eb5289f37a20588f04  protocols/egp/tests/test_packet.c
 57cc0d253efb9817d5e91ce290ec1f25ddad3f84eaa0c21aa4140de26f3680a5  protocols/egp/README.md
 2d275744c662c8cebd169e4fc66de0ce83e802d8f907770075a5a567398653dc  protocols/egp/PROTOCOL.meta

@@ -19,6 +19,57 @@ static void seal(uint8_t *b, size_t len)
 	b[4] = c >> 8;
 	b[5] = c;
 }
+static void test_distances(void)
+{
+	/* Independent wire oracle: one gateway, three distance groups. */
+	uint8_t golden[] = {
+		2, 1, 0, 1, 0, 0, 0xfd, 0xe8, 0, 7, 1, 0, 192, 0, 2, 0,
+		1, 3,
+		7, 2, 10, 198, 51, 100,
+		255, 1, 172, 16,
+		0, 1, 192, 0, 3
+	};
+	uint8_t b[EGP_MAX_PKT];
+	struct egp_message m = { .type = EGP_UPDATE, .status = 1,
+		.as = 65000, .seq = 7, .count = 4 }, d;
+	int len;
+	size_t i;
+	m.shared = addr("192.0.2.0");
+	m.routes[0] = (struct egp_route){ .net = addr("10.0.0.0"), .distance = 7 };
+	m.routes[1] = (struct egp_route){ .net = addr("172.16.0.0"), .distance = 255 };
+	m.routes[2] = (struct egp_route){ .net = addr("198.51.100.0"), .distance = 7 };
+	m.routes[3] = (struct egp_route){ .net = addr("192.0.3.0"), .distance = 0 };
+	seal(golden, sizeof(golden));
+	len = egp_encode(b, sizeof(b), &m, addr("192.0.2.1"));
+	assert(len == sizeof(golden) && !memcmp(b, golden, sizeof(golden)));
+	assert(!egp_decode(golden, sizeof(golden), &d) && d.count == 4);
+	assert(d.routes[0].distance == 7 && d.routes[1].distance == 7);
+	assert(d.routes[2].distance == 255 && d.routes[3].distance == 0);
+	assert(d.routes[1].net.s_addr == m.routes[2].net.s_addr);
+	assert(d.routes[2].net.s_addr == m.routes[1].net.s_addr);
+	/* Exercise one-byte group/net counters at the 255-route limit. */
+	m.count = EGP_MAX_ROUTES;
+	for (i = 0; i < m.count; i++) {
+		m.routes[i].net.s_addr = htonl(0xc6120000U + (i << 8));
+		m.routes[i].distance = i ? i - 1 : 255;
+	}
+	len = egp_encode(b, sizeof(b), &m, addr("192.0.2.1"));
+	assert(len == 18 + 5 * EGP_MAX_ROUTES && b[17] == 255);
+	assert(!egp_decode(b, len, &d) && d.count == EGP_MAX_ROUTES);
+	for (i = 0; i < m.count; i++) {
+		assert(d.routes[i].distance == m.routes[i].distance);
+		assert(d.routes[i].net.s_addr == m.routes[i].net.s_addr);
+		m.routes[i].distance = 255;
+	}
+	len = egp_encode(b, sizeof(b), &m, addr("192.0.2.1"));
+	assert(len == 20 + 3 * EGP_MAX_ROUTES && b[17] == 1 && b[19] == 255);
+	assert(!egp_decode(b, len, &d) && d.count == EGP_MAX_ROUTES);
+	for (i = 0; i < d.count; i++)
+		assert(d.routes[i].distance == 255);
+	/* Invalid networks in a later member of a group must still be rejected. */
+	m.routes[m.count - 1].net = addr("198.18.1.1");
+	assert(egp_encode(b, sizeof(b), &m, addr("192.0.2.1")) < 0);
+}
 int main(void)
 {
 	/* Hand-written RFC 904 NR: one internal gateway 192.0.2.1,
@@ -29,6 +80,7 @@ int main(void)
 	struct egp_message m, d;
 	int len;
 	size_t i;
+	test_distances();
 	seal(golden, sizeof(golden));
 	assert(egp_decode(golden, sizeof(golden), &m) == 0);
 	assert(m.count == 3 && m.as == 65000 && m.seq == 7);

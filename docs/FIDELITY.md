@@ -25,6 +25,9 @@ EGP 在 IETF 的状态是 **Historic**；这里的实现是实验性的 **stub g
 
 - 每条 `struct egp_route` 只带**有类网络号**（A/B/C 首字节判定），不支持 CIDR、超网、默认路由。
 - `distance == 255` 视为"不可达"，用于表达撤路。
+- Update 编码按实际 distance 分组（RFC 904 附录 A.4）；本机配置的 network 使用
+  distance 1。接收端按 RFC 888 第 5 节过滤 distance 255 的网络，再整体替换该邻居的
+  路由集合，因此一份报文可以同时撤销不可达网络并学习其它可达网络；0–254 均视为可达。
 - 单包上限 `EGP_MAX_PKT = 1500`，单包路由上限 `EGP_MAX_ROUTES = 255`。
 - 只处理 `gateway == 邻居地址` 的路由，第三方网关（core gateway 的转发路由）一律丢弃：
   这正是 "stub gateway" 与 "core gateway" 的分界。
@@ -93,6 +96,19 @@ CLI 里可见的四个状态（`show ip egp neighbors`）：
 | 完整 `make check` | 14 项失败，逐条证据为"被 `--disable` 的模块缺少可执行文件" | `docs/known-failures.md` |
 | 跨发行版 / 全新机器 | **未验证** | 只有一台 RHEL 10.1 机器可用；不声称跨发行版兼容 |
 | 系统服务 / SELinux 域 | **未验证** | 见上节"未实现" |
+
+### RFC Update 回归入口
+
+在 `lab/egp` 下执行 `./lab.sh up` 后，运行 `./lab.sh test-updates`。
+测试临时暂停实验 R2 的 egpd，用独立 Python 原始报文对端响应 Hello/Poll，
+检查非默认 distance、混合可达/不可达、全不可达、distance 0 与空 Update 的 RIB/内核结果；
+finally 恢复原 daemon 并确认双向路由恢复。撤路断言在两个 Poll 周期内完成，
+小于三个 Poll 周期的旧路由过期时间，避免把超时撤路当成显式撤路成功。
+使用快速实验 timers（默认 `2 6`），结束后执行 `./lab.sh down`。
+
+这组改进仍保留既有简化：未宣告的网络在下一份完整 Update 中立即删除；
+RFC 888 第 5 节描述的连续多次遗漏后老化尚未实现。含第三方网关的 Update 仍整包拒绝，
+只接收与未决 Poll 的序列号及共享网络匹配的普通响应，不处理 unsolicited Update。
 
 ## 6. 已占用的不可再生资源
 

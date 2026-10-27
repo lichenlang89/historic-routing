@@ -114,7 +114,8 @@ int egp_decode(const uint8_t *b, size_t len, struct egp_message *m)
 }
 int egp_encode(uint8_t *b, size_t cap, const struct egp_message *m, struct in_addr local)
 {
-	size_t len = 10, i;
+	size_t len = 10, i, j, groups;
+	uint8_t distances[256] = { 0 };
 	int n = 0;
 	if (cap < EGP_MAX_PKT || m->count > EGP_MAX_ROUTES)
 		return -1;
@@ -141,15 +142,29 @@ int egp_encode(uint8_t *b, size_t cap, const struct egp_message *m, struct in_ad
 			b[10] = 1;
 			memcpy(b + len, (const uint8_t *)&local + n, 4 - n);
 			len += 4 - n;
-			b[len++] = 1;
-			b[len++] = 1;
-			b[len++] = m->count;
+			groups = len++;
 			for (i = 0; i < m->count; i++) {
-				n = egp_classlen(m->routes[i].net);
-				if (!egp_network(m->routes[i].net) || len + n > cap)
+				uint8_t distance = m->routes[i].distance;
+				size_t nets;
+				if (distances[distance])
+					continue;
+				distances[distance] = 1;
+				if (len + 2 > cap)
 					return -1;
-				memcpy(b + len, &m->routes[i].net, n);
-				len += n;
+				b[groups]++;
+				b[len++] = distance;
+				nets = len++;
+				/* RFC 904 A.4 / RFC 888 section 5: group nets by distance. */
+				for (j = i; j < m->count; j++) {
+					if (m->routes[j].distance != distance)
+						continue;
+					n = egp_classlen(m->routes[j].net);
+					if (!egp_network(m->routes[j].net) || len + n > cap)
+						return -1;
+					memcpy(b + len, &m->routes[j].net, n);
+					len += n;
+					b[nets]++;
+				}
 			}
 		}
 	} else if (m->type != EGP_REACH && m->type != EGP_ACQUIRE)
