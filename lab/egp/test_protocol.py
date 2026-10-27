@@ -110,12 +110,15 @@ class Peer:
             for i, event in enumerate(self.saved):
                 if pred(event):
                     return self.saved.pop(i)
-            event = self.events.get(timeout=max(.01, deadline-time.monotonic()))
+            try:
+                event = self.events.get(timeout=max(.01, deadline-time.monotonic()))
+            except queue.Empty as exc:
+                raise TimeoutError('expected peer event not received') from exc
             if 'error' in event:
                 raise AssertionError(event['error'])
             self.saved.append(event)
             if time.monotonic() > deadline:
-                raise AssertionError('expected peer event not received')
+                raise TimeoutError('expected peer event not received')
 
     def command(self, **cmd):
         self.serial += 1
@@ -245,12 +248,79 @@ def omission_aging():
         lab.wait('aging recovery', lambda: lab.both_up() and lab.both_routes(), timeout=60)
 
 
+def unsolicited_updates():
+    extras = ['198.51.100.0', '192.0.3.0', '198.51.101.0', '192.0.4.0']
+    try:
+        with Peer(lab.R2, lab.IP2, lab.IP1, lab.AS2) as p:
+            p.command(plan={'hello': True, 'updates': False, 'routes': [[lab.NET2, 9]]})
+            p.saved.clear()
+            # Negotiate a ten-second Poll window while retaining one-second Hello.
+            p.command(send=[3, 0, 2, 900, '0001000a'])
+            p.wait(lambda e: e.get('recv', [])[:2] == [3, 1] and e['recv'][3] == 900)
+            p.saved.clear()  # discard Polls queued before the new acquisition
+            poll = p.wait(lambda e: e.get('recv', [])[:2] == [2, 0], timeout=8)['recv'][3]
+            def metric():
+                return (lab.egp_route(lab.R1, lab.NET2_CIDR) or {}).get('metric')
+            p.command(update=[(poll+1) & 65535, 129])
+            time.sleep(.3)
+            assert metric() is None
+            print('PASS unsolicited wrong sequence rejected', flush=True)
+            p.command(update=[poll, 129])
+            lab.wait('unsolicited accepted', lambda: metric() == 9, timeout=2)
+            p.command(plan={'hello': True, 'updates': False, 'routes': [[lab.NET2, 7]]})
+            p.command(update=[poll, 129])
+            stable('second unsolicited Update in one Poll window rejected', lambda: metric() == 9, 1)
+            p.command(update=[poll, 1])
+            lab.wait('ordinary reply remains pending after unsolicited', lambda: metric() == 7, timeout=2)
+            print('PASS unsolicited does not consume the solicited response', flush=True)
+            new_poll = p.wait(lambda e: e.get('recv', [])[:2] == [2, 0], timeout=12)['recv'][3]
+            p.command(plan={'hello': True, 'updates': False, 'routes': [[lab.NET2, 5]]})
+            p.command(update=[new_poll, 129])
+            lab.wait('new Poll grants receive credit', lambda: metric() == 5, timeout=2)
+            print('PASS new Poll renews unsolicited receive budget', flush=True)
+
+            shared = bytes(int(x) for x in lab.IP1.split('.'))[:3] + b'\0'
+            def poll_command(seq):
+                p.command(send=[2, 0, 1, seq, (b'\0\0'+shared).hex()])
+                p.wait(lambda e: e.get('recv', [])[:3] == [1, 0, 1] and e['recv'][3] == seq)
+            def changed(net):
+                lab.vty(lab.R1, 'egpd', 'configure terminal', 'egp network '+net)
+            def no_unsolicited(seq):
+                try:
+                    p.wait(lambda e: e.get('recv', [])[:2] == [1, 0]
+                           and e['recv'][2] & 128 and e['recv'][3] == seq, timeout=2)
+                except TimeoutError:
+                    return
+                raise AssertionError('extra unsolicited Update exceeded transmit budget')
+            poll_command(1000)
+            changed(extras[0])
+            p.wait(lambda e: e.get('recv', []) == [1, 0, 129, 1000])
+            print('PASS network change emits unsolicited Update using last command sequence', flush=True)
+            changed(extras[1])
+            no_unsolicited(1000)
+            poll_command(1000)
+            changed(extras[2])
+            no_unsolicited(1000)
+            print('PASS transmit budget survives duplicate Poll', flush=True)
+            poll_command(1001)
+            changed(extras[3])
+            p.wait(lambda e: e.get('recv', []) == [1, 0, 129, 1001])
+            print('PASS new Poll renews unsolicited transmit budget', flush=True)
+    finally:
+        for net in extras:
+            lab.vty(lab.R1, 'egpd', 'configure terminal', 'no egp network '+net)
+        # Restore the configured 1/1 negotiation after the temporary 1/10 peer.
+        lab.vty(lab.R1, 'egpd', 'clear ip egp neighbor '+lab.IP2)
+        lab.wait('unsolicited recovery', lambda: lab.both_up() and lab.both_routes(), timeout=70)
+
+
 def main():
     if os.environ.get('LAB_TIMERS') != '1 1':
         raise SystemExit('test-protocol requires LAB_TIMERS="1 1" in lab.env')
     reachability()
     control_states()
     omission_aging()
+    unsolicited_updates()
     print('PASS protocol regressions and original daemon recovery', flush=True)
 
 

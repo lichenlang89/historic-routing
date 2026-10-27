@@ -15,6 +15,7 @@
 #include "egp_reach.h"
 #include "egp_state.h"
 #include "egp_age.h"
+#include "egp_update.h"
 #include <time.h>
 
 #define MAX_PEERS 16
@@ -27,6 +28,7 @@ struct neighbor {
 	enum state state;
 	time_t next_hello, next_poll, last_update, last_seen, abort_at;
 	struct egp_reach reach;
+	struct egp_update_window updates;
 	struct event *read;
 	size_t count;
 	struct egp_route routes[EGP_MAX_ROUTES];
@@ -114,6 +116,7 @@ static void replace_routes(struct neighbor *n, const struct egp_route *routes, s
 static void reset(struct neighbor *n)
 {
 	n->reach = (struct egp_reach){ 0 };
+	n->updates = (struct egp_update_window){ 0 };
 	n->hello_pending = false;
 	n->poll_pending = false;
 	n->hello = hello_interval;
@@ -122,7 +125,8 @@ static void reset(struct neighbor *n)
 	n->next_poll = 0;
 	replace_routes(n, NULL, 0);
 }
-static void send_msg(struct neighbor *n, uint8_t type, uint8_t code, uint16_t seq)
+static bool transmit(struct neighbor *n, uint8_t type, uint8_t code, uint16_t seq,
+		     bool unsolicited)
 {
 	uint8_t buf[EGP_MAX_PKT];
 	struct egp_message m = { 0 };
@@ -133,6 +137,8 @@ static void send_msg(struct neighbor *n, uint8_t type, uint8_t code, uint16_t se
 	m.as = local_as;
 	m.seq = seq;
 	m.status = n->state == UP ? 1 : 2;
+	if (unsolicited)
+		m.status |= 0x80;
 	if (type == EGP_ACQUIRE)
 		m.status = code <= 1 ? 0 : 5;
 	/* Acquisition advertises local minima, not the negotiated intervals. */
@@ -144,8 +150,18 @@ static void send_msg(struct neighbor *n, uint8_t type, uint8_t code, uint16_t se
 		memcpy(m.routes, networks, network_count * sizeof(*networks));
 	}
 	len = egp_encode(buf, sizeof(buf), &m, n->local);
-	if (len > 0 && sendto(n->fd, buf, len, 0, (struct sockaddr *)&dst, sizeof(dst)) < 0)
+	if (len <= 0)
+		return false;
+	if (sendto(n->fd, buf, len, 0, (struct sockaddr *)&dst, sizeof(dst)) != len) {
 		zlog_warn("EGP send to %pI4: %s", &n->peer, safe_strerror(errno));
+		return false;
+	}
+	return true;
+}
+static void send_msg(struct neighbor *n, uint8_t type, uint8_t code, uint16_t seq)
+{
+	if (transmit(n, type, code, seq, false) && type == EGP_UPDATE)
+		n->updates.dirty = false;
 }
 static void idle(struct neighbor *n)
 {
@@ -189,6 +205,7 @@ static void reachability(struct neighbor *n, time_t t)
 	if (n->state == DOWN && hits >= (n->active ? 3U : 1U)) {
 		n->state = UP;
 		n->next_poll = t;
+		n->updates.dirty = true;
 	} else if (n->state == UP && hits <= (n->active ? 1U : 0U)) {
 		n->state = DOWN;
 		n->poll_pending = false;
@@ -215,6 +232,7 @@ static void receive(struct event *event)
 	struct egp_route next[EGP_MAX_ROUTES];
 	uint8_t next_misses[EGP_MAX_ROUTES];
 	int count;
+	bool unsolicited;
 	time_t t = now();
 	event_add_read(master, receive, n, n->fd, &n->read);
 	if (len < 20 || src.sin_addr.s_addr != n->peer.s_addr || (buf[0] >> 4) != 4)
@@ -247,6 +265,8 @@ static void receive(struct event *event)
 		}
 		n->state = DOWN;
 		reset(n);
+		if (m.code == 0)
+			egp_update_command(&n->updates, m.seq, false);
 		n->hello = MAX(hello_interval, m.hello);
 		n->poll = MAX(poll_interval, m.poll);
 		/* Advertise both modes; RFC 904 section 4.1.3 capability table. */
@@ -259,7 +279,7 @@ static void receive(struct event *event)
 		if (m.code == 1 && n->active)
 			indication(n, t);
 		if (n->active) {
-			n->hello_seq = ++n->seq;
+			n->hello_seq = n->seq;
 			n->hello_pending = true;
 			send_msg(n, EGP_REACH, 0, n->hello_seq);
 		}
@@ -270,6 +290,7 @@ static void receive(struct event *event)
 		return;
 	if (m.type == EGP_REACH) {
 		if (!m.code) {
+			egp_update_command(&n->updates, m.seq, false);
 			if (!n->active && m.status == 1)
 				indication(n, t);
 			send_msg(n, EGP_REACH, 1, m.seq);
@@ -282,14 +303,17 @@ static void receive(struct event *event)
 	if (m.shared.s_addr != n->shared.s_addr)
 		return;
 	if (m.type == EGP_POLL) {
+		egp_update_command(&n->updates, m.seq, true);
 		if (!n->active && m.status == 1)
 			indication(n, t);
 		if (n->state == UP)
 			send_msg(n, EGP_UPDATE, 0, m.seq);
 		return;
 	}
-	if (n->state != UP || m.type != EGP_UPDATE || (m.status & 0x80) ||
-	    !n->poll_pending || m.seq != n->poll_seq)
+	unsolicited = (m.status & 0x80) != 0;
+	if (n->state != UP || m.type != EGP_UPDATE ||
+	    !egp_update_matches(&n->updates, unsolicited, m.seq, n->seq,
+			       n->poll_pending, n->poll_seq))
 		return;
 	/* Stub-only: accept sender gateway, reject third-party transit claims.
 	 * RFC 888 section 5: distance 255 withdraws that net, not the Update. */
@@ -300,8 +324,11 @@ static void receive(struct event *event)
 	count = egp_age_update(n->routes, n->count, n->misses, &m, next, next_misses);
 	if (count < 0)
 		return;
-	n->poll_pending = false;
-	if (n->active || m.status == 1)
+	if (unsolicited)
+		n->updates.rx_used = true;
+	else
+		n->poll_pending = false;
+	if (n->active || (m.status & 0x7f) == 1)
 		indication(n, t);
 	if (n->state != UP)
 		return;
@@ -335,7 +362,7 @@ static void tick(struct event *event)
 		reachability(n, t);
 		if (t >= n->next_hello) {
 			if (n->active) {
-				n->hello_seq = ++n->seq;
+				n->hello_seq = n->seq;
 				n->hello_pending = true;
 				send_msg(n, EGP_REACH, 0, n->hello_seq);
 			}
@@ -346,8 +373,15 @@ static void tick(struct event *event)
 		if (n->state == UP && t >= n->next_poll) {
 			n->poll_seq = ++n->seq;
 			n->poll_pending = true;
+			n->updates.rx_used = false;
 			send_msg(n, EGP_POLL, 0, n->poll_seq);
 			n->next_poll = t + n->poll;
+		}
+		if (n->state == UP && n->updates.dirty && !n->updates.tx_used &&
+		    n->updates.command_seen &&
+		    transmit(n, EGP_UPDATE, 0, n->updates.reply_seq, true)) {
+			n->updates.tx_used = true;
+			n->updates.dirty = false;
 		}
 	}
 	if (shutting_down) {
@@ -477,6 +511,7 @@ DEFUN(no_egp_peer, no_egp_peer_cmd, "no egp neighbor A.B.C.D", NO_STR "EGP\nNeig
 DEFUN(egp_network_cmd_fn, egp_network_cmd, "[no] egp network A.B.C.D", NO_STR "EGP\nAdvertise classful network\nNetwork address (no host bits)\n")
 {
 	bool no = !strcmp(argv[0]->text, "no");
+	bool changed = false;
 	struct in_addr net;
 	size_t i;
 	inet_pton(AF_INET, argv[argc - 1]->arg, &net);
@@ -491,12 +526,18 @@ DEFUN(egp_network_cmd_fn, egp_network_cmd, "[no] egp network A.B.C.D", NO_STR "E
 		memmove(&networks[i], &networks[i + 1],
 			(network_count - i - 1) * sizeof(*networks));
 		network_count--;
+		changed = true;
 	}
 	if (!no && i == network_count) {
 		if (network_count == EGP_MAX_ROUTES)
 			return CMD_WARNING_CONFIG_FAILED;
 		networks[network_count++] = (struct egp_route){ .net = net, .distance = 1 };
+		changed = true;
 	}
+	if (changed)
+		for (i = 0; i < MAX_PEERS; i++)
+			if (peers[i].used && peers[i].state == UP)
+				peers[i].updates.dirty = true;
 	return CMD_SUCCESS;
 }
 DEFUN(show_egp, show_egp_cmd, "show ip egp neighbors", SHOW_STR IP_STR "EGP\nNeighbors\n")
