@@ -1,11 +1,12 @@
 # .github/workflows/
 
-CI 尚未建立。本轮（S0–S3）只做本地操作，没有远端仓库，也没有任何 workflow 在运行。
+`ci.yml` 在 PR、main 推送及手动触发时运行原生 amd64 / arm64 两个平台。
+工具链与运行镜像都使用 Fedora 43 用户态；编译固定的 FRR 提交，不使用旧二进制。
 
-S4 之后计划加入：
+每个平台执行：源码/补丁哈希、资源分配、codec ASan/UBSan、完整 build/verify、
+独立 Update 报文回归与双路由器实验。如果分支含 `test_protocol.py`，也执行其 RFC 回归。
+完整 make check 保留原始退出码，并通过 verify 的归因器判断已知失败；不放宽测试断言。
 
-- `ci.yml`：矩阵（RHEL / Fedora 容器 × 固定的 FRR 基线），跑 `scripts/build.sh` + `make check`
-- 单元测试（`egpd/test_packet`）作为必过门禁
-- lab 集成测试（Podman）作为可选项，允许手动触发
-
-在此之前，**不要**在这里放看起来像在运行但实际上没有验证过的 workflow。
+Podman 使用临时 GitHub runner 的 root 权限，仅实验容器增加所需能力。
+仓库令牌仅 contents:read，checkout 不保存凭据，无 self-hosted runner 或私网依赖。
+所有日志与 JSON 验证结果以 14 天 artifact 保留；失败时同样收集证据并清理实验。

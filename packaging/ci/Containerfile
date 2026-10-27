@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+FROM quay.io/fedora/fedora:43
+RUN dnf -y install --setopt=install_weak_deps=False \
+    gcc gcc-c++ make git autoconf automake libtool bison flex patch tar gzip xz \
+    pkgconf-pkg-config python3-devel python3-pytest python3-pytest-xdist \
+    python3-pyyaml perl-JSON json-c-devel libyang-devel libcap-devel \
+    readline-devel pcre2-devel c-ares-devel elfutils-libelf-devel systemd-devel \
+    libxcrypt-devel diffutils findutils which \
+    && dnf clean all
+CMD ["sleep", "infinity"]
