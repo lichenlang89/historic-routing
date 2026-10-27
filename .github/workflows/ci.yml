@@ -1,0 +1,81 @@
+name: EGP build and RFC regressions
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: egp-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install Podman
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y podman
+      - name: Build native toolchain image
+        run: sudo podman build -t localhost/hr-ci-builder -f packaging/ci/Containerfile .
+      - name: Codec, sanitizers, hashes and allocations
+        run: |
+          set -o pipefail
+          mkdir -p build
+          chmod +x scripts/test-egp.sh
+          sudo podman run --rm --security-opt label=disable \
+            -v "$PWD:/workspace" -w /workspace localhost/hr-ci-builder \
+            ./scripts/test-egp.sh 2>&1 | tee build/codec.log
+      - name: Full build and strict known-failure attribution
+        run: |
+          mkdir -p build/prefix
+          sudo podman run --rm --security-opt label=disable \
+            -v "$PWD:/workspace" -v "$PWD/build/prefix:/build/prefix" \
+            -w /workspace localhost/hr-ci-builder \
+            ./scripts/verify.sh --build-only --build-root /workspace/build/native \
+              --prefix /build/prefix --jobs 4 --json /workspace/build/verify.json
+      - name: Build matching lab image
+        run: |
+          sudo podman build --build-arg BASE_IMAGE=quay.io/fedora/fedora:43 \
+            -t localhost/hr-ci-lab -f lab/egp/Containerfile lab/egp
+      - name: Run isolated lab regressions
+        run: |
+          sudo env LAB_PREFIX="$PWD/build/prefix" LAB_IMAGE=localhost/hr-ci-lab \
+            LAB_TIMERS="1 1" bash -c '
+              set -euo pipefail
+              cd lab/egp
+              trap "./lab.sh down" EXIT
+              ./lab.sh up
+              ./lab.sh test-updates
+              if [ -f test_protocol.py ]; then ./lab.sh test-protocol; fi
+              ./lab.sh test
+            '
+      - name: Always clean lab resources
+        if: always()
+        run: |
+          sudo env LAB_PREFIX="$PWD/build/prefix" LAB_IMAGE=localhost/hr-ci-lab \
+            LAB_TIMERS="1 1" bash lab/egp/lab.sh down
+      - name: Upload verification evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: egp-${{ matrix.runner }}
+          path: |
+            build/codec.log
+            build/verify.json
+            build/native/logs/
+            /var/tmp/egp-lab/logs/
+          if-no-files-found: warn
+          retention-days: 14
