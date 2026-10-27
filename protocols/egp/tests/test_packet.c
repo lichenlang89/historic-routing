@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "egp_packet.h"
 #include "egp_reach.h"
+#include "egp_state.h"
 #include <assert.h>
 #include <arpa/inet.h>
 #include <string.h>
@@ -95,6 +96,20 @@ int main(void)
 	assert(egp_reach_record(&reach, 100, 2));
 	assert(egp_reach_record(&reach, 102, 2));
 	assert(egp_reach_hits(&reach, 102, 2) == 2);
+	for (enum state s = IDLE; s <= CEASE; s++) {
+		assert(egp_control_next(s, EGP_CEASE) == IDLE);
+		assert(egp_control_next(s, EGP_CEASE_ACK) == (s == CEASE ? IDLE : s));
+		assert(egp_control_next(s, EGP_START) == (s == CEASE ? CEASE : ACQUISITION));
+	}
+	assert(egp_control_next(ACQUISITION, EGP_REFUSE) == IDLE);
+	assert(egp_control_next(UP, EGP_REFUSE) == UP);
+	assert(egp_control_next(UP, EGP_CONFIRM) == UP);
+	assert(egp_control_next(DOWN, EGP_STOP) == CEASE);
+	assert(egp_control_next(UP, EGP_STOP) == CEASE);
+	assert(egp_control_next(CEASE, EGP_STOP) == IDLE);
+	assert(!egp_abort_due(CEASE, 120, 119));
+	assert(egp_abort_due(CEASE, 120, 120));
+	assert(!egp_abort_due(IDLE, 120, 121));
 	seal(golden, sizeof(golden));
 	assert(egp_decode(golden, sizeof(golden), &m) == 0);
 	assert(m.count == 3 && m.as == 65000 && m.seq == 7);

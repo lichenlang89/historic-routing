@@ -166,10 +166,54 @@ def reachability():
         lab.wait('passive recovery', lambda: lab.both_up() and lab.both_routes(), timeout=60)
 
 
+def control_states():
+    lab.wait('initial control routes', lambda: lab.both_up() and lab.both_routes())
+    removed = False
+    try:
+        with Peer(lab.R2, lab.IP2, lab.IP1, lab.AS2) as p:
+            p.command(plan={'hello': False, 'updates': False})
+            lab.vty(lab.R1, 'egpd', 'clear ip egp neighbor ' + lab.IP2)
+            request = p.wait(lambda e: e.get('recv', [])[:2] == [3, 0])['recv']
+            p.command(send=[3, 2, 4, request[3], ''])
+            lab.wait('Refuse returns Idle', lambda: 'Idle' in lab.neighbors(lab.R1))
+            stable('Refuse stops acquisition', lambda: 'Idle' in lab.neighbors(lab.R1), 2)
+            for _ in range(2):
+                p.command(send=[3, 3, 5, 77, ''])
+                p.wait(lambda e: e.get('recv', [])[:2] == [3, 4] and e['recv'][3] == 77)
+            assert 'Idle' in lab.neighbors(lab.R1)
+            print('PASS repeated Cease is acknowledged in Idle', flush=True)
+            p.command(send=[3, 0, 1, 80, '00010001'])
+            p.wait(lambda e: e.get('recv', [])[:2] == [3, 1] and e['recv'][3] == 80)
+            p.command(send=[5, 0, 1, 81, ''])
+            lab.wait('passive promoted by Hello Up', lambda: 'Up' in lab.neighbors(lab.R1))
+            lab.vty(lab.R1, 'egpd', 'configure terminal', 'no egp neighbor ' + lab.IP2)
+            removed = True
+            cease = p.wait(lambda e: e.get('recv', [])[:2] == [3, 3])['recv']
+            assert 'Cease' in lab.neighbors(lab.R1)
+            assert not lab.has_kernel(lab.R1, lab.NET2_CIDR)
+            p.command(send=[3, 4, 5, (cease[3]+1) & 65535, ''])
+            stable('wrong Cease-ack leaves teardown pending', lambda: 'Cease' in lab.neighbors(lab.R1), 2)
+            p.wait(lambda e: e.get('recv', [])[:2] == [3, 3] and e['recv'][3] == cease[3], timeout=35)
+            print('PASS Cease retransmits with the same sequence after P3', flush=True)
+            p.command(send=[3, 4, 5, cease[3], ''])
+            lab.wait('Cease-ack releases deleted neighbor', lambda: lab.IP2 not in lab.neighbors(lab.R1))
+            print('PASS matching Cease-ack releases resources', flush=True)
+    finally:
+        if removed:
+            # A second Stop forces Idle if a failed assertion left Cease pending.
+            lab.vty(lab.R1, 'egpd', 'configure terminal', 'no egp neighbor ' + lab.IP2)
+            lab.vty(lab.R1, 'egpd', 'configure terminal',
+                    'egp neighbor %s local-address %s remote-as %s' % (lab.IP2, lab.IP1, lab.AS2))
+        else:
+            lab.vty(lab.R1, 'egpd', 'clear ip egp neighbor ' + lab.IP2)
+        lab.wait('control state recovery', lambda: lab.both_up() and lab.both_routes(), timeout=70)
+
+
 def main():
     if os.environ.get('LAB_TIMERS') != '1 1':
         raise SystemExit('test-protocol requires LAB_TIMERS="1 1" in lab.env')
     reachability()
+    control_states()
     print('PASS protocol regressions and original daemon recovery', flush=True)
 
 
