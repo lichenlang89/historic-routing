@@ -1,0 +1,35 @@
+name: Wireshark EGP
+
+on:
+  push:
+    branches: [main]
+    paths: ['wireshark/**', '.github/workflows/wireshark.yml']
+  pull_request:
+    paths: ['wireshark/**', '.github/workflows/wireshark.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dissect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install TShark
+        run: |
+          sudo apt-get update
+          sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y tshark
+      - name: Parse RFC wire fixtures
+        run: python3 wireshark/test_dissector.py
+      - name: Check distributable archive contents
+        run: |
+          git archive --format=zip --prefix=historic-routing-wireshark/ --output=/tmp/wireshark.zip HEAD wireshark LICENSE
+          python3 - <<'PY'
+          import zipfile
+          with zipfile.ZipFile('/tmp/wireshark.zip') as archive:
+              assert archive.testzip() is None
+              for name in ('wireshark/egp_dissector.lua', 'wireshark/README.md', 'wireshark/test_dissector.py', 'LICENSE'):
+                  assert archive.read('historic-routing-wireshark/' + name)
+          PY
