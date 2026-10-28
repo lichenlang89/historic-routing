@@ -1,5 +1,14 @@
 # 迁移历史与冻结记录（S0）
 
+## 2026-10-27：获取与停止控制状态
+
+依据 RFC 904 §3.4 / §3.5 / §4.1.4 / §4.2 实现 Idle/Acquisition/Down/Up/Cease，
+Refuse 返回 Idle；删除邻居等待停止握手完成后再释放 socket，错序 Cease-ack 被忽略。
+Request/Cease 每 P3=30s 以相同序列号重传，P5=120s abort；有效可达性将 Down/Up
+的 abort 延长至 P4=3600s。SIGTERM 保留事件循环完成握手，第二次信号可强制退出。
+新增 `clear ip egp neighbor` 作为显式 Start；Idle 不自动重试，但可接受新的 Request。
+时间边界通过可控时钟单测，丢失 Cease-ack 的 P3 重传通过独立原始报文测试。
+
 ## 2026-10-27：RFC 904 邻居可达性
 
 补齐 §3.3 / §4.3 的 Confirm、Update 与 Poll 可达性来源，使用按时间戳过期的

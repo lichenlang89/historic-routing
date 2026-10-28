@@ -13,18 +13,18 @@
 #include "lib/network.h"
 #include "egp_packet.h"
 #include "egp_reach.h"
+#include "egp_state.h"
 #include <time.h>
 
 #define MAX_PEERS 16
-enum state { IDLE, ACQUISITION, DOWN, UP };
-static const char *const states[] = { "Idle", "Acquisition", "Down", "Up" };
+static const char *const states[] = { "Idle", "Acquisition", "Down", "Up", "Cease" };
 struct neighbor {
-	bool used, active, hello_pending, poll_pending;
+	bool used, active, hello_pending, poll_pending, deleting;
 	int fd;
 	struct in_addr peer, local, shared;
-	uint16_t as, seq, request_seq, hello_seq, poll_seq, hello, poll;
+	uint16_t as, seq, request_seq, hello_seq, poll_seq, stop_seq, hello, poll;
 	enum state state;
-	time_t next_hello, next_poll, last_update, last_seen;
+	time_t next_hello, next_poll, last_update, last_seen, abort_at;
 	struct egp_reach reach;
 	struct event *read;
 	size_t count;
@@ -37,6 +37,8 @@ static uint16_t local_as, hello_interval = 30, poll_interval = 120;
 static struct event_loop *master;
 static struct event *ticker;
 static struct zclient *zc;
+static bool shutting_down;
+static FRR_NORETURN void finish(void);
 static zebra_capabilities_t caps[] = { ZCAP_NET_RAW };
 static struct zebra_privs_t privileges = {
 #if defined(FRR_USER) && defined(FRR_GROUP)
@@ -107,7 +109,6 @@ static void replace_routes(struct neighbor *n, const struct egp_route *routes, s
 }
 static void reset(struct neighbor *n)
 {
-	n->state = ACQUISITION;
 	n->reach = (struct egp_reach){ 0 };
 	n->hello_pending = false;
 	n->poll_pending = false;
@@ -130,8 +131,9 @@ static void send_msg(struct neighbor *n, uint8_t type, uint8_t code, uint16_t se
 	m.status = n->state == UP ? 1 : 2;
 	if (type == EGP_ACQUIRE)
 		m.status = code <= 1 ? 0 : 5;
-	m.hello = n->hello;
-	m.poll = n->poll;
+	/* Acquisition advertises local minima, not the negotiated intervals. */
+	m.hello = hello_interval;
+	m.poll = poll_interval;
 	m.shared = n->shared;
 	if (type == EGP_UPDATE) {
 		m.count = network_count;
@@ -140,6 +142,42 @@ static void send_msg(struct neighbor *n, uint8_t type, uint8_t code, uint16_t se
 	len = egp_encode(buf, sizeof(buf), &m, n->local);
 	if (len > 0 && sendto(n->fd, buf, len, 0, (struct sockaddr *)&dst, sizeof(dst)) < 0)
 		zlog_warn("EGP send to %pI4: %s", &n->peer, safe_strerror(errno));
+}
+static void idle(struct neighbor *n)
+{
+	n->state = IDLE;
+	reset(n);
+	n->abort_at = 0;
+	if (n->deleting) {
+		event_cancel(&n->read);
+		close(n->fd);
+		memset(n, 0, sizeof(*n));
+	}
+}
+static void start_peer(struct neighbor *n, time_t t)
+{
+	n->state = egp_control_next(n->state, EGP_START);
+	if (n->state == CEASE)
+		return;
+	reset(n);
+	n->request_seq = ++n->seq;
+	send_msg(n, EGP_ACQUIRE, 0, n->request_seq);
+	n->next_hello = t + EGP_P3;
+	n->abort_at = t + EGP_P5;
+}
+static void stop_peer(struct neighbor *n, bool deleting, time_t t)
+{
+	n->deleting |= deleting;
+	n->state = egp_control_next(n->state, EGP_STOP);
+	if (n->state == IDLE) {
+		idle(n);
+		return;
+	}
+	reset(n);
+	n->stop_seq = ++n->seq;
+	send_msg(n, EGP_ACQUIRE, 3, n->stop_seq);
+	n->next_hello = t + EGP_P3;
+	n->abort_at = t + EGP_P5;
 }
 static void reachability(struct neighbor *n, time_t t)
 {
@@ -155,8 +193,10 @@ static void reachability(struct neighbor *n, time_t t)
 }
 static void indication(struct neighbor *n, time_t t)
 {
-	if (egp_reach_record(&n->reach, t, n->hello))
+	if (egp_reach_record(&n->reach, t, n->hello)) {
 		n->last_seen = t;
+		n->abort_at = t + EGP_P4;
+	}
 	reachability(n, t);
 }
 static void receive(struct event *event)
@@ -179,29 +219,44 @@ static void receive(struct event *event)
 	if (m.type == EGP_ACQUIRE) {
 		if (m.code == 3) {
 			send_msg(n, EGP_ACQUIRE, 4, m.seq);
-			reset(n);
-			n->next_hello = t + n->hello;
+			idle(n);
+			return;
+		}
+		if (m.code == 4 && n->state == CEASE && m.seq == n->stop_seq) {
+			idle(n);
 			return;
 		}
 		if (m.code == 2 && n->state == ACQUISITION && m.seq == n->request_seq) {
-			n->next_hello = t + n->hello;
+			idle(n);
 			return;
 		}
 		if (m.code > 1 ||
 		    (m.code == 1 && (n->state != ACQUISITION || m.seq != n->request_seq)))
 			return;
+		if (n->state == CEASE || shutting_down) {
+			if (m.code == 0)
+				send_msg(n, EGP_ACQUIRE, 3, n->stop_seq);
+			return;
+		}
+		n->state = DOWN;
 		reset(n);
 		n->hello = MAX(hello_interval, m.hello);
 		n->poll = MAX(poll_interval, m.poll);
 		/* Advertise both modes; RFC 904 section 4.1.3 capability table. */
 		n->active = m.status == 2 || (m.status == 0 && local_as < n->as);
-		n->state = DOWN;
 		n->last_seen = t;
+		n->abort_at = t + EGP_P5;
 		if (m.code == 0)
 			send_msg(n, EGP_ACQUIRE, 1, m.seq);
 		/* A Confirm is an active-mode reachability indication (3.3). */
 		if (m.code == 1 && n->active)
 			indication(n, t);
+		if (n->active) {
+			n->hello_seq = ++n->seq;
+			n->hello_pending = true;
+			send_msg(n, EGP_REACH, 0, n->hello_seq);
+		}
+		n->next_hello = t + n->hello;
 		return;
 	}
 	if (n->state != DOWN && n->state != UP)
@@ -254,12 +309,17 @@ static void tick(struct event *event)
 		struct neighbor *n = &peers[i];
 		if (!n->used)
 			continue;
-		if (n->state == ACQUISITION) {
+		if (egp_abort_due(n->state, n->abort_at, t)) {
+			stop_peer(n, n->deleting, t);
+			continue;
+		}
+		if (n->state == IDLE)
+			continue;
+		if (n->state == ACQUISITION || n->state == CEASE) {
 			if (t >= n->next_hello) {
-				n->active = local_as < n->as;
-				n->request_seq = ++n->seq;
-				send_msg(n, EGP_ACQUIRE, 0, n->request_seq);
-				n->next_hello = t + n->hello;
+				send_msg(n, EGP_ACQUIRE, n->state == CEASE ? 3 : 0,
+					 n->state == CEASE ? n->stop_seq : n->request_seq);
+				n->next_hello = t + EGP_P3;
 			}
 			continue;
 		}
@@ -272,10 +332,6 @@ static void tick(struct event *event)
 			}
 			n->next_hello = t + n->hello;
 		}
-		if (t - n->last_seen > MAX(120, 8 * n->hello)) {
-			reset(n);
-			continue;
-		}
 		if (n->count && t - n->last_update > 3 * n->poll)
 			replace_routes(n, NULL, 0);
 		if (n->state == UP && t >= n->next_poll) {
@@ -284,6 +340,13 @@ static void tick(struct event *event)
 			send_msg(n, EGP_POLL, 0, n->poll_seq);
 			n->next_poll = t + n->poll;
 		}
+	}
+	if (shutting_down) {
+		for (i = 0; i < MAX_PEERS; i++)
+			if (peers[i].used)
+				break;
+		if (i == MAX_PEERS)
+			finish();
 	}
 	event_add_timer(master, tick, NULL, 1, &ticker);
 }
@@ -300,12 +363,7 @@ static void connected(struct zclient *client)
 }
 static void remove_peer(struct neighbor *n)
 {
-	send_msg(n, EGP_ACQUIRE, 3, ++n->seq);
-	n->state = IDLE;
-	replace_routes(n, NULL, 0);
-	event_cancel(&n->read);
-	close(n->fd);
-	memset(n, 0, sizeof(*n));
+	stop_peer(n, true, now());
 }
 DEFUN(egp_as, egp_as_cmd, "egp local-as (1-65535)", "EGP\nLocal autonomous system\nAS number\n")
 {
@@ -379,8 +437,22 @@ DEFUN(egp_peer, egp_peer_cmd, "egp neighbor A.B.C.D local-address A.B.C.D remote
 	n->local = local;
 	n->as = as;
 	n->shared.s_addr = htonl(ntohl(local.s_addr) & (0xffffffffU << (32 - k * 8)));
-	reset(n);
+	start_peer(n, now());
 	event_add_read(master, receive, n, fd, &n->read);
+	return CMD_SUCCESS;
+}
+DEFUN(clear_egp_peer, clear_egp_peer_cmd, "clear ip egp neighbor A.B.C.D",
+	CLEAR_STR IP_STR "EGP\nRestart neighbor acquisition\nPeer IPv4\n")
+{
+	struct in_addr peer;
+	size_t i;
+	inet_pton(AF_INET, argv[4]->arg, &peer);
+	for (i = 0; i < MAX_PEERS; i++)
+		if (peers[i].used && peers[i].peer.s_addr == peer.s_addr) {
+			if (peers[i].state == CEASE || shutting_down)
+				return CMD_WARNING;
+			start_peer(&peers[i], now());
+		}
 	return CMD_SUCCESS;
 }
 DEFUN(no_egp_peer, no_egp_peer_cmd, "no egp neighbor A.B.C.D", NO_STR "EGP\nNeighbor\nPeer IPv4\n")
@@ -448,7 +520,7 @@ static int config_write(struct vty *vty)
 		wrote = 1;
 	}
 	for (i = 0; i < MAX_PEERS; i++)
-		if (peers[i].used) {
+		if (peers[i].used && !peers[i].deleting) {
 			vty_out(vty, "egp neighbor %pI4 local-address %pI4 remote-as %u\n",
 				&peers[i].peer, &peers[i].local, peers[i].as);
 			wrote = 1;
@@ -460,18 +532,30 @@ static struct cmd_node egp_node = { .name = "egp",
 				    .parent_node = CONFIG_NODE,
 				    .prompt = "",
 				    .config_write = config_write };
-static FRR_NORETURN void terminate(void)
+static FRR_NORETURN void finish(void)
 {
 	size_t i;
 	for (i = 0; i < MAX_PEERS; i++)
-		if (peers[i].used)
-			remove_peer(&peers[i]);
+		if (peers[i].used) {
+			peers[i].deleting = true;
+			idle(&peers[i]);
+		}
 	event_cancel(&ticker);
 	zclient_stop(zc);
 	zclient_free(zc);
 	vrf_terminate();
 	frr_fini();
 	exit(0);
+}
+static void terminate(void)
+{
+	size_t i;
+	if (shutting_down)
+		finish();
+	shutting_down = true;
+	for (i = 0; i < MAX_PEERS; i++)
+		if (peers[i].used)
+			remove_peer(&peers[i]);
 }
 static void rotate(void)
 {
@@ -503,6 +587,7 @@ int main(int argc, char **argv)
 	install_element(CONFIG_NODE, &no_egp_peer_cmd);
 	install_element(CONFIG_NODE, &egp_network_cmd);
 	install_element(VIEW_NODE, &show_egp_cmd);
+	install_element(ENABLE_NODE, &clear_egp_peer_cmd);
 	event_add_timer(master, tick, NULL, 1, &ticker);
 	frr_config_fork();
 	frr_run(master);

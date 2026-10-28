@@ -34,7 +34,7 @@ EGP 在 IETF 的状态是 **Historic**；这里的实现是实验性的 **stub g
 
 ## 2. 邻居状态机
 
-CLI 里可见的四个状态（`show ip egp neighbors`）：
+CLI 里可见的五个状态（`show ip egp neighbors`）：
 
 | 状态 | 进入条件 | 离开条件 |
 | --- | --- | --- |
@@ -42,11 +42,16 @@ CLI 里可见的四个状态（`show ip egp neighbors`）：
 | Acquisition | 已发 Request，等 Confirm | 收到 Confirm → Down/Up；超时重试 |
 | Down | 邻居确认但可达性不足 | active 窗口内 3 次有效指示、passive 1 次有效 Up 指示 → Up |
 | Up | 双方就 AS、timers 达成一致 | 对端 Cease、连续无响应、配置删除 |
+| Cease | 在 Down/Up 收到本地 Stop（删邻居或 SIGTERM） | 匹配 Cease-ack、对端 Cease、第二次 Stop 或 P5 到期 → Idle |
 
 - **active / passive** 由 AS 号决定（`local_as < peer_as` 的一方为 active），
   也接受对端在报文中声明的角色。
-- 关闭或删除邻居时尽力发送 `Acquisition code 3 (Cease)`；**无重传状态机**，
-  丢包就只靠对方超时。收到 Cease 回 `code 4 (Cease-ack)`。
+- Refuse 将 Acquisition 变为 Idle，停止获取；用 `clear ip egp neighbor <ip>` 显式重新 Start。
+- 删除邻居时先撤路，保留 socket 等待 Cease-ack；每 P3=30s 重发相同序列号 Cease，
+  P5=120s 无确认则释放资源。收到 Cease 总是回 Cease-ack 并进入 Idle，Idle 也能确认重复 Cease。
+- Acquisition 同样用 P3=30s 重发 Request、P5=120s 终止；Down/Up 的 abort timer
+  在有效可达性指示时延至 P4=3600s。P3/P4/P5 采用 RFC 904 的建议默认值。
+- SIGTERM 继续事件循环完成停止握手，第二次信号强制退出；外部服务管理器的退出期限仍适用。
 - 对端 AS 与本端一致时不建立邻居；这是本实现的配置限制，RFC 904 也讨论同 AS 邻居。
 
 ### 可达性窗口（RFC 904 §3.3 / §4.3）
@@ -84,7 +89,7 @@ CLI 里可见的四个状态（`show ip egp neighbors`）：
 - 每进程最多 **16 个邻居**（`MAX_PEERS`），每邻居最多 255 条网络
 - 同前缀多邻居时不做 metric 比较，取第一个仍存活邻居的宣告
 - 无认证、无 route-map、无 `redistribute egp`（那是可选补丁 0005，默认不启用）
-- 主动发送的报文不做重传；超时靠定时器扫表
+- Request/Cease 有重传及 abort timer；Poll 丢失后等待下一个周期，未实现可选的 T1 快速重试
 - 日志走文件/stdout，未接 FRR 的结构化日志与 YANG northbound
 
 **未实现**
