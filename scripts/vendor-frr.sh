@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-2.0-or-later
 # 把固定 FRR 提交做成**可校验的构建输入**，让正式打包不再依赖构建时联网。
 #
 # 产出（默认在 vendor/）：
