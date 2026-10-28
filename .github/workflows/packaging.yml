@@ -1,0 +1,79 @@
+name: Packaging
+
+on:
+  pull_request:
+    paths:
+      - "protocols/**"
+      - "patches/**"
+      - "scripts/**"
+      - "packaging/**"
+      - ".github/workflows/packaging.yml"
+  push:
+    branches: [main]
+    paths:
+      - "protocols/**"
+      - "patches/**"
+      - "scripts/**"
+      - "packaging/**"
+      - ".github/workflows/packaging.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: packaging-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rpm:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    container:
+      image: quay.io/fedora/fedora:43
+      options: --privileged
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install RPM build dependencies
+        run: |
+          dnf -y install --setopt=install_weak_deps=False \
+            gcc gcc-c++ make git autoconf automake libtool bison flex patch \
+            tar gzip xz rpm-build rpmlint patchelf pkgconf-pkg-config \
+            python3-devel python3-pytest python3-pytest-xdist python3-pyyaml \
+            perl-JSON json-c-devel libyang-devel libcap-devel readline-devel \
+            pcre2-devel c-ares-devel elfutils-libelf-devel systemd-devel \
+            libxcrypt-devel diffutils findutils which
+          dnf clean all
+
+      - name: Build RPM packages
+        run: |
+          set -euo pipefail
+          GIT_SHA=$(git rev-parse HEAD)
+          mkdir -p build/rpmbuild
+          ./scripts/package-rpm.sh \
+            --version 0.1.1 \
+            --kind dev \
+            --git-sha "$GIT_SHA" \
+            --topdir "$PWD/build/rpmbuild"
+
+      - name: Verify RPM install and binaries
+        run: |
+          set -euo pipefail
+          RPMS=$(find build/rpmbuild/RPMS -name *.rpm | sort)
+          echo "Built RPMs:"
+          printf  %sn $RPMS
+          rpm -ivh --nodeps $RPMS
+          bash packaging/rpm/verify-rpm.sh
+
+      - name: Upload RPM artifacts
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: rpms-${{ github.sha }}
+          path: build/rpmbuild/RPMS/**/*.rpm
+          if-no-files-found: warn
+          retention-days: 14

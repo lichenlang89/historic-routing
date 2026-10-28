@@ -1,0 +1,15 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+# Matches FRR kernel style: 8-space tabs, Linux brace style.
+BasedOnStyle: LLVM
+IndentWidth: 8
+UseTab: ForIndentation
+TabWidth: 8
+BreakBeforeBraces: Linux
+AllowShortIfStatementsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+IndentCaseLabels: false
+ColumnLimit: 0
+SpaceBeforeParens: ControlStatements
+PointerAlignment: Right
+AlignTrailingComments: true

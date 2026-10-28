@@ -1,0 +1,94 @@
+name: Checkstyle
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checkstyle-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  clang-format:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install clang-format
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-format
+
+      - name: Check C/H source formatting
+        run: |
+          set -euo pipefail
+          mapfile -t files < <(find protocols -name *.[ch] | sort)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No C/H files found."
+            exit 0
+          fi
+          failed=()
+          for f in "${files[@]}"; do
+            if ! clang-format --dry-run --Werror "$f" 2>/dev/null; then
+              failed+=("$f")
+            fi
+          done
+          if [ ${#failed[@]} -gt 0 ]; then
+            echo "::error::clang-format violations in: ${failed[*]}"
+            echo "Run: clang-format -i <file> to fix."
+            exit 1
+          fi
+          echo "All ${#files[@]} C/H files pass clang-format."
+
+  patch-headers:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check patch SPDX and Signed-off-by headers
+        run: |
+          set -euo pipefail
+          fail=0
+          for p in patches/frr/egp/*.patch; do
+            [ -f "$p" ] || continue
+            if ! grep -q ^From:  "$p"; then
+              echo "::warning file=$p::Missing From: header"
+            fi
+            if ! grep -q SPDX-License-Identifier "$p" && \
+               ! grep -q Signed-off-by: "$p"; then
+              echo "::error file=$p::Missing SPDX-License-Identifier and Signed-off-by"
+              fail=1
+            fi
+          done
+          exit $fail
+
+  spdx-sources:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check SPDX identifiers in C/H/sh/py sources
+        run: |
+          set -euo pipefail
+          fail=0
+          while IFS= read -r -d  f; do
+            if ! head -3 "$f" | grep -q SPDX-License-Identifier; then
+              echo "::error file=$f::Missing SPDX-License-Identifier in first 3 lines"
+              fail=1
+            fi
+          done < <(find protocols scripts packaging/ci -type f \( -name *.[ch] -o -name *.sh -o -name *.py -o -name Containerfile \) -print0)
+          exit $fail
