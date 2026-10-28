@@ -47,7 +47,7 @@ CLI_NODE=EGP_NODE
 PATCH_DIR=patches/frr/egp
 
 # 协议源码文件名（放在 protocols/<name>/src/ 下）
-SOURCES=egpd.c egp_packet.c egp_packet.h egp_reach.h egp_state.h egp_age.h
+SOURCES=egpd.c egp_packet.c egp_packet.h egp_reach.h egp_state.h egp_age.h egp_update.h
 
 # 仅用于满足 automake EXTRA_DIST 的附加文件（protocols/<name>/ 或 lab/<name>/ 下）
 EXTRAS=README.md lab.sh test_lab.py

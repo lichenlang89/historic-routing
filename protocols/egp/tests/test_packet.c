@@ -3,6 +3,7 @@
 #include "egp_reach.h"
 #include "egp_state.h"
 #include "egp_age.h"
+#include "egp_update.h"
 #include <assert.h>
 #include <arpa/inet.h>
 #include <string.h>
@@ -122,6 +123,21 @@ int main(void)
 	size_t i;
 	test_distances();
 	test_aging();
+	struct egp_update_window window = { 0 };
+	assert(egp_update_matches(&window, true, 7, 7, false, 0));
+	assert(!egp_update_matches(&window, true, 6, 7, true, 6));
+	window.rx_used = true;
+	assert(!egp_update_matches(&window, true, 7, 7, true, 7));
+	assert(egp_update_matches(&window, false, 7, 8, true, 7));
+	assert(!egp_update_matches(&window, false, 7, 8, false, 7));
+	egp_update_command(&window, 65535, true);
+	window.tx_used = true;
+	egp_update_command(&window, 65535, true);
+	assert(window.tx_used);
+	egp_update_command(&window, 0, false);
+	assert(window.tx_used && window.reply_seq == 0);
+	egp_update_command(&window, 0, true);
+	assert(!window.tx_used && window.last_poll == 0);
 	/* Moving-window edges, duplicates, wraparound and delayed ticks (904 4.3). */
 	struct egp_reach reach = { 0 };
 	assert(egp_reach_record(&reach, 0, 2));
