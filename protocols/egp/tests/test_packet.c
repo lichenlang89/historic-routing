@@ -122,6 +122,22 @@ int main(void)
 	test_distances();
 	test_aging();
 	struct egp_update_window window = {0};
+	/* First reply is free; a duplicate reply and a triggered Update share credit. */
+	egp_update_command(&window, 7, true);
+	assert(egp_update_can_reply(&window));
+	egp_update_replied(&window);
+	assert(egp_update_can_reply(&window) && !window.tx_used);
+	egp_update_command(&window, 7, true);
+	egp_update_replied(&window);
+	assert(window.tx_used && !egp_update_can_reply(&window));
+	egp_update_command(&window, 7, true);
+	assert(!egp_update_can_reply(&window));
+	egp_update_command(&window, 8, true);
+	assert(!window.replied && !window.tx_used && egp_update_can_reply(&window));
+	egp_update_replied(&window);
+	window.tx_used = true; /* A triggered Update has already used the extra reply. */
+	assert(!egp_update_can_reply(&window));
+	window = (struct egp_update_window){0};
 	assert(egp_update_matches(&window, true, 7, 7, false, 0));
 	assert(!egp_update_matches(&window, true, 6, 7, true, 6));
 	window.rx_used = true;
@@ -163,6 +179,13 @@ int main(void)
 	assert(!egp_abort_due(CEASE, 120, 119));
 	assert(egp_abort_due(CEASE, 120, 120));
 	assert(!egp_abort_due(IDLE, 120, 121));
+	/* Defaults stay unchanged; slow Hellos need the complete four-T1 window. */
+	assert(egp_hold_interval(30, EGP_P5) == EGP_P5);
+	assert(egp_hold_interval(90, EGP_P5) == 360);
+	assert(!egp_abort_due(DOWN, egp_hold_interval(90, EGP_P5), 120));
+	assert(egp_abort_due(DOWN, egp_hold_interval(90, EGP_P5), 360));
+	assert(egp_hold_interval(90, EGP_P4) == EGP_P4);
+	assert(egp_hold_interval(65535, EGP_P4) == 262140);
 	seal(golden, sizeof(golden));
 	assert(egp_decode(golden, sizeof(golden), &m) == 0);
 	assert(m.count == 3 && m.as == 65000 && m.seq == 7);
@@ -197,6 +220,21 @@ int main(void)
 	m.poll = 120;
 	len = egp_encode(b, EGP_MAX_PKT, &m, addr("192.0.2.1"));
 	assert(len == 14 && !egp_decode(b, len, &d));
+	/* RFC 904 negotiates S1 and S2 independently, including S2 < S1. */
+	for (m.code = 0; m.code <= 1; m.code++) {
+		m.hello = 30;
+		m.poll = 10;
+		len = egp_encode(b, EGP_MAX_PKT, &m, addr("192.0.2.1"));
+		assert(len == 14 && !egp_decode(b, len, &d));
+		assert(d.hello == 30 && d.poll == 10);
+		b[10] = b[11] = 0;
+		seal(b, len);
+		assert(egp_decode(b, len, &d) < 0);
+		b[11] = 30;
+		b[12] = b[13] = 0;
+		seal(b, len);
+		assert(egp_decode(b, len, &d) < 0);
+	}
 	m.code = 3;
 	len = egp_encode(b, EGP_MAX_PKT, &m, addr("192.0.2.1"));
 	assert(len == 10 && !egp_decode(b, len, &d));

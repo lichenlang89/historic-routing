@@ -158,10 +158,12 @@ static bool transmit(struct neighbor *n, uint8_t type, uint8_t code, uint16_t se
 	}
 	return true;
 }
-static void send_msg(struct neighbor *n, uint8_t type, uint8_t code, uint16_t seq)
+static bool send_msg(struct neighbor *n, uint8_t type, uint8_t code, uint16_t seq)
 {
-	if (transmit(n, type, code, seq, false) && type == EGP_UPDATE)
+	bool sent = transmit(n, type, code, seq, false);
+	if (sent && type == EGP_UPDATE)
 		n->updates.dirty = false;
+	return sent;
 }
 static void idle(struct neighbor *n)
 {
@@ -216,7 +218,7 @@ static void indication(struct neighbor *n, time_t t)
 {
 	if (egp_reach_record(&n->reach, t, n->hello)) {
 		n->last_seen = t;
-		n->abort_at = t + EGP_P4;
+		n->abort_at = t + egp_hold_interval(n->hello, EGP_P4);
 	}
 	reachability(n, t);
 }
@@ -272,7 +274,7 @@ static void receive(struct event *event)
 		/* Advertise both modes; RFC 904 section 4.1.3 capability table. */
 		n->active = m.status == 2 || (m.status == 0 && local_as < n->as);
 		n->last_seen = t;
-		n->abort_at = t + EGP_P5;
+		n->abort_at = t + egp_hold_interval(n->hello, EGP_P5);
 		if (m.code == 0)
 			send_msg(n, EGP_ACQUIRE, 1, m.seq);
 		/* A Confirm is an active-mode reachability indication (3.3). */
@@ -306,8 +308,9 @@ static void receive(struct event *event)
 		egp_update_command(&n->updates, m.seq, true);
 		if (!n->active && m.status == 1)
 			indication(n, t);
-		if (n->state == UP)
-			send_msg(n, EGP_UPDATE, 0, m.seq);
+		if (n->state == UP && egp_update_can_reply(&n->updates) &&
+		    send_msg(n, EGP_UPDATE, 0, m.seq))
+			egp_update_replied(&n->updates);
 		return;
 	}
 	unsolicited = (m.status & 0x80) != 0;
@@ -423,8 +426,6 @@ DEFUN(egp_timers, egp_timers_cmd, "egp timers (1-65535) (1-65535)", "EGP\nTimers
 {
 	unsigned h = strtoul(argv[2]->arg, NULL, 10), p = strtoul(argv[3]->arg, NULL, 10);
 	size_t i;
-	if (p < h)
-		return CMD_WARNING_CONFIG_FAILED;
 	for (i = 0; i < MAX_PEERS; i++)
 		if (peers[i].used) {
 			vty_out(vty, "Remove neighbors before changing timers\n");

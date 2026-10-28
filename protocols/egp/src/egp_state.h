@@ -17,6 +17,13 @@ enum egp_control { EGP_START,
 enum { EGP_P3 = 30,
        EGP_P4 = 3600,
        EGP_P5 = 120 };
+/* P4/P5 are suggested minima, not caps on the negotiated reachability window.
+ * A passive peer must have time to receive the active peer's first Up Hello. */
+static inline unsigned egp_hold_interval(unsigned hello, unsigned minimum)
+{
+	unsigned window = 4U * hello;
+	return window > minimum ? window : minimum;
+}
 /* RFC 904 section 3.4. Request assumes acquisition is accepted. */
 static inline enum state egp_control_next(enum state s, enum egp_control e)
 {
