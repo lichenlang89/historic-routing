@@ -14,6 +14,7 @@
 #include "egp_packet.h"
 #include "egp_reach.h"
 #include "egp_state.h"
+#include "egp_age.h"
 #include <time.h>
 
 #define MAX_PEERS 16
@@ -29,6 +30,7 @@ struct neighbor {
 	struct event *read;
 	size_t count;
 	struct egp_route routes[EGP_MAX_ROUTES];
+	uint8_t misses[EGP_MAX_ROUTES];
 };
 static struct neighbor peers[MAX_PEERS];
 static struct egp_route networks[EGP_MAX_ROUTES];
@@ -95,6 +97,8 @@ static void replace_routes(struct neighbor *n, const struct egp_route *routes, s
 	size_t old_count = n->count, i;
 	memcpy(old, n->routes, old_count * sizeof(*old));
 	n->count = count;
+	if (!count)
+		memset(n->misses, 0, sizeof(n->misses));
 	if (count)
 		memcpy(n->routes, routes, count * sizeof(*routes));
 	for (i = 0; i < old_count; i++) {
@@ -207,7 +211,10 @@ static void receive(struct event *event)
 	socklen_t slen = sizeof(src);
 	struct egp_message m;
 	ssize_t len = recvfrom(n->fd, buf, sizeof(buf), 0, (struct sockaddr *)&src, &slen);
-	size_t ihl, i, count = 0;
+	size_t ihl, i;
+	struct egp_route next[EGP_MAX_ROUTES];
+	uint8_t next_misses[EGP_MAX_ROUTES];
+	int count;
 	time_t t = now();
 	event_add_read(master, receive, n, n->fd, &n->read);
 	if (len < 20 || src.sin_addr.s_addr != n->peer.s_addr || (buf[0] >> 4) != 4)
@@ -289,16 +296,18 @@ static void receive(struct event *event)
 	for (i = 0; i < m.count; i++) {
 		if (m.routes[i].gateway.s_addr != n->peer.s_addr)
 			return;
-		if (m.routes[i].distance != 255)
-			m.routes[count++] = m.routes[i];
 	}
+	count = egp_age_update(n->routes, n->count, n->misses, &m, next, next_misses);
+	if (count < 0)
+		return;
 	n->poll_pending = false;
 	if (n->active || m.status == 1)
 		indication(n, t);
 	if (n->state != UP)
 		return;
 	n->last_update = t;
-	replace_routes(n, m.routes, count);
+	replace_routes(n, next, count);
+	memcpy(n->misses, next_misses, count);
 }
 static void tick(struct event *event)
 {
