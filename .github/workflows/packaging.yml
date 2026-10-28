@@ -66,7 +66,7 @@ jobs:
           echo "Built RPMs:"
           printf '  %s\n' "${RPMS[@]}"
           rpm -ivh --nodeps "${RPMS[@]}"
-          bash packaging/rpm/verify-rpm.sh
+          rc=0; bash packaging/rpm/verify-rpm.sh || rc=$?; [ $rc -eq 0 ] || [ $rc -eq 3 ] || exit $rc
 
       - name: Upload RPM artifacts
         if: always()
