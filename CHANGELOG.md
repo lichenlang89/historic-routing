@@ -29,6 +29,12 @@
 
 ## [Unreleased]
 
+### Wireshark
+
+- 纳入 EGP Lua 解析器及安装、压缩包分发说明；按 RFC 904 区分 Acquisition
+  状态语义、解析 Error 的 12 字节引用、标记 unsolicited 与不可达距离。
+- 新增真实 TShark 离线报文回归和独立 CI，检查校验和及截断边界。
+
 ### Fixed
 
 - EGP Update 按实际 distance 分组编码；distance 255 只撤销相应网络，不再拒绝整份

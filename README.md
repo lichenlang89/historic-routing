@@ -141,6 +141,7 @@ export LAB_PREFIX=/opt/historic-routing/27f287be9
 | [patches/frr/](patches/frr/) | FRR 固定基线与集成补丁 |
 | [scripts/](scripts/) | 构建、验证和打包脚本 |
 | [lab/](lab/) | 双路由器容器实验 |
+| [wireshark/](wireshark/) | EGP Lua 报文解析器、安装说明和离线回归 |
 | [架构说明](docs/ARCHITECTURE.md) | 协议如何接入 FRR |
 | [新增协议指南](docs/ADD_A_PROTOCOL.md) | 目录约定、资源登记和接入步骤 |
 | [开发历史](docs/HISTORY.md) | 仓库迁移过程及历史验证记录 |
