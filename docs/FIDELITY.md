@@ -16,7 +16,7 @@ EGP 在 IETF 的状态是 **Historic**；这里的实现是实验性的 **stub g
 | 类型 | 编号 | 发送 | 接收 | 说明 |
 | --- | --- | --- | --- | --- |
 | Update | 1 | 是 | 是 | 携带 `(网络, 网关, distance)` 三元组；**空 Update 表示撤销全部** |
-| Poll | 2 | 是 | 是 | 主动方按 `poll` 间隔询问；收到 Poll 用 Update 回答 |
+| Poll | 2 | 是 | 是 | 双方在 Up 时按 `poll` 间隔询问；收到 Poll 用 Update 回答 |
 | Acquisition | 3 | 是（code 0/1/3/4） | 是 | 邻居获取：Request/Confirm/Cease/Cease-ack；**code 2 = Refuse 能解码但从不发送** |
 | Reachability | 5 | 是（code 0/1） | 是 | 本实现用作邻居存活探询（code 0）与确认（code 1） |
 | Error | 8 | **否** | 是 | 只解码并拒绝，不生成；EGP 的 Error 语义未实现 |
@@ -40,14 +40,24 @@ CLI 里可见的四个状态（`show ip egp neighbors`）：
 | --- | --- | --- |
 | Idle | 配置了邻居但还没发过请求 | 发送 Acquisition Request |
 | Acquisition | 已发 Request，等 Confirm | 收到 Confirm → Down/Up；超时重试 |
-| Down | 邻居确认但不可用（刚建立或对端 Cease） | 收到 Reachability/Update → Up |
+| Down | 邻居确认但可达性不足 | active 窗口内 3 次有效指示、passive 1 次有效 Up 指示 → Up |
 | Up | 双方就 AS、timers 达成一致 | 对端 Cease、连续无响应、配置删除 |
 
 - **active / passive** 由 AS 号决定（`local_as < peer_as` 的一方为 active），
   也接受对端在报文中声明的角色。
 - 关闭或删除邻居时尽力发送 `Acquisition code 3 (Cease)`；**无重传状态机**，
   丢包就只靠对方超时。收到 Cease 回 `code 4 (Cease-ack)`。
-- 对端 AS 与本端一致时不建立邻居（RFC 904 要求跨 AS）。
+- 对端 AS 与本端一致时不建立邻居；这是本实现的配置限制，RFC 904 也讨论同 AS 邻居。
+
+### 可达性窗口（RFC 904 §3.3 / §4.3）
+
+- active：Confirm、匹配且未消费的 I-H-U/Poll Update 响应计入窗口。
+- passive：Hello/Poll 的 Up 状态以及有效 Update 的 Up 状态计入窗口。
+- 使用四个 T1 的移动时间窗口，每 T1 最多接受一个指示；active 3 次进入 Up、
+  降至 1 次进入 Down；passive 首次进入 Up、四个 T1 无指示后进入 Down。
+- 重复 I-H-U、错误序列号和无效 Update 不刷新窗口；延迟的 event-loop tick 不延长旧指示寿命。
+- `lab.sh test-protocol` 在 `LAB_TIMERS="1 1"` 的隔离实验中验证只有 Update 或
+  Poll 时的存活、错误响应和指示过期；codec 单测包含可控时钟边界。
 
 ## 3. 定时器
 
