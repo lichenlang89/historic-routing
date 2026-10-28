@@ -20,7 +20,7 @@ static inline void egp_update_command(struct egp_update_window *w, uint16_t seq,
 	}
 }
 static inline bool egp_update_matches(const struct egp_update_window *w, bool unsolicited,
-	uint16_t seq, uint16_t current, bool pending, uint16_t poll_seq)
+                                      uint16_t seq, uint16_t current, bool pending, uint16_t poll_seq)
 {
 	return unsolicited ? !w->rx_used && seq == current : pending && seq == poll_seq;
 }

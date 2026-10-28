@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #ifndef EGP_PACKET_H
 #define EGP_PACKET_H
+#include <netinet/in.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <netinet/in.h>
-#define EGP_MAX_PKT    1500
+#define EGP_MAX_PKT 1500
 #define EGP_MAX_ROUTES 255
-#define EGP_UPDATE     1
-#define EGP_POLL       2
-#define EGP_ACQUIRE    3
-#define EGP_REACH      5
-#define EGP_ERROR      8
+#define EGP_UPDATE 1
+#define EGP_POLL 2
+#define EGP_ACQUIRE 3
+#define EGP_REACH 5
+#define EGP_ERROR 8
 struct egp_route {
 	struct in_addr net, gateway;
 	uint8_t distance;

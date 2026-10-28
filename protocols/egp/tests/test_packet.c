@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+#include "egp_age.h"
 #include "egp_packet.h"
 #include "egp_reach.h"
 #include "egp_state.h"
-#include "egp_age.h"
 #include "egp_update.h"
-#include <assert.h>
 #include <arpa/inet.h>
-#include <string.h>
+#include <assert.h>
 #include <stdio.h>
+#include <string.h>
 
 static struct in_addr addr(const char *s)
 {
@@ -26,10 +26,10 @@ static void seal(uint8_t *b, size_t len)
 static void test_aging(void)
 {
 	struct egp_route old[EGP_MAX_ROUTES], next[EGP_MAX_ROUTES];
-	uint8_t misses[EGP_MAX_ROUTES] = { 0 }, next_misses[EGP_MAX_ROUTES];
-	struct egp_message m = { 0 };
+	uint8_t misses[EGP_MAX_ROUTES] = {0}, next_misses[EGP_MAX_ROUTES];
+	struct egp_message m = {0};
 	int count;
-	old[0] = (struct egp_route){ .net = addr("10.0.0.0"), .distance = 9 };
+	old[0] = (struct egp_route){.net = addr("10.0.0.0"), .distance = 9};
 	count = egp_age_update(old, 1, misses, &m, next, next_misses);
 	assert(count == 1 && next_misses[0] == 1 && next[0].distance == 9);
 	misses[0] = 1;
@@ -45,7 +45,7 @@ static void test_aging(void)
 	m.routes[0].distance = 255;
 	misses[0] = 0;
 	assert(egp_age_update(old, 1, misses, &m, next, next_misses) == 0);
-	m.routes[1] = (struct egp_route){ .net = addr("172.16.0.0"), .distance = 7 };
+	m.routes[1] = (struct egp_route){.net = addr("172.16.0.0"), .distance = 7};
 	m.count = 2;
 	assert(egp_age_update(old, 1, misses, &m, next, next_misses) == 1);
 	assert(next[0].net.s_addr == m.routes[1].net.s_addr && next_misses[0] == 0);
@@ -57,29 +57,27 @@ static void test_aging(void)
 		misses[i] = 0;
 	}
 	m.count = 1;
-	m.routes[0] = (struct egp_route){ .net = addr("10.0.0.0"), .distance = 1 };
+	m.routes[0] = (struct egp_route){.net = addr("10.0.0.0"), .distance = 1};
 	assert(egp_age_update(old, EGP_MAX_ROUTES, misses, &m, next, next_misses) < 0);
 }
 static void test_distances(void)
 {
 	/* Independent wire oracle: one gateway, three distance groups. */
 	uint8_t golden[] = {
-		2, 1, 0, 1, 0, 0, 0xfd, 0xe8, 0, 7, 1, 0, 192, 0, 2, 0,
-		1, 3,
-		7, 2, 10, 198, 51, 100,
-		255, 1, 172, 16,
-		0, 1, 192, 0, 3
-	};
+	    2, 1, 0, 1, 0, 0, 0xfd, 0xe8, 0, 7, 1, 0, 192, 0, 2, 0,
+	    1, 3,
+	    7, 2, 10, 198, 51, 100,
+	    255, 1, 172, 16,
+	    0, 1, 192, 0, 3};
 	uint8_t b[EGP_MAX_PKT];
-	struct egp_message m = { .type = EGP_UPDATE, .status = 1,
-		.as = 65000, .seq = 7, .count = 4 }, d;
+	struct egp_message m = {.type = EGP_UPDATE, .status = 1, .as = 65000, .seq = 7, .count = 4}, d;
 	int len;
 	size_t i;
 	m.shared = addr("192.0.2.0");
-	m.routes[0] = (struct egp_route){ .net = addr("10.0.0.0"), .distance = 7 };
-	m.routes[1] = (struct egp_route){ .net = addr("172.16.0.0"), .distance = 255 };
-	m.routes[2] = (struct egp_route){ .net = addr("198.51.100.0"), .distance = 7 };
-	m.routes[3] = (struct egp_route){ .net = addr("192.0.3.0"), .distance = 0 };
+	m.routes[0] = (struct egp_route){.net = addr("10.0.0.0"), .distance = 7};
+	m.routes[1] = (struct egp_route){.net = addr("172.16.0.0"), .distance = 255};
+	m.routes[2] = (struct egp_route){.net = addr("198.51.100.0"), .distance = 7};
+	m.routes[3] = (struct egp_route){.net = addr("192.0.3.0"), .distance = 0};
 	seal(golden, sizeof(golden));
 	len = egp_encode(b, sizeof(b), &m, addr("192.0.2.1"));
 	assert(len == sizeof(golden) && !memcmp(b, golden, sizeof(golden)));
@@ -115,15 +113,15 @@ int main(void)
 {
 	/* Hand-written RFC 904 NR: one internal gateway 192.0.2.1,
 	 * one distance, three classful networks (10, 172.16, 198.51.100). */
-	uint8_t golden[] = { 2, 1, 0, 1, 0, 0, 0xfd, 0xe8, 0,	7,  1,	 0,  192,
-			     0, 2, 0, 1, 1, 1, 3,    10,   172, 16, 198, 51, 100 };
+	uint8_t golden[] = {2, 1, 0, 1, 0, 0, 0xfd, 0xe8, 0, 7, 1, 0, 192,
+	                    0, 2, 0, 1, 1, 1, 3, 10, 172, 16, 198, 51, 100};
 	uint8_t b[EGP_MAX_PKT + 1];
 	struct egp_message m, d;
 	int len;
 	size_t i;
 	test_distances();
 	test_aging();
-	struct egp_update_window window = { 0 };
+	struct egp_update_window window = {0};
 	assert(egp_update_matches(&window, true, 7, 7, false, 0));
 	assert(!egp_update_matches(&window, true, 6, 7, true, 6));
 	window.rx_used = true;
@@ -139,7 +137,7 @@ int main(void)
 	egp_update_command(&window, 0, true);
 	assert(!window.tx_used && window.last_poll == 0);
 	/* Moving-window edges, duplicates, wraparound and delayed ticks (904 4.3). */
-	struct egp_reach reach = { 0 };
+	struct egp_reach reach = {0};
 	assert(egp_reach_record(&reach, 0, 2));
 	assert(!egp_reach_record(&reach, 1, 2));
 	assert(egp_reach_record(&reach, 2, 2));

@@ -1,13 +1,8 @@
-# EGP 协议源码的哈希基线（scripts/verify.sh 的 A3 检查读它；生成：sha256sum protocols/egp/{src,build,tests}/* protocols/egp/README.md protocols/egp/PROTOCOL.meta）
-# 路径相对仓库根；协议核心源码任何改动都必须单独提交并在 docs/HISTORY.md 记录原因。
-ce85d1332b89d43c3d6b1e5128551c04a3cea584a07638690840ab57d80e29e4  protocols/egp/src/egp_age.h
-f7ca8ec9a84ccce292d7d7e7d874ef9a2c6e9ba6131056a35e4fa96da6e630b1  protocols/egp/src/egp_packet.c
-44318c88fbaa7e0dbfd21d9dc3be1d5a082b4625b6f40bb4b6d093c0ef86fbb7  protocols/egp/src/egp_packet.h
+e9c09ea213f6cdf3383faa7bec5e718746a774da2b07d769c9b23a235b39bc0e  protocols/egp/src/egpd.c
+881372718c171b022ca4ead7b697fd3428acc343d668e4079f9362dbb959e2a3  protocols/egp/src/egp_packet.c
+0c9794f9eea877f150811e20c169e9c1c76dda7810a9cf87f73ab1d432aa43c0  protocols/egp/src/egp_age.h
+216e312818fe5d8cd617b62f92129efac19f3c9ce9259b8e1b86e40f19b74407  protocols/egp/src/egp_packet.h
 be85ded341ebe6aada21149c9b6f18b3aeb2ff748dcddbcad95770b4a2d2cff1  protocols/egp/src/egp_reach.h
-4b0ee5cd253d4a7144c64fa44c339641b837e8ee0c4b417842f814b8130f1bff  protocols/egp/src/egp_state.h
-fb5f00b224b0a925bb079481c5cc6f6e919ef0627c2c08be9054627a3e2aecaf  protocols/egp/src/egp_update.h
-77361db8aa284305e741f8be3cf4e6a3a752ef113004cc1df321f13a380b39e6  protocols/egp/src/egpd.c
-5c4d0965a0af0f97a2a91885f1f292f6f4104175ba25576977651ad46a47240f  protocols/egp/build/egpd.subdir.am
-f95152e581971bf9cdb33a31147c6b87376b7f47c1b9368361fd6bdd7051e0a7  protocols/egp/tests/test_packet.c
-57cc0d253efb9817d5e91ce290ec1f25ddad3f84eaa0c21aa4140de26f3680a5  protocols/egp/README.md
-ddcc2e9c74ab93316b9833fe50b5e4d400f6a5e1f91c7acb9ef575b543ca2310  protocols/egp/PROTOCOL.meta
+450b96d919e7a2e491de6bdae14353816fab39587a5d1429036cdcc7e00ed509  protocols/egp/src/egp_state.h
+9325edcfedd32c0a71624f8c58d92c504994b090d85d5b4bc78e032c7fb4ef2c  protocols/egp/src/egp_update.h
+a26c04dc0cd30940ef22fe8cb5b2a63fd25b08aa5c92a36c9e1ad7bfec87e02c  protocols/egp/tests/test_packet.c

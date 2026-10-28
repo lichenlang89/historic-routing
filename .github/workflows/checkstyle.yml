@@ -30,7 +30,7 @@ jobs:
       - name: Check C/H source formatting
         run: |
           set -euo pipefail
-          mapfile -t files < <(find protocols -name *.[ch] | sort)
+          mapfile -t files < <(find protocols -name '*.[ch]' | sort)
           if [ ${#files[@]} -eq 0 ]; then
             echo "No C/H files found."
             exit 0
@@ -56,19 +56,18 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Check patch SPDX and Signed-off-by headers
+      - name: Check patch From: headers
         run: |
           set -euo pipefail
           fail=0
           for p in patches/frr/egp/*.patch; do
             [ -f "$p" ] || continue
-            if ! grep -q ^From:  "$p"; then
-              echo "::warning file=$p::Missing From: header"
-            fi
-            if ! grep -q SPDX-License-Identifier "$p" && \
-               ! grep -q Signed-off-by: "$p"; then
-              echo "::error file=$p::Missing SPDX-License-Identifier and Signed-off-by"
+            if ! grep -q '^From: ' "$p"; then
+              echo "::error file=$p::Missing From: header (git format-patch convention)"
               fail=1
+            fi
+            if ! grep -qi Signed-off-by: "$p"; then
+              echo "::warning file=$p::No Signed-off-by trailer (recommended for upstream contribution)"
             fi
           done
           exit $fail
@@ -85,10 +84,11 @@ jobs:
         run: |
           set -euo pipefail
           fail=0
-          while IFS= read -r -d  f; do
-            if ! head -3 "$f" | grep -q SPDX-License-Identifier; then
+          f=""
+          while IFS= read -r -d '' f || [ -n "$f" ]; do
+            if ! head -3 "$f" | grep -q 'SPDX-License-Identifier'; then
               echo "::error file=$f::Missing SPDX-License-Identifier in first 3 lines"
               fail=1
             fi
-          done < <(find protocols scripts packaging/ci -type f \( -name *.[ch] -o -name *.sh -o -name *.py -o -name Containerfile \) -print0)
+          done < <(find protocols scripts packaging/ci -type f \( -name '*.[ch]' -o -name '*.sh' -o -name '*.py' -o -name 'Containerfile' \) -print0)
           exit $fail

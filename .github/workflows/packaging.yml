@@ -31,7 +31,7 @@ jobs:
     timeout-minutes: 60
     container:
       image: quay.io/fedora/fedora:43
-      options: --privileged
+      options: --privileged --security-opt label=disable
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -52,21 +52,20 @@ jobs:
       - name: Build RPM packages
         run: |
           set -euo pipefail
-          GIT_SHA=$(git rev-parse HEAD)
           mkdir -p build/rpmbuild
           ./scripts/package-rpm.sh \
             --version 0.1.1 \
             --kind dev \
-            --git-sha "$GIT_SHA" \
+            --git-sha "${{ github.sha }}" \
             --topdir "$PWD/build/rpmbuild"
 
       - name: Verify RPM install and binaries
         run: |
           set -euo pipefail
-          RPMS=$(find build/rpmbuild/RPMS -name *.rpm | sort)
+          mapfile -t RPMS < <(find build/rpmbuild/RPMS -name '*.rpm' | sort)
           echo "Built RPMs:"
-          printf  %sn $RPMS
-          rpm -ivh --nodeps $RPMS
+          printf '  %s\n' "${RPMS[@]}"
+          rpm -ivh --nodeps "${RPMS[@]}"
           bash packaging/rpm/verify-rpm.sh
 
       - name: Upload RPM artifacts

@@ -6,8 +6,8 @@
  * accepted Updates. Explicit distance 255 always withdraws immediately. */
 #define EGP_OMISSION_LIMIT 3
 static inline int egp_age_update(const struct egp_route *old, size_t old_count,
-	const uint8_t *misses, const struct egp_message *m,
-	struct egp_route *next, uint8_t *next_misses)
+                                 const uint8_t *misses, const struct egp_message *m,
+                                 struct egp_route *next, uint8_t *next_misses)
 {
 	size_t i, j, count = 0;
 	if (old_count > EGP_MAX_ROUTES || m->count > EGP_MAX_ROUTES)

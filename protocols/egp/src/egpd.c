@@ -1,25 +1,25 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /* Experimental RFC 904 stub gateway. zebra owns RIB and kernel routes. */
-#include <zebra.h>
-#include "lib/version.h"
+#include "egp_age.h"
+#include "egp_packet.h"
+#include "egp_reach.h"
+#include "egp_state.h"
+#include "egp_update.h"
 #include "lib/command.h"
 #include "lib/frrevent.h"
 #include "lib/libfrr.h"
 #include "lib/log.h"
+#include "lib/network.h"
 #include "lib/privs.h"
 #include "lib/sigevent.h"
-#include "lib/zclient.h"
+#include "lib/version.h"
 #include "lib/vrf.h"
-#include "lib/network.h"
-#include "egp_packet.h"
-#include "egp_reach.h"
-#include "egp_state.h"
-#include "egp_age.h"
-#include "egp_update.h"
+#include "lib/zclient.h"
 #include <time.h>
+#include <zebra.h>
 
 #define MAX_PEERS 16
-static const char *const states[] = { "Idle", "Acquisition", "Down", "Up", "Cease" };
+static const char *const states[] = {"Idle", "Acquisition", "Down", "Up", "Cease"};
 struct neighbor {
 	bool used, active, hello_pending, poll_pending, deleting;
 	int fd;
@@ -43,17 +43,17 @@ static struct event *ticker;
 static struct zclient *zc;
 static bool shutting_down;
 static FRR_NORETURN void finish(void);
-static zebra_capabilities_t caps[] = { ZCAP_NET_RAW };
+static zebra_capabilities_t caps[] = {ZCAP_NET_RAW};
 static struct zebra_privs_t privileges = {
 #if defined(FRR_USER) && defined(FRR_GROUP)
-	.user = FRR_USER,
-	.group = FRR_GROUP,
+    .user = FRR_USER,
+    .group = FRR_GROUP,
 #endif
 #ifdef VTY_GROUP
-	.vty_group = VTY_GROUP,
+    .vty_group = VTY_GROUP,
 #endif
-	.caps_p = caps,
-	.cap_num_p = array_size(caps),
+    .caps_p = caps,
+    .cap_num_p = array_size(caps),
 };
 static time_t now(void)
 {
@@ -64,7 +64,7 @@ static time_t now(void)
 /* A single deterministic candidate per prefix avoids cross-peer deletes. */
 static void route_send(const struct egp_route *r, bool add)
 {
-	struct zapi_route api = { 0 };
+	struct zapi_route api = {0};
 	api.vrf_id = VRF_DEFAULT;
 	api.type = ZEBRA_ROUTE_EGP;
 	api.safi = SAFI_UNICAST;
@@ -115,8 +115,8 @@ static void replace_routes(struct neighbor *n, const struct egp_route *routes, s
 }
 static void reset(struct neighbor *n)
 {
-	n->reach = (struct egp_reach){ 0 };
-	n->updates = (struct egp_update_window){ 0 };
+	n->reach = (struct egp_reach){0};
+	n->updates = (struct egp_update_window){0};
 	n->hello_pending = false;
 	n->poll_pending = false;
 	n->hello = hello_interval;
@@ -126,11 +126,11 @@ static void reset(struct neighbor *n)
 	replace_routes(n, NULL, 0);
 }
 static bool transmit(struct neighbor *n, uint8_t type, uint8_t code, uint16_t seq,
-		     bool unsolicited)
+                     bool unsolicited)
 {
 	uint8_t buf[EGP_MAX_PKT];
-	struct egp_message m = { 0 };
-	struct sockaddr_in dst = { .sin_family = AF_INET, .sin_addr = n->peer };
+	struct egp_message m = {0};
+	struct sockaddr_in dst = {.sin_family = AF_INET, .sin_addr = n->peer};
 	int len;
 	m.type = type;
 	m.code = code;
@@ -313,7 +313,7 @@ static void receive(struct event *event)
 	unsolicited = (m.status & 0x80) != 0;
 	if (n->state != UP || m.type != EGP_UPDATE ||
 	    !egp_update_matches(&n->updates, unsolicited, m.seq, n->seq,
-			       n->poll_pending, n->poll_seq))
+	                        n->poll_pending, n->poll_seq))
 		return;
 	/* Stub-only: accept sender gateway, reject third-party transit claims.
 	 * RFC 888 section 5: distance 255 withdraws that net, not the Update. */
@@ -354,7 +354,7 @@ static void tick(struct event *event)
 		if (n->state == ACQUISITION || n->state == CEASE) {
 			if (t >= n->next_hello) {
 				send_msg(n, EGP_ACQUIRE, n->state == CEASE ? 3 : 0,
-					 n->state == CEASE ? n->stop_seq : n->request_seq);
+				         n->state == CEASE ? n->stop_seq : n->request_seq);
 				n->next_hello = t + EGP_P3;
 			}
 			continue;
@@ -435,10 +435,10 @@ DEFUN(egp_timers, egp_timers_cmd, "egp timers (1-65535) (1-65535)", "EGP\nTimers
 	return CMD_SUCCESS;
 }
 DEFUN(egp_peer, egp_peer_cmd, "egp neighbor A.B.C.D local-address A.B.C.D remote-as (1-65535)",
-	"EGP\nNeighbor\nPeer IPv4\nLocal source\nLocal IPv4\nRemote AS\nAS number\n")
+      "EGP\nNeighbor\nPeer IPv4\nLocal source\nLocal IPv4\nRemote AS\nAS number\n")
 {
 	struct in_addr peer, local;
-	struct sockaddr_in bindaddr = { .sin_family = AF_INET };
+	struct sockaddr_in bindaddr = {.sin_family = AF_INET};
 	struct neighbor *n = NULL;
 	unsigned as = strtoul(argv[6]->arg, NULL, 10);
 	int k, fd = -1;
@@ -449,7 +449,7 @@ DEFUN(egp_peer, egp_peer_cmd, "egp neighbor A.B.C.D local-address A.B.C.D remote
 	if (!local_as || as == local_as || !k || memcmp(&peer, &local, k) ||
 	    peer.s_addr == local.s_addr) {
 		vty_out(vty,
-			"Set local-as first; distinct ASes and peers on the same classful network required\n");
+		        "Set local-as first; distinct ASes and peers on the same classful network required\n");
 		return CMD_WARNING_CONFIG_FAILED;
 	}
 	for (i = 0; i < MAX_PEERS; i++) {
@@ -460,7 +460,8 @@ DEFUN(egp_peer, egp_peer_cmd, "egp neighbor A.B.C.D local-address A.B.C.D remote
 	}
 	if (!n)
 		return CMD_WARNING_CONFIG_FAILED;
-	frr_with_privs (&privileges) {
+	frr_with_privs(&privileges)
+	{
 		fd = socket(AF_INET, SOCK_RAW, 8);
 	}
 	if (fd < 0) {
@@ -485,7 +486,7 @@ DEFUN(egp_peer, egp_peer_cmd, "egp neighbor A.B.C.D local-address A.B.C.D remote
 	return CMD_SUCCESS;
 }
 DEFUN(clear_egp_peer, clear_egp_peer_cmd, "clear ip egp neighbor A.B.C.D",
-	CLEAR_STR IP_STR "EGP\nRestart neighbor acquisition\nPeer IPv4\n")
+      CLEAR_STR IP_STR "EGP\nRestart neighbor acquisition\nPeer IPv4\n")
 {
 	struct in_addr peer;
 	size_t i;
@@ -524,14 +525,14 @@ DEFUN(egp_network_cmd_fn, egp_network_cmd, "[no] egp network A.B.C.D", NO_STR "E
 			break;
 	if (no && i < network_count) {
 		memmove(&networks[i], &networks[i + 1],
-			(network_count - i - 1) * sizeof(*networks));
+		        (network_count - i - 1) * sizeof(*networks));
 		network_count--;
 		changed = true;
 	}
 	if (!no && i == network_count) {
 		if (network_count == EGP_MAX_ROUTES)
 			return CMD_WARNING_CONFIG_FAILED;
-		networks[network_count++] = (struct egp_route){ .net = net, .distance = 1 };
+		networks[network_count++] = (struct egp_route){.net = net, .distance = 1};
 		changed = true;
 	}
 	if (changed)
@@ -544,13 +545,13 @@ DEFUN(show_egp, show_egp_cmd, "show ip egp neighbors", SHOW_STR IP_STR "EGP\nNei
 {
 	size_t i;
 	vty_out(vty,
-		"EGP local AS %u, zebra %s\nPeer             AS     State        Mode     Routes\n",
-		local_as, zc->sock >= 0 ? "connected" : "disconnected");
+	        "EGP local AS %u, zebra %s\nPeer             AS     State        Mode     Routes\n",
+	        local_as, zc->sock >= 0 ? "connected" : "disconnected");
 	for (i = 0; i < MAX_PEERS; i++)
 		if (peers[i].used)
 			vty_out(vty, "%pI4 %u %s %s %zu\n", &peers[i].peer, peers[i].as,
-				states[peers[i].state], peers[i].active ? "active" : "passive",
-				peers[i].count);
+			        states[peers[i].state], peers[i].active ? "active" : "passive",
+			        peers[i].count);
 	return CMD_SUCCESS;
 }
 static int config_write(struct vty *vty)
@@ -572,16 +573,16 @@ static int config_write(struct vty *vty)
 	for (i = 0; i < MAX_PEERS; i++)
 		if (peers[i].used && !peers[i].deleting) {
 			vty_out(vty, "egp neighbor %pI4 local-address %pI4 remote-as %u\n",
-				&peers[i].peer, &peers[i].local, peers[i].as);
+			        &peers[i].peer, &peers[i].local, peers[i].as);
 			wrote = 1;
 		}
 	return wrote;
 }
-static struct cmd_node egp_node = { .name = "egp",
-				    .node = EGP_NODE,
-				    .parent_node = CONFIG_NODE,
-				    .prompt = "",
-				    .config_write = config_write };
+static struct cmd_node egp_node = {.name = "egp",
+                                   .node = EGP_NODE,
+                                   .parent_node = CONFIG_NODE,
+                                   .prompt = "",
+                                   .config_write = config_write};
 static FRR_NORETURN void finish(void)
 {
 	size_t i;
@@ -612,12 +613,12 @@ static void rotate(void)
 	zlog_rotate();
 }
 static struct frr_signal_t signals[] = {
-	{ .signal = SIGINT, .handler = terminate },
-	{ .signal = SIGTERM, .handler = terminate },
-	{ .signal = SIGUSR1, .handler = rotate },
+    {.signal = SIGINT, .handler = terminate},
+    {.signal = SIGTERM, .handler = terminate},
+    {.signal = SIGUSR1, .handler = rotate},
 };
 FRR_DAEMON_INFO(egpd, EGP, .vty_port = 0, .proghelp = "Experimental EGP stub gateway",
-		.signals = signals, .n_signals = array_size(signals), .privs = &privileges);
+                .signals = signals, .n_signals = array_size(signals), .privs = &privileges);
 int main(int argc, char **argv)
 {
 	int opt;

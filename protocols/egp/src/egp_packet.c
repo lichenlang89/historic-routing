@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /* RFC 904 Appendix A. Byte access also works on unaligned datagrams. */
 #include "egp_packet.h"
-#include <string.h>
 #include <arpa/inet.h>
+#include <string.h>
 
 static uint16_t get16(const uint8_t *p)
 {
@@ -18,7 +18,8 @@ int egp_classlen(struct in_addr a)
 	unsigned n = ntohl(a.s_addr) >> 24;
 	if (n == 0 || n == 127 || n >= 224)
 		return 0;
-	return n < 128 ? 1 : n < 192 ? 2 : 3;
+	return n < 128 ? 1 : n < 192 ? 2
+	                             : 3;
 }
 int egp_network(struct in_addr a)
 {
@@ -96,7 +97,7 @@ int egp_decode(const uint8_t *b, size_t len, struct egp_message *m)
 			distance = b[pos++];
 			nr = b[pos++];
 			for (r = 0; r < nr; r++) {
-				struct in_addr net = { 0 };
+				struct in_addr net = {0};
 				int k;
 				if (pos == len || m->count == EGP_MAX_ROUTES)
 					return -1;
@@ -106,7 +107,7 @@ int egp_decode(const uint8_t *b, size_t len, struct egp_message *m)
 					return -1;
 				memcpy(&net, b + pos, k);
 				pos += k;
-				m->routes[m->count++] = (struct egp_route){ net, gw, distance };
+				m->routes[m->count++] = (struct egp_route){net, gw, distance};
 			}
 		}
 	}
@@ -115,7 +116,7 @@ int egp_decode(const uint8_t *b, size_t len, struct egp_message *m)
 int egp_encode(uint8_t *b, size_t cap, const struct egp_message *m, struct in_addr local)
 {
 	size_t len = 10, i, j, groups;
-	uint8_t distances[256] = { 0 };
+	uint8_t distances[256] = {0};
 	int n = 0;
 	if (cap < EGP_MAX_PKT || m->count > EGP_MAX_ROUTES)
 		return -1;
