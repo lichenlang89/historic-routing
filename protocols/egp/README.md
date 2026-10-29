@@ -65,10 +65,14 @@ no egp neighbor 198.18.123.2
 ```
 
 Default timers are 30/120 seconds. The 2/6 setting is for quick lab feedback.
+Hello and Poll minima are independent; Poll may be shorter than Hello.
+After acquisition, abort holds cover at least four negotiated Hello intervals;
+the default 120-second acquisition and 3600-second established holds are floors.
 Both capability modes are supported; with two instances of this daemon the
 lower AS becomes active. Expect roughly three Hello intervals to establish
-reachability, plus a Poll interval for routes. Network withdrawal takes effect
-on the next Poll. Dead neighbors and stale Updates cause route withdrawal.
+reachability, plus a Poll interval for routes. Explicit distance 255 withdraws
+immediately; an omitted network is removed after three accepted Updates.
+Dead neighbors and stale Updates also cause route withdrawal.
 Reconnect to zebra replays the current learned routes.
 
 ## Ready-to-play Podman lab
@@ -99,10 +103,16 @@ against these disposable containers. The lab remains running after tests.
 * Explicit `egp network` announcements are operator assertions. They are not
   automatically derived from connected routes, and stay advertised if the
   local interface disappears. No redistribution, route maps or authentication.
-* Accepts only the configured peer's own gateway in Updates. Third-party/core
-  transit and unsolicited Updates are not imported. Metrics are not used to
+* Accepts only the configured peer's own gateway in Updates. A third-party
+  next hop rejects the entire Update, including the peer's own routes. This
+  also limits a stub receiving a core's normal multi-gateway Update; indirect
+  neighbors (RFC 888 sections 5/8) are not supported. Solicited and unsolicited
+  Updates are imported subject to sequence and receive-budget checks.
+  Metrics are not used to
   compare different autonomous systems; first configured live peer wins.
-* Sends a best-effort Cease on deletion/shutdown, without a Cease retry state.
+* Deletion/shutdown uses Cease with 30-second retries and a 120-second abort.
+  Duplicate Poll replies share one extra-Update allowance with triggered
+  Updates; once spent, further duplicate Polls are ignored until a new Poll.
   Error packets are validated but advisory errors are not generated.
 * No interoperability certification with historical EGP implementations,
   packaging validation or complete upstream FRR regression suite yet.

@@ -62,7 +62,7 @@ int egp_decode(const uint8_t *b, size_t len, struct egp_message *m)
 				return -1;
 			m->hello = get16(b + 10);
 			m->poll = get16(b + 12);
-			return m->hello && m->poll >= m->hello ? 0 : -1;
+			return m->hello && m->poll ? 0 : -1;
 		}
 		return len == 10 ? 0 : -1;
 	}

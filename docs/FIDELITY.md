@@ -26,15 +26,16 @@ EGP 在 IETF 的状态是 **Historic**；这里的实现是实验性的 **stub g
 - 每条 `struct egp_route` 只带**有类网络号**（A/B/C 首字节判定），不支持 CIDR、超网、默认路由。
 - `distance == 255` 视为"不可达"，用于表达撤路。
 - Update 编码按实际 distance 分组（RFC 904 附录 A.4）；本机配置的 network 使用
-  distance 1。接收端按 RFC 888 第 5 节过滤 distance 255 的网络，再整体替换该邻居的
-  路由集合，因此一份报文可以同时撤销不可达网络并学习其它可达网络；0–254 均视为可达。
+  distance 1。接收端按 RFC 888 第 5 节合并新通告并保留尚未达到遗漏次数的旧网络；
+  一份报文可以同时撤销 distance 255 的网络并学习其它可达网络；0–254 均视为可达。
 - 按 RFC 888 §5，连续遗漏需要多次确认；本实现选择三次有效 Update（RFC 未指定次数）。
   第一次、第二次遗漏保留路由，第三次移除；网络重新出现会清零其遗漏次数。
   空 Update 同样计入遗漏，显式 255 不等待老化。重复网络或超过 255 条保留容量的
   更新被原子拒绝，不改变现有路由和遗漏次数。
 - 单包上限 `EGP_MAX_PKT = 1500`，单包路由上限 `EGP_MAX_ROUTES = 255`。
-- 只处理 `gateway == 邻居地址` 的路由，第三方网关（core gateway 的转发路由）一律丢弃：
-  这正是 "stub gateway" 与 "core gateway" 的分界。
+- 只接受 `gateway == 邻居地址` 的路由；任一第三方下一跳会导致整份 Update 被拒绝，
+  包括其中由对端自身宣告的路由。RFC 888 第 5/8 节中的 stub 也需要接收 core 的
+  多网关通告以学习间接邻居；这是本实现的互通限制，不是 stub/core 的定义分界。
 
 ## 2. 邻居状态机
 
@@ -53,8 +54,10 @@ CLI 里可见的五个状态（`show ip egp neighbors`）：
 - Refuse 将 Acquisition 变为 Idle，停止获取；用 `clear ip egp neighbor <ip>` 显式重新 Start。
 - 删除邻居时先撤路，保留 socket 等待 Cease-ack；每 P3=30s 重发相同序列号 Cease，
   P5=120s 无确认则释放资源。收到 Cease 总是回 Cease-ack 并进入 Idle，Idle 也能确认重复 Cease。
-- Acquisition 同样用 P3=30s 重发 Request、P5=120s 终止；Down/Up 的 abort timer
-  在有效可达性指示时延至 P4=3600s。P3/P4/P5 采用 RFC 904 的建议默认值。
+- Acquisition 同样用 P3=30s 重发 Request、P5=120s 终止。完成获取进入 Down 后，
+  初始 abort hold 为 `MAX(P5, 4*T1)`，给慢 Hello 留出完整可达性窗口；Down/Up
+  收到有效可达性指示时延至 `MAX(P4, 4*T1)`，其中 P4=3600s。
+  Cease 仍使用 P5；默认定时器下的 hold 不变。
 - SIGTERM 继续事件循环完成停止握手，第二次信号强制退出；外部服务管理器的退出期限仍适用。
 - 对端 AS 与本端一致时不建立邻居；这是本实现的配置限制，RFC 904 也讨论同 AS 邻居。
 
@@ -73,7 +76,8 @@ CLI 里可见的五个状态（`show ip egp neighbors`）：
 - 进入 Up 或本地 network 改变时标记更新；在发送预算允许时发送带 128 位的 Update。
   相同内容已由普通 Poll 响应发送后，不额外补发主动更新。
 - 发送端记录最后一个有效命令的序列号 R，主动更新使用 R；两个不同 Poll 之间
-  最多发送一次，重复相同序列号 Poll 不补发预算。
+  最多发送一次额外 Update。重复相同序列号 Poll 的第二次回复也消费此预算，
+  与主动 Update 共用；预算已用时忽略后续重复 Poll，新 Poll 才重置预算。
 - 接收端检查当前发送序列号 S、共享网络、报文格式、网关与容量；每个发出的 Poll
   区间最多接收一次主动更新。主动更新不消费仍未收到的普通 Poll 响应。
 - Hello 复用当前 S，发送新 Poll 时递增 S（包括 16 位回绕），与 RFC 建议一致。
@@ -84,8 +88,10 @@ CLI 里可见的五个状态（`show ip egp neighbors`）：
 | 参数 | 默认 | 实验值 | 行为 |
 | --- | --- | --- | --- |
 | Hello（`egp timers <hello> <poll>` 的第一个） | 30s | 2s | active 方周期发 Reachability 探询 |
-| Poll | 120s | 6s | active 方周期发 Poll 拉取完整 Update |
+| Poll | 120s | 6s | 双方在 Up 时周期发 Poll 拉取完整 Update |
 | 邻居协商 | — | — | 收到对方 timers 时取 `MAX(本端, 对端)` |
+
+Hello/Poll 最小间隔独立验证、协商，不要求 Poll 大于等于 Hello。
 
 ## 4. 已支持 / 简化 / 未实现
 
@@ -135,6 +141,10 @@ CLI 里可见的五个状态（`show ip egp neighbors`）：
 finally 恢复原 daemon 并确认双向路由恢复。显式撤路断言在两个 Poll 周期内完成，
 小于三个 Poll 周期的旧路由过期时间，避免把超时撤路当成显式撤路成功。
 `test-protocol` 另逐包检查首次/二次遗漏保留、重新出现复位、第三次遗漏撤路。
+同时检查重复 Poll 回复与主动 Update 两种次序共享额度，以及 Hello=3/Poll=1 的获取。
+单元测试覆盖慢 Hello 的 abort hold 下界和最大 16 位 Hello 值。
+`./lab.sh test-timers` 另外实跑两端 `3/1` 和 `90/120`，检查超过旧 120 秒期限仍保持
+获取状态、最终双端 Up 与路由交换，以及原定时器恢复；该项约需 5 分钟。
 使用快速实验 timers（默认 `2 6`），结束后执行 `./lab.sh down`。
 
 含第三方网关的 Update 仍整包拒绝，

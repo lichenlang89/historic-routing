@@ -280,9 +280,17 @@ def unsolicited_updates():
             print('PASS new Poll renews unsolicited receive budget', flush=True)
 
             shared = bytes(int(x) for x in lab.IP1.split('.'))[:3] + b'\0'
-            def poll_command(seq):
+            def poll_command(seq, reply=True):
                 p.command(send=[2, 0, 1, seq, (b'\0\0'+shared).hex()])
-                p.wait(lambda e: e.get('recv', [])[:3] == [1, 0, 1] and e['recv'][3] == seq)
+                match = lambda e: e.get('recv', [])[:2] == [1, 0] and e['recv'][3] == seq
+                if reply:
+                    p.wait(lambda e: match(e) and e['recv'][2] == 1)
+                    return
+                try:
+                    p.wait(match, timeout=2)
+                except TimeoutError:
+                    return
+                raise AssertionError('duplicate Poll exceeded the extra Update budget')
             def changed(net):
                 lab.vty(lab.R1, 'egpd', 'configure terminal', 'egp network '+net)
             def no_unsolicited(seq):
@@ -293,18 +301,22 @@ def unsolicited_updates():
                     return
                 raise AssertionError('extra unsolicited Update exceeded transmit budget')
             poll_command(1000)
-            changed(extras[0])
-            p.wait(lambda e: e.get('recv', []) == [1, 0, 129, 1000])
-            print('PASS network change emits unsolicited Update using last command sequence', flush=True)
-            changed(extras[1])
-            no_unsolicited(1000)
             poll_command(1000)
-            changed(extras[2])
+            poll_command(1000, reply=False)
+            changed(extras[0])
             no_unsolicited(1000)
-            print('PASS transmit budget survives duplicate Poll', flush=True)
+            print('PASS duplicate Poll reply consumes the unsolicited transmit budget', flush=True)
             poll_command(1001)
-            changed(extras[3])
+            changed(extras[1])
             p.wait(lambda e: e.get('recv', []) == [1, 0, 129, 1001])
+            print('PASS network change emits unsolicited Update using last command sequence', flush=True)
+            poll_command(1001, reply=False)
+            changed(extras[2])
+            no_unsolicited(1001)
+            print('PASS unsolicited Update blocks extra duplicate Poll replies', flush=True)
+            poll_command(1002)
+            changed(extras[3])
+            p.wait(lambda e: e.get('recv', []) == [1, 0, 129, 1002])
             print('PASS new Poll renews unsolicited transmit budget', flush=True)
     finally:
         for net in extras:
@@ -314,6 +326,21 @@ def unsolicited_updates():
         lab.wait('unsolicited recovery', lambda: lab.both_up() and lab.both_routes(), timeout=70)
 
 
+def timer_negotiation():
+    try:
+        with Peer(lab.R2, lab.IP2, lab.IP1, lab.AS2) as p:
+            p.command(plan={'hello': True, 'updates': True})
+            p.saved.clear()
+            p.command(send=[3, 0, 2, 2000, '00030001'])
+            p.wait(lambda e: e.get('recv', [])[:2] == [3, 1] and e['recv'][3] == 2000)
+            p.wait(lambda e: e.get('recv', [])[:2] == [2, 0], timeout=15)
+            assert 'Up' in lab.neighbors(lab.R1)
+            print('PASS independent Hello=3/Poll=1 minima establish reachability', flush=True)
+    finally:
+        lab.vty(lab.R1, 'egpd', 'clear ip egp neighbor '+lab.IP2)
+        lab.wait('timer negotiation recovery', lambda: lab.both_up() and lab.both_routes(), timeout=70)
+
+
 def main():
     if os.environ.get('LAB_TIMERS') != '1 1':
         raise SystemExit('test-protocol requires LAB_TIMERS="1 1" in lab.env')
@@ -321,6 +348,7 @@ def main():
     control_states()
     omission_aging()
     unsolicited_updates()
+    timer_negotiation()
     print('PASS protocol regressions and original daemon recovery', flush=True)
 
 

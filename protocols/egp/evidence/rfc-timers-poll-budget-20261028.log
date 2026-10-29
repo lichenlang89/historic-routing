@@ -1,0 +1,82 @@
+EGP RFC regression validation, 2026-10-28
+Base: 3aa3d7a38f09550226760cbbf55adcc187385125
+Linux aarch64; isolated Podman lab; no historical implementation interoperability certification.
+ASan/UBSan unit tests: PASS
+Full verify --build-only: 13 PASS, 1 KNOWN-FAIL, 0 FAIL, 0 SKIP
+Full FRR make check: 14 failed / 514 passed / 5 skipped; disabled isisd/pimd executables.
+
+=== protocol ===
+PASS active stays Up using Update responses only
+PASS stale responses do not renew reachability
+PASS passive stays Up using Poll Up commands only
+PASS passive four-T1 expiry
+PASS Refuse stops acquisition
+PASS repeated Cease is acknowledged in Idle
+PASS wrong Cease-ack leaves teardown pending
+PASS Cease retransmits with the same sequence after P3
+PASS matching Cease-ack releases resources
+PASS first two omissions retain the route
+PASS reappearance resets omission history
+PASS third consecutive omission withdraws from RIB and kernel
+PASS explicit 255 still withdraws on the first Update
+PASS unsolicited wrong sequence rejected
+PASS second unsolicited Update in one Poll window rejected
+PASS unsolicited does not consume the solicited response
+PASS new Poll renews unsolicited receive budget
+PASS duplicate Poll reply consumes the unsolicited transmit budget
+PASS network change emits unsolicited Update using last command sequence
+PASS unsolicited Update blocks extra duplicate Poll replies
+PASS new Poll renews unsolicited transmit budget
+PASS independent Hello=3/Poll=1 minima establish reachability
+PASS protocol regressions and original daemon recovery
+
+=== updates ===
+PASS learn non-default distance 9
+PASS withdraw one net while learning another
+PASS all-unreachable Update removes last route
+PASS distance zero remains reachable
+PASS three empty Updates age out an omitted route
+PASS original daemons restored
+
+=== timers ===
+PASS CLI accepts independent Hello=3/Poll=1 intervals
+PASS slow peers remain acquired beyond the old 120-second abort
+PASS Hello=90/Poll=120 establishes both neighbors and routes
+PASS original timer configuration restored
+
+=== lab ===
+EGP 双路由器实验集成测试
+  参数: R1=hr-rfc-review-r1(198.18.126.1,AS65001)  R2=hr-rfc-review-r2(198.18.126.2,AS65002)  前缀=/build/prefix  UDP端口=9999
+  宣告: 10.0.0.0 @ 10.0.0.1/8 ; 172.16.0.0 @ 172.16.0.1/16
+
+PASS  01 两个 egpd 进程正常启动                            hr-rfc-review-r1: egpd=17 zebra=11; hr-rfc-review-r2: egpd=17 zebra=11
+PASS  02 双方邻居状态 Up                                 R1->198.18.126.2 Up(AS65002,active)  R2->198.18.126.1 Up(AS65001,passive)
+PASS  03 双向学习 EGP 路由                               hr-rfc-review-r1 学到 172.16.0.0/16（protocol=egp）；hr-rfc-review-r2 学到 10.0.0.0/8（protocol=egp）
+PASS  04 zebra 显示类型 G、管理距离 140                     JSON protocol=egp distance=140；文本 R1: G>* 172.16.0.0/16 [140/1]  R2: G>* 10.0.0.0/8 [140/1]
+PASS  05 内核路由表存在学习到的路由                             R1: 172.16.0.0/16 via 198.18.126.2 proto zebra；R2: 10.0.0.0/8 via 198.18.126.1 proto zebra
+PASS  06 两个 Stub 网络之间 UDP 双向通信                     10.0.0.1->172.16.0.1: OK ECHO:p1-to-p2 ; 172.16.0.1->10.0.0.1: OK ECHO:p2-to-p1
+PASS  07 取消 network 通告后对端撤路                        撤宣告后 3s：hr-rfc-review-r2 的 RIB 与内核均无 10.0.0.0/8
+PASS  08 重新宣告后路由恢复                                 重宣告后 1s：hr-rfc-review-r2 恢复 10.0.0.0/8 via 198.18.126.1
+PASS  09 egpd 异常退出后过期路由撤销                          SIGKILL egpd@hr-rfc-review-r2(pid=17) 后 4s：hr-rfc-review-r1 撤掉 172.16.0.0/16
+PASS  10 egpd 重启后邻居与路由重建                           重启 egpd@hr-rfc-review-r2 后 3s：邻居 Up、双向路由恢复
+PASS  11 zebra 重启后 egpd 重新下发路由                     重启 zebra@hr-rfc-review-r1 后 0s：172.16.0.0/16 重新出现在 zebra 与内核
+PASS  12 删除 EGP 邻居后路由撤销                            删邻居后 0s hr-rfc-review-r1 撤路、0s hr-rfc-review-r2 撤路；邻居已重新配置
+PASS  13 实验恢复（收尾校验）                                4s 内双方邻居 Up、双向路由齐备
+
+汇总: 13 通过 / 0 失败 / 共 13 项
+  [PASS] 01 两个 egpd 进程正常启动                              0.3s  hr-rfc-review-r1: egpd=17 zebra=11; hr-rfc-review-r2: egpd=17 zebra=11
+  [PASS] 02 双方邻居状态 Up                                   0.2s  R1->198.18.126.2 Up(AS65002,active)  R2->198.18.126.1 Up(AS65001,passive)
+  [PASS] 03 双向学习 EGP 路由                                 0.2s  hr-rfc-review-r1 学到 172.16.0.0/16（protocol=egp）；hr-rfc-review-r2 学到 10.0.0.0/8（protocol=egp）
+  [PASS] 04 zebra 显示类型 G、管理距离 140                       0.3s  JSON protocol=egp distance=140；文本 R1: G>* 172.16.0.0/16 [140/1]  R2: G>* 10.0.0.0/8 [140/1]
+  [PASS] 05 内核路由表存在学习到的路由                               0.2s  R1: 172.16.0.0/16 via 198.18.126.2 proto zebra；R2: 10.0.0.0/8 via 198.18.126.1 proto zebra
+  [PASS] 06 两个 Stub 网络之间 UDP 双向通信                       0.3s  10.0.0.1->172.16.0.1: OK ECHO:p1-to-p2 ; 172.16.0.1->10.0.0.1: OK ECHO:p2-to-p1
+  [PASS] 07 取消 network 通告后对端撤路                          2.7s  撤宣告后 3s：hr-rfc-review-r2 的 RIB 与内核均无 10.0.0.0/8
+  [PASS] 08 重新宣告后路由恢复                                   1.5s  重宣告后 1s：hr-rfc-review-r2 恢复 10.0.0.0/8 via 198.18.126.1
+  [PASS] 09 egpd 异常退出后过期路由撤销                            4.0s  SIGKILL egpd@hr-rfc-review-r2(pid=17) 后 4s：hr-rfc-review-r1 撤掉 172.16.0.0/16
+  [PASS] 10 egpd 重启后邻居与路由重建                             4.2s  重启 egpd@hr-rfc-review-r2 后 3s：邻居 Up、双向路由恢复
+  [PASS] 11 zebra 重启后 egpd 重新下发路由                       4.7s  重启 zebra@hr-rfc-review-r1 后 0s：172.16.0.0/16 重新出现在 zebra 与内核
+  [PASS] 12 删除 EGP 邻居后路由撤销                              0.4s  删邻居后 0s hr-rfc-review-r1 撤路、0s hr-rfc-review-r2 撤路；邻居已重新配置
+  [PASS] 13 实验恢复（收尾校验）                                  0.0s  4s 内双方邻居 Up、双向路由齐备
+
+
+Cleanup: both test containers and the test network removed.
