@@ -144,6 +144,7 @@ export LAB_PREFIX=/opt/historic-routing/27f287be9
 | [wireshark/](wireshark/) | EGP Lua 报文解析器、安装说明和离线回归 |
 | [架构说明](docs/ARCHITECTURE.md) | 协议如何接入 FRR |
 | [新增协议指南](docs/ADD_A_PROTOCOL.md) | 目录约定、资源登记和接入步骤 |
+| [AI 协作指南](AGENTS.md) | 编码助手的项目边界、验证流程和交付要求；Claude 入口见 [CLAUDE.md](CLAUDE.md) |
 | [开发历史](docs/HISTORY.md) | 仓库迁移过程及历史验证记录 |
 | [版本记录](CHANGELOG.md) | 各版本变更 |
 
