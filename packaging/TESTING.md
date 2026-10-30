@@ -69,3 +69,22 @@ scripts/package-deb.sh --work /path/to/build --keep
 `--keep` 保留 `src/historic-routing-*/debian/hr-build/{logs,fingerprint.txt}`。
 原实现即使 --keep 也传 `dpkg-buildpackage -tc`，导致 build 后清掉原始 make-check 日志；
 本轮修正并重新构建验证。构建失败、首次环境错误和后续重试日志应分开保存。
+
+## 验收驱动自身的故障回归
+
+```sh
+python3 -B packaging/test_driver_regressions.py
+```
+
+该回归在 Linux 临时目录使用真实 Node.run/cat/tee 读写文件，包管理和 systemd 则使用
+受控替身，不安装包、不操作实际服务。分别验证两个 main 的 LF/CRLF/无末尾换行配置
+在成功与失败恢复后字节一致；独立读盘检查，不能通过同一文本规范化路径自证。
+lifecycle 配置标记以 bytes 追加，不再 rstrip 原数据；恢复与 SHA256 使用实际原始字节。
+
+另外，在升级、回退、再次升级的每个事务分别注入 egpd 或 Zebra 的 active、
+activating/PID=0、inactive/PID 非零状态；任何一个都必须在主动 start 前失败。
+正常路径要求两个 unit 均 ActiveState=inactive、MainPID=0，并输出各自状态。
+这只证明检查时的状态，不把它扩大为对事务中所有短暂启动行为的审计。
+
+本回归已纳入 native CI 两个架构矩阵。它验证驱动对故障的识别，不能替代前述实际
+已安装软件包、systemctl reload、邻接和路由恢复实验。

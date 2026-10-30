@@ -63,3 +63,14 @@ DEB 在允许主机内的 Debian arm64 隔离环境构建和安装，按实际�
   完整 Debian 宿主及暂缓的 x86 架构不在已验收范围。互通/长期压力另开任务。
 
 互通/长期压力后续任务：[Issue #16](https://github.com/lichenlang89/historic-routing/issues/16)，尚未执行。
+
+## PR #17 审查修复（9d63c94 后续）
+
+两个 P2 已核对成立：文本模式备份会规范化 CRLF，两个驱动均无法保证原始配置字节；
+lifecycle 的事务后检查只查询 egpd，可能漏掉 Zebra 提前启动。
+
+范围仅限两个验收驱动及其回归：增加二进制配置读写与原始字节/SHA256 校验，
+逐个检查 egpd、Zebra 的 ActiveState/MainPID；不修改协议或安装包内容。
+先在旧 head 上运行合法 CRLF 恢复及自动启动故障注入负例，再验证修复后通过；
+使用现有包在原两台 aarch64 主机的独占资源内复测真实 reload/升级/回退，
+保留首次失败，恢复配置、原 FRR、宿主路由和测试资源，再推送并回复两条审查。

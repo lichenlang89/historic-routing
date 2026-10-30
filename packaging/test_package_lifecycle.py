@@ -15,6 +15,18 @@ import test_installed_reload as installed
 lab = installed.lab
 
 
+def assert_services_stopped(target, units):
+    """Reject either unit starting before the driver's explicit start."""
+    for unit in units:
+        result = target.run('systemctl', 'show', unit, '-p', 'ActiveState', '-p', 'MainPID')
+        properties = dict(line.split('=', 1) for line in result.stdout.splitlines() if '=' in line)
+        active, pid = properties.get('ActiveState'), properties.get('MainPID')
+        print('STOPPED_UNIT %s ActiveState=%s MainPID=%s' % (unit, active, pid), flush=True)
+        assert active == 'inactive' and pid == '0', (
+            'Expected %s stopped before explicit start; ActiveState=%s MainPID=%s'
+            % (unit, active, pid))
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--config', required=True)
@@ -48,7 +60,7 @@ def main():
 
     def stop():
         target.run('systemctl', 'stop', *units)
-        assert target.pid() == '0'
+        assert_services_stopped(target, units)
         # Native peers share the installed prefix with the target. Stop the
         # matching peer processes before replacing any files, then relaunch
         # both daemons from the newly installed pair. Container roots differ.
@@ -93,20 +105,24 @@ def main():
                        'Dpkg::Options::=--force-confold', 'install'] + packages
         result = target.run(*command)
         print(result.stdout, flush=True)
-        assert target.pid() == '0', 'Package scripts unexpectedly started egpd'
+        assert_services_stopped(target, units)
 
     paths = [prefix + '/etc/frr/' + name for name in ('frr.conf', 'egpd.conf', 'vtysh.conf', 'daemons')]
-    original = {path: target.run('cat', path).stdout for path in paths
+    original = {path: target.read_bytes(path) for path in paths
                 if target.run('test', '-f', path, check=False).returncode == 0}
-    marker = '! installed package upgrade/rollback preservation marker\n'
-    expected = {path: text.rstrip() + '\n' + marker for path, text in original.items()}
+    marker = b'! installed package upgrade/rollback preservation marker'
+    expected = {}
+    for path, data in original.items():
+        newline = b'\r\n' if b'\r\n' in data else b'\n'
+        separator = b'' if not data or data.endswith(b'\n') else newline
+        expected[path] = data + separator + marker + newline
     lab.wait('lifecycle baseline', healthy, timeout=60)
     old_version = versions()
     print('OLD_PAIRED_VERSION=' + old_version, flush=True)
     failure = None
     try:
         for path, text in expected.items():
-            target.run('tee', path, input=text)
+            target.write_bytes(path, text)
         target.run('systemctl', 'reload', target.unit)
         lab.wait('operator configuration valid before upgrade', healthy, timeout=30)
         stop()
@@ -124,7 +140,7 @@ def main():
         new_version = versions()
         assert new_version != old_version
         for path, text in expected.items():
-            assert target.run('cat', path).stdout == text, path
+            assert target.read_bytes(path) == text, path
         start()
         print('PASS paired upgrade: configuration retained, no automatic start, RIB/kernel recovered; ' + new_version, flush=True)
 
@@ -132,7 +148,7 @@ def main():
         apply(args.old, downgrade=True)
         assert versions() == old_version
         for path, text in expected.items():
-            assert target.run('cat', path).stdout == text, path
+            assert target.read_bytes(path) == text, path
         start()
         print('PASS paired rollback: configuration retained, RIB/kernel recovered; ' + old_version, flush=True)
 
@@ -140,7 +156,7 @@ def main():
         apply(args.new)
         assert versions() == new_version
         for path, text in expected.items():
-            assert target.run('cat', path).stdout == text, path
+            assert target.read_bytes(path) == text, path
         start()
         target.run('systemctl', 'reload', target.unit)
         lab.wait('reload after final upgrade', healthy, timeout=30)
@@ -151,17 +167,17 @@ def main():
     finally:
         try:
             for path, text in original.items():
-                target.run('tee', path, input=text)
+                target.write_bytes(path, text)
             if target.pid() == '0':
                 start()
             else:
                 target.run('systemctl', 'reload', target.unit)
             lab.wait('original operational configuration restored', healthy, timeout=60)
             for path, text in original.items():
-                actual = target.run('cat', path).stdout
+                actual = target.read_bytes(path)
                 assert actual == text
                 print('RESTORED_CONFIG %s sha256=%s' % (
-                    path, hashlib.sha256(actual.encode()).hexdigest()), flush=True)
+                    path, hashlib.sha256(actual).hexdigest()), flush=True)
             print('PASS original configuration restored after lifecycle tests', flush=True)
         except Exception as exc:
             print('FAIL lifecycle recovery: ' + str(exc), flush=True)

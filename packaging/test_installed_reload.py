@@ -8,6 +8,7 @@ their own systemd PID 1 and installed package files. No daemon is restarted to
 make a reload assertion pass. This driver does not provision or clean networks.
 """
 import argparse
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -26,17 +27,23 @@ class Node:
         self.unit = config.get('unit', 'historic-routing-egpd.service')
         self.socket = config.get('socket', '/run/historic-routing/frr')
 
-    def run(self, *args, input=None, check=True, network=False):
+    def run(self, *args, input=None, check=True, network=False, binary=False):
         command = list(args)
         if self.config.get('container'):
             command = ['podman', 'exec', '-i', self.config['container']] + command
         elif network or (args and args[0] == 'ip'):
             command = ['ip', 'netns', 'exec', self.config['netns']] + command
-        result = subprocess.run(command, input=input, text=True, stdout=subprocess.PIPE,
+        result = subprocess.run(command, input=input, text=not binary, stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT)
         if check and result.returncode:
             raise RuntimeError('%s rc=%s\n%s' % (command, result.returncode, result.stdout))
         return result
+
+    def read_bytes(self, path):
+        return self.run('cat', path, binary=True).stdout
+
+    def write_bytes(self, path, data):
+        self.run('tee', path, input=data, binary=True)
 
     def pid(self):
         return self.run('systemctl', 'show', self.unit, '-p', 'MainPID', '--value').stdout.strip()
@@ -58,7 +65,7 @@ def main():
     nodes = {name: Node(config[name], prefix) for name in ('target', 'peer')}
     target = nodes['target']
     conf = prefix + '/etc/frr/egpd.conf'
-    saved_file = target.run('cat', conf).stdout
+    saved_file = target.read_bytes(conf)
     lab.R1, lab.R2 = 'target', 'peer'
     lab.IP1, lab.IP2 = config['ip1'], config['ip2']
     lab.AS1, lab.AS2 = '65001', '65002'
@@ -119,12 +126,14 @@ def main():
     finally:
         try:
             cases.restore(base, failure)
-            target.run('tee', conf, input=saved_file)
+            target.write_bytes(conf, saved_file)
             rc, out = reload(lab.R1)
             assert rc == 0, out
             lab.wait('original installed configuration restored',
                      lambda: lab.both_up() and lab.both_routes(), timeout=60)
-            assert target.run('cat', conf).stdout == saved_file
+            actual = target.read_bytes(conf)
+            assert actual == saved_file
+            print('RESTORED_CONFIG sha256=' + hashlib.sha256(actual).hexdigest(), flush=True)
             assert target.pid() == pid
             print('PASS original file bytes, PID, neighbors and routes restored', flush=True)
         except Exception as exc:
