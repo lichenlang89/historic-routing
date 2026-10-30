@@ -555,6 +555,8 @@ S9.4（`doc/user/egp.rst` + man 页）**未执行**：现有构建镜像里没�
 - 同一实验里另跑 `test-updates`（6 条）与 `test-timers`（4 条）、`test`（13/13），
   整体 51 条 PASS、`LAB_RC=0`（日志 `docs/evidence/s9-full-suite-20261030.log`）。
 - `lab.sh reload`：三条断言全 PASS。
+- 评审修正后复测（`docs/evidence/s9-review-20261030.log`）：`test-protocol` 29 条、
+  `reload` 3 条、`test` 13 条全 PASS，`LAB_RC=0`；同版本 `verify.sh --build-only` 为 `EXIT=0`。
 
 ### 本轮实测暴露并修掉的两个问题
 
