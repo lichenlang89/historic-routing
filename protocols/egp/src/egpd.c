@@ -37,7 +37,7 @@ struct neighbor {
 	/* Observability only: never consulted by the protocol state machine. */
 	uint32_t hellos_tx, hellos_rx, polls_tx, polls_rx, updates_tx, updates_rx;
 	uint32_t errors_tx, errors_rx, refuses_tx;
-	time_t last_hello_rx, last_poll_rx;
+	time_t last_hello_rx;
 };
 static struct neighbor peers[MAX_PEERS];
 static struct egp_route networks[EGP_MAX_ROUTES];
@@ -124,6 +124,7 @@ static void reset(struct neighbor *n)
 	n->updates = (struct egp_update_window){0};
 	n->hello_pending = false;
 	n->poll_pending = false;
+	n->last_hello_rx = 0;
 	n->hello = hello_interval;
 	n->poll = poll_interval;
 	n->next_hello = 0;
@@ -394,8 +395,11 @@ static void receive(struct event *event)
 		if (!m.code) {
 			/* RFC 904 A.5 reason 4: two Hellos inside half the minimum
 			 * interval. Half instead of the full interval so that an
-			 * independent peer clock jitter cannot produce false Errors. */
-			if (n->last_hello_rx && t - n->last_hello_rx < (time_t)(n->hello / 2)) {
+			 * independent peer clock jitter cannot produce false Errors;
+			 * a one-second floor keeps sub-second bursts visible even
+			 * when the negotiated Hello is one second. */
+			time_t min_gap = (time_t)MAX(1U, (unsigned)n->hello / 2);
+			if (n->last_hello_rx && t - n->last_hello_rx < min_gap) {
 				send_error(n, EGP_ERR_RATE, egp, egplen, m.seq);
 				return;
 			}
@@ -417,11 +421,6 @@ static void receive(struct event *event)
 		return;
 	}
 	if (m.type == EGP_POLL) {
-		if (n->last_poll_rx && t - n->last_poll_rx < (time_t)(n->poll / 2)) {
-			send_error(n, EGP_ERR_RATE, egp, egplen, m.seq);
-			return;
-		}
-		n->last_poll_rx = t;
 		n->polls_rx++;
 		egp_update_command(&n->updates, m.seq, true);
 		if (!n->active && m.status == 1)

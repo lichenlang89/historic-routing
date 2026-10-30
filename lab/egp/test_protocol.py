@@ -351,7 +351,7 @@ def error_messages():
     other_hex = ''.join('%02x' % int(o) for o in other.split('.'))
     try:
         with Peer(lab.R2, lab.IP2, lab.IP1, lab.AS2) as p:
-            p.command(plan={'hello': False, 'updates': False})
+            p.command(plan={'hello': True, 'updates': False})
             # Nonsense Hello interval in a Request -> Refuse with status 6.
             p.command(send=[3, 0, 0, 900, 'ffff0001'])
             ev = p.wait(lambda e: e.get('recv', [])[:2] == [3, 2], timeout=5)['recv']
@@ -366,9 +366,9 @@ def error_messages():
             assert ev['body'][:4] == '0003', ev
             print('PASS Error(reason 3) for a Poll about an unknown net', flush=True)
 
-            # Two Polls inside the minimum interval -> reason 4.
-            p.command(send=[2, 0, 1, 902, '0000' + shared_hex])
-            p.command(send=[2, 0, 1, 903, '0000' + shared_hex])
+            # Two Hellos inside half the minimum interval -> reason 4.
+            p.command(send=[5, 0, 1, 902, ''])
+            p.command(send=[5, 0, 1, 903, ''])
             ev = p.wait(lambda e: e.get('recv', [])[:2] == [8, 0], timeout=5)
             assert ev['body'][:4] == '0004', ev
             assert len(ev['body']) == 28, 'Error body must be reason + 12 header octets'

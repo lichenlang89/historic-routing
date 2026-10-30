@@ -6,8 +6,9 @@
 #include <stdint.h>
 #define EGP_MAX_PKT 1500
 #define EGP_MAX_ROUTES 255
-/* RFC 904 A.1: Hello/Poll are 16-bit; treat anything above a day as nonsense. */
-#define EGP_MAX_INTERVAL 86400
+/* RFC 904 A.1: Hello/Poll are 16-bit seconds; an interval beyond an hour is
+ * not usable, so it is treated as nonsense when a Request proposes it. */
+#define EGP_MAX_INTERVAL 3600
 #define EGP_UPDATE 1
 #define EGP_POLL 2
 #define EGP_ACQUIRE 3
