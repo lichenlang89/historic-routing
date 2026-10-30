@@ -82,6 +82,9 @@ def stop():
 
 def start(profile=True):
     target.run('systemctl', 'start', *reversed(units))
+    # Type=simple returns after fork, before exec/domain transition completes.
+    # Require actual routing readiness before inspecting the daemon contexts.
+    healthy()
     assert target.run('getenforce').stdout.strip() == args.mode
     for unit in units:
         pid = target.run('systemctl', 'show', unit, '-p', 'MainPID', '--value').stdout.strip()
@@ -89,7 +92,6 @@ def start(profile=True):
         print('DOMAIN', unit, 'MainPID=' + pid, 'label=' + label, flush=True)
         if args.mode == 'Enforcing':
             assert (':frr_t:' in label) == profile, label
-    healthy()
 
 
 def stop_peer():

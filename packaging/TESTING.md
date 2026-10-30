@@ -94,3 +94,13 @@ SELinux 三包生命周期可加 `--selinux`，--old/--new 各提供三个匹配
 显式设置 selinux_mode 为 Enforcing 或 Disabled。逐次检查策略模块和两个 daemon 域；
 Disabled 仅验证离线策略 store，不宣称 MAC 生效。安装/卸载完整矩阵见
 packaging/selinux/test_installed_profile.py 的独占原生实验前置条件。
+
+共享运行目录的独立回归：
+
+```sh
+python3 -B packaging/test_shared_runtime.py --config /path/to/backend.json
+```
+
+它只停止/启动目标 egpd，要求 Zebra PID 和 zserv.api inode 保持，随后双向 RIB/内核
+路由恢复；不靠重启 Zebra 绕过 socket 丢失。适用于实际 RPM/DEB unit。
+目录只由 Zebra 的 RuntimeDirectory 管理，egpd 的 Wants/After 保留。
