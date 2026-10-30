@@ -22,7 +22,7 @@ SELinux 环境与 ExecStartPre 来自 RPM 自己的 vendor drop-in，没有手�
 [三包驱动](../../../packaging/test_package_lifecycle.py)增加 --selinux，显式区分 Enforcing 与
 Disabled，并逐次核对三包版本、策略模块及两个进程的实际域。
 完整原生矩阵：[test_installed_profile.py](../../../packaging/selinux/test_installed_profile.py)。
-执行驱动逐步完善于 e4509a9/ef91b43；包来源独立记录，不把测试脚本提交当作包源码提交。
+执行驱动逐步完善于 e4509a9/ef91b43；末次将 CLI 流程放到 main 守卫中，并新增导入不得执行子进程的回归，防止测试收集时触发包操作；包来源独立记录，不把测试脚本提交当作包源码提交。
 
 ## 包管理行为与证据
 

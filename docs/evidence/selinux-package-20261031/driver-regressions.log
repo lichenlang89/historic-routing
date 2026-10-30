@@ -1,8 +1,9 @@
 test_configuration_bytes_after_failure (__main__.DriverRegression.test_configuration_bytes_after_failure) ... ok
 test_configuration_bytes_on_success (__main__.DriverRegression.test_configuration_bytes_on_success) ... ok
 test_each_unit_is_rejected_after_each_transaction (__main__.DriverRegression.test_each_unit_is_rejected_after_each_transaction) ... ok
+test_profile_import_does_not_run_commands (__main__.DriverRegression.test_profile_import_does_not_run_commands) ... ok
 
 ----------------------------------------------------------------------
-Ran 3 tests in 0.162s
+Ran 4 tests in 0.158s
 
 OK

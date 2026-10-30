@@ -8,6 +8,7 @@ drivers that a healthy package cannot reliably expose.
 """
 import contextlib
 import io
+import importlib.util
 import json
 from pathlib import Path
 import subprocess
@@ -133,6 +134,16 @@ class DriverRegression(unittest.TestCase):
             for path, original in files.items():
                 self.assertEqual(path.read_bytes(), original, path.name)
             return error, state['transactions']
+
+    def test_profile_import_does_not_run_commands(self):
+        path = Path(__file__).resolve().parent / 'selinux/test_installed_profile.py'
+        spec = importlib.util.spec_from_file_location('profile_import_probe', path)
+        module = importlib.util.module_from_spec(spec)
+        with mock.patch.object(sys, 'argv', [str(path)]), mock.patch.object(
+                subprocess, 'run', side_effect=AssertionError('command executed during import')) as command:
+            spec.loader.exec_module(module)
+            command.assert_not_called()
+        self.assertTrue(callable(module.main))
 
     def test_configuration_bytes_on_success(self):
         for driver in (installed, lifecycle):
