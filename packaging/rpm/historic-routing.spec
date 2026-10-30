@@ -106,10 +106,11 @@ Requires(postun): systemd
 Requires(posttrans): policycoreutils libselinux-utils
 
 %description -n historic-routing-selinux
-Optional, experimental targeted SELinux profile for the packaged runtime and EGP.
+Experimental targeted SELinux profile for the packaged runtime and EGP.
 Uses the distribution frr_t domain and a minimal raw IP node_bind extension.
-Installs and removes only its priority-200 module, project labels and unit drop-ins.
-Requires stopped project services on first installation; never enables or starts them.
+Manages only its priority-200 module, project labels and unit drop-ins.
+Requires stopped project services on first installation.
+Never enables or starts the services.
 
 %prep
 # tarball 顶层目录是 historic-routing-<version>（不是 Name-version）
@@ -262,9 +263,11 @@ sed -e 's|@PREFIX@|%{hr_prefix}|g' -e 's|@RUNSTATEDIR@|%{hr_runstatedir}|g' \
 chmod 0755 %{buildroot}%{_libexecdir}/historic-routing/selinux-policy
 for unit in zebra egpd; do
     install -d %{buildroot}%{_unitdir}/historic-routing-$unit.service.d
-    sed -e 's|@RUNSTATEDIR@|%{hr_runstatedir}|g' packaging/selinux/20-selinux.conf.in > \
-        %{buildroot}%{_unitdir}/historic-routing-$unit.service.d/20-selinux.conf
 done
+sed -e 's|@RUNSTATEDIR@|%{hr_runstatedir}|g' packaging/selinux/20-selinux.conf.in > \
+    %{buildroot}%{_unitdir}/historic-routing-zebra.service.d/20-selinux.conf
+ln %{buildroot}%{_unitdir}/historic-routing-zebra.service.d/20-selinux.conf \
+   %{buildroot}%{_unitdir}/historic-routing-egpd.service.d/20-selinux.conf
 
 %post
 # 只刷新 unit 缓存：不 enable、不 start
@@ -279,6 +282,9 @@ fi
 %postun
 systemctl daemon-reload >/dev/null 2>&1 || :
 
+
+%post -n historic-routing-egp
+systemctl daemon-reload >/dev/null 2>&1 || :
 
 %preun -n historic-routing-egp
 if [ $1 -eq 0 ]; then
@@ -371,7 +377,7 @@ systemctl daemon-reload >/dev/null 2>&1 || :
 %dir %{_unitdir}/historic-routing-egpd.service.d
 %{_unitdir}/historic-routing-zebra.service.d/20-selinux.conf
 %{_unitdir}/historic-routing-egpd.service.d/20-selinux.conf
-%ghost %verify(not md5 size mode mtime) %{_sharedstatedir}/selinux/targeted/active/modules/200/historic_routing_egp
+%ghost %dir %attr(0700,root,root) %verify(not md5 size mode mtime) %{_sharedstatedir}/selinux/targeted/active/modules/200/historic_routing_egp
 
 %changelog
 * Sun Oct 25 2026 Chenlang Li <Cc1580155hsg@163.com> - %{hr_version}-%{hr_release}

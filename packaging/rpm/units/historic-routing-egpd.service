@@ -10,9 +10,7 @@ ConditionPathExists=@PREFIX@/sbin/egpd
 
 [Service]
 Type=simple
-# 与 zebra 同一套 socket 目录（@RUNSTATEDIR@/frr，由 systemd RuntimeDirectory 管理）
-RuntimeDirectory=historic-routing/frr
-RuntimeDirectoryMode=0755
+# Zebra owns the shared runtime directory; stopping egpd must keep zserv.api.
 ExecStart=@PREFIX@/sbin/egpd \
 	-f @PREFIX@/etc/frr/egpd.conf \
 	-i @RUNSTATEDIR@/frr/egpd.pid \

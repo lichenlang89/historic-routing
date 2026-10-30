@@ -165,3 +165,5 @@ fi
 echo
 log "RPM 目录: $TOPDIR/RPMS"
 ls -1 "$TOPDIR/RPMS"/*/*.rpm 2>/dev/null || true
+
+[ "$hrr_check" -eq 0 ] || die "rpmlint 检查失败（rc=$hrr_check）；见上面的逐条诊断"

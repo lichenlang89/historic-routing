@@ -33,3 +33,14 @@ Fedora 42 Disabled 验证本地同源匹配 RPM 与离线策略 store 生命周�
 - 本机原有 400/extra_varrun、200/frr 和 /home/pxe 本地规则已确认，不覆盖。
 - RHEL 旧本任务构建缓存约 929MB，root 剩约 2.1GB；归档日志/指纹后仅清理该旧 BUILD 缓存。
 - Fedora 原 FRR/策略存在，SELinux Disabled；正在预检本机构建依赖。
+
+## 首次实测与新增直接证据
+
+- 首次三包构建成功，但新增说明长行/ghost 权限/重复 drop-in 触发 rpmlint 3 errors/2 warnings；
+  逐条修复并让 package-rpm.sh 在 lint 失败时非零退出，首次日志保留。
+- 两台首轮脚本因 RPM 目录层级参数错误在读包前失败，修正后独占实验继续。
+- 策略首次活跃安装拒绝、实际 frr_t reload、目录根删除重建、在线 profile 重装、
+  profile 单独卸载/重装均通过；未触碰原系统 FRR。
+- EGP 单独卸载/重装后路由未恢复。独立复现：Zebra PID 保持 active，但停止 EGP 后
+  zserv.api 消失，EGP 重启报告 zebra disconnected。原因是两个 unit 同时声明共享
+  RuntimeDirectory；修正为仅 Zebra 管理（RPM/DEB 同步），不是延长超时或重启 Zebra 绕过。

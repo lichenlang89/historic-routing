@@ -88,3 +88,9 @@ activating/PID=0、inactive/PID 非零状态；任何一个都必须在主动 st
 
 本回归已纳入 native CI 两个架构矩阵。它验证驱动对故障的识别，不能替代前述实际
 已安装软件包、systemctl reload、邻接和路由恢复实验。
+
+
+SELinux 三包生命周期可加 `--selinux`，--old/--new 各提供三个匹配 RPM，backend
+显式设置 selinux_mode 为 Enforcing 或 Disabled。逐次检查策略模块和两个 daemon 域；
+Disabled 仅验证离线策略 store，不宣称 MAC 生效。安装/卸载完整矩阵见
+packaging/selinux/test_installed_profile.py 的独占原生实验前置条件。
