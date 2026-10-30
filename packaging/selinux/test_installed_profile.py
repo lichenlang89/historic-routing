@@ -168,7 +168,9 @@ if args.mode == 'Enforcing':
         assert target.run('systemctl', 'show', unit, '-p', 'MainPID', '--value').stdout.strip() == '0'
     print('PASS missing policy blocks both service starts', flush=True)
     target.run('systemctl', 'stop', *units)
-    target.run('systemctl', 'reset-failed', *units)
+    # stop may garbage-collect an inactive unit; reset-failed would then fail
+    # with 'not loaded'. Check the actual stopped state instead.
+    assert_services_stopped(target, units)
     call('dnf', '--disablerepo=*', '-y', 'reinstall', packages['selinux'])
     assert_services_stopped(target, units)
     start()
