@@ -36,6 +36,8 @@ struct neighbor {
 	uint8_t misses[EGP_MAX_ROUTES];
 	/* Observability only: never consulted by the protocol state machine. */
 	uint32_t hellos_tx, hellos_rx, polls_tx, polls_rx, updates_tx, updates_rx;
+	uint32_t errors_tx, errors_rx, refuses_tx;
+	time_t last_hello_rx, last_poll_rx;
 };
 static struct neighbor peers[MAX_PEERS];
 static struct egp_route networks[EGP_MAX_ROUTES];
@@ -128,38 +130,18 @@ static void reset(struct neighbor *n)
 	n->next_poll = 0;
 	replace_routes(n, NULL, 0);
 }
-static bool transmit(struct neighbor *n, uint8_t type, uint8_t code, uint16_t seq,
-                     bool unsolicited)
+static bool transmit_message(struct neighbor *n, struct egp_message *m)
 {
 	uint8_t buf[EGP_MAX_PKT];
-	struct egp_message m = {0};
 	struct sockaddr_in dst = {.sin_family = AF_INET, .sin_addr = n->peer};
-	int len;
-	m.type = type;
-	m.code = code;
-	m.as = local_as;
-	m.seq = seq;
-	m.status = n->state == UP ? 1 : 2;
-	if (unsolicited)
-		m.status |= 0x80;
-	if (type == EGP_ACQUIRE)
-		m.status = code <= 1 ? 0 : 5;
-	/* Acquisition advertises local minima, not the negotiated intervals. */
-	m.hello = hello_interval;
-	m.poll = poll_interval;
-	m.shared = n->shared;
-	if (type == EGP_UPDATE) {
-		m.count = network_count;
-		memcpy(m.routes, networks, network_count * sizeof(*networks));
-	}
-	len = egp_encode(buf, sizeof(buf), &m, n->local);
+	int len = egp_encode(buf, sizeof(buf), m, n->local);
 	if (len <= 0)
 		return false;
 	if (sendto(n->fd, buf, len, 0, (struct sockaddr *)&dst, sizeof(dst)) != len) {
 		zlog_warn("EGP send to %pI4: %s", &n->peer, safe_strerror(errno));
 		return false;
 	}
-	switch (type) {
+	switch (m->type) {
 	case EGP_UPDATE:
 		n->updates_tx++;
 		break;
@@ -169,10 +151,66 @@ static bool transmit(struct neighbor *n, uint8_t type, uint8_t code, uint16_t se
 	case EGP_REACH:
 		n->hellos_tx++;
 		break;
+	case EGP_ERROR:
+		n->errors_tx++;
+		break;
+	case EGP_ACQUIRE:
+		if (m->code == 2)
+			n->refuses_tx++;
+		break;
 	default:
 		break;
 	}
 	return true;
+}
+static bool transmit_status(struct neighbor *n, uint8_t type, uint8_t code, uint16_t seq,
+                            bool unsolicited, int status)
+{
+	struct egp_message m = {0};
+	m.type = type;
+	m.code = code;
+	m.as = local_as;
+	m.seq = seq;
+	m.status = n->state == UP ? EGP_STATUS_ACTIVE : EGP_STATUS_PASSIVE;
+	if (unsolicited)
+		m.status |= 0x80;
+	if (type == EGP_ACQUIRE)
+		m.status = code <= 1 ? 0 : EGP_STATUS_GOING_DOWN;
+	if (status >= 0)
+		m.status = (uint8_t)status;
+	/* Acquisition advertises local minima, not the negotiated intervals. */
+	m.hello = hello_interval;
+	m.poll = poll_interval;
+	m.shared = n->shared;
+	if (type == EGP_UPDATE) {
+		m.count = network_count;
+		memcpy(m.routes, networks, network_count * sizeof(*networks));
+	}
+	return transmit_message(n, &m);
+}
+static bool transmit(struct neighbor *n, uint8_t type, uint8_t code, uint16_t seq,
+                     bool unsolicited)
+{
+	return transmit_status(n, type, code, seq, unsolicited, -1);
+}
+/* RFC 904 A.1: a Refuse carries the cause in Status (3/4/6/7). */
+static bool send_refuse(struct neighbor *n, uint16_t seq, uint8_t status)
+{
+	return transmit_status(n, EGP_ACQUIRE, 2, seq, false, status);
+}
+/* RFC 904 A.5: an Error embeds the first 12 octets of the offending header. */
+static bool send_error(struct neighbor *n, uint16_t reason, const uint8_t *hdr,
+                       size_t hdr_len, uint16_t seq)
+{
+	struct egp_message m = {0};
+	m.type = EGP_ERROR;
+	m.status = n->state == UP ? EGP_STATUS_ACTIVE : EGP_STATUS_PASSIVE;
+	m.as = local_as;
+	m.seq = seq;
+	m.reason = reason;
+	if (hdr_len)
+		memcpy(m.err_header, hdr, MIN(hdr_len, sizeof(m.err_header)));
+	return transmit_message(n, &m);
 }
 static bool send_msg(struct neighbor *n, uint8_t type, uint8_t code, uint16_t seq)
 {
@@ -238,6 +276,32 @@ static void indication(struct neighbor *n, time_t t)
 	}
 	reachability(n, t);
 }
+static bool header_known(const uint8_t *b)
+{
+	switch (b[1]) {
+	case EGP_UPDATE:
+	case EGP_POLL:
+		return !b[2] && b[3] <= 2;
+	case EGP_ACQUIRE:
+		return b[2] <= 4 && b[3] <= 7;
+	case EGP_REACH:
+		return b[2] <= 1 && b[3] <= 2;
+	case EGP_ERROR:
+		return !b[2] && (b[3] & 0x7f) <= 2;
+	default:
+		return false;
+	}
+}
+/* RFC 904 4.5 / A.5: report bad format, but never bad version/checksum and
+ * never in response to another Error message. */
+static void report_malformed(struct neighbor *n, const uint8_t *b, size_t len)
+{
+	uint16_t seq;
+	if (len < 10 || b[0] != 2 || b[1] == EGP_ERROR || egp_checksum(b, len))
+		return;
+	seq = (uint16_t)((b[8] << 8) | b[9]);
+	send_error(n, header_known(b) ? EGP_ERR_FIELD : EGP_ERR_HEADER, b, len, seq);
+}
 static void receive(struct event *event)
 {
 	struct neighbor *n = EVENT_ARG(event);
@@ -247,6 +311,8 @@ static void receive(struct event *event)
 	struct egp_message m;
 	ssize_t len = recvfrom(n->fd, buf, sizeof(buf), 0, (struct sockaddr *)&src, &slen);
 	size_t ihl, i;
+	const uint8_t *egp;
+	size_t egplen;
 	struct egp_route next[EGP_MAX_ROUTES];
 	uint8_t next_misses[EGP_MAX_ROUTES];
 	int count;
@@ -256,10 +322,28 @@ static void receive(struct event *event)
 	if (len < 20 || src.sin_addr.s_addr != n->peer.s_addr || (buf[0] >> 4) != 4)
 		return;
 	ihl = (buf[0] & 15) * 4;
-	if (ihl < 20 || (size_t)len < ihl || memcmp(buf + 16, &n->local, 4) ||
-	    egp_decode(buf + ihl, len - ihl, &m) || m.as != n->as)
+	if (ihl < 20 || (size_t)len < ihl || memcmp(buf + 16, &n->local, 4))
 		return;
+	egp = buf + ihl;
+	egplen = (size_t)len - ihl;
+	if (egp_decode(egp, egplen, &m)) {
+		report_malformed(n, egp, egplen);
+		return;
+	}
+	if (m.as != n->as)
+		return;
+	if (m.type == EGP_ERROR) {
+		/* RFC 904 4.5: advisory only; no state change and no reply. */
+		n->errors_rx++;
+		return;
+	}
 	if (m.type == EGP_ACQUIRE) {
+		/* RFC 904 A.1: nonsense polling intervals earn a Refuse, not a Confirm. */
+		if (m.code == 0 &&
+		    (m.hello > EGP_MAX_INTERVAL || m.poll > EGP_MAX_INTERVAL)) {
+			send_refuse(n, m.seq, EGP_STATUS_PARAM);
+			return;
+		}
 		if (m.code == 3) {
 			send_msg(n, EGP_ACQUIRE, 4, m.seq);
 			idle(n);
@@ -308,6 +392,14 @@ static void receive(struct event *event)
 		return;
 	if (m.type == EGP_REACH) {
 		if (!m.code) {
+			/* RFC 904 A.5 reason 4: two Hellos inside half the minimum
+			 * interval. Half instead of the full interval so that an
+			 * independent peer clock jitter cannot produce false Errors. */
+			if (n->last_hello_rx && t - n->last_hello_rx < (time_t)(n->hello / 2)) {
+				send_error(n, EGP_ERR_RATE, egp, egplen, m.seq);
+				return;
+			}
+			n->last_hello_rx = t;
 			n->hellos_rx++;
 			egp_update_command(&n->updates, m.seq, false);
 			if (!n->active && m.status == 1)
@@ -319,9 +411,17 @@ static void receive(struct event *event)
 		}
 		return;
 	}
-	if (m.shared.s_addr != n->shared.s_addr)
+	if (m.shared.s_addr != n->shared.s_addr) {
+		send_error(n, m.type == EGP_POLL ? EGP_ERR_NOINFO : EGP_ERR_FIELD, egp,
+		           egplen, m.seq);
 		return;
+	}
 	if (m.type == EGP_POLL) {
+		if (n->last_poll_rx && t - n->last_poll_rx < (time_t)(n->poll / 2)) {
+			send_error(n, EGP_ERR_RATE, egp, egplen, m.seq);
+			return;
+		}
+		n->last_poll_rx = t;
 		n->polls_rx++;
 		egp_update_command(&n->updates, m.seq, true);
 		if (!n->active && m.status == 1)
@@ -605,6 +705,8 @@ static void peer_detail_text(struct vty *vty, const struct neighbor *n, time_t t
 	        (long long)(n->abort_at > t ? n->abort_at - t : 0));
 	vty_out(vty, "  counters tx/rx: hello %u/%u, poll %u/%u, update %u/%u\n", n->hellos_tx,
 	        n->hellos_rx, n->polls_tx, n->polls_rx, n->updates_tx, n->updates_rx);
+	vty_out(vty, "  errors tx/rx: %u/%u, refuse tx: %u\n", n->errors_tx, n->errors_rx,
+	        n->refuses_tx);
 	vty_out(vty, "  prefixes %zu, last update %llds ago\n", n->count,
 	        (long long)(n->last_update ? t - n->last_update : -1));
 	peer_prefixes_text(vty, n, t);
@@ -641,6 +743,9 @@ static struct json_object *peer_json(const struct neighbor *n, time_t t)
 	json_object_int_add(o, "pollRx", n->polls_rx);
 	json_object_int_add(o, "updateTx", n->updates_tx);
 	json_object_int_add(o, "updateRx", n->updates_rx);
+	json_object_int_add(o, "errorTx", n->errors_tx);
+	json_object_int_add(o, "errorRx", n->errors_rx);
+	json_object_int_add(o, "refuseTx", n->refuses_tx);
 	json_object_int_add(o, "lastUpdateAge",
 	                    n->last_update ? (int)(t - n->last_update) : -1);
 	json_object_object_add(o, "prefixes", arr);

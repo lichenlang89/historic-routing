@@ -341,6 +341,62 @@ def timer_negotiation():
         lab.wait('timer negotiation recovery', lambda: lab.both_up() and lab.both_routes(), timeout=70)
 
 
+def error_messages():
+    """RFC 904 4.5 / A.5: Refuse for nonsense timers, Error for bad format and
+    excessive polling, and never an Error in reply to another Error."""
+    lab.wait('initial error routes', lambda: lab.both_up() and lab.both_routes())
+    shared = lab.IP1.rsplit('.', 1)[0] + '.0'
+    shared_hex = ''.join('%02x' % int(o) for o in shared.split('.'))
+    other = lab.IP1.rsplit('.', 1)[0].rsplit('.', 1)[0] + '.141.0'
+    other_hex = ''.join('%02x' % int(o) for o in other.split('.'))
+    try:
+        with Peer(lab.R2, lab.IP2, lab.IP1, lab.AS2) as p:
+            p.command(plan={'hello': False, 'updates': False})
+            # Nonsense Hello interval in a Request -> Refuse with status 6.
+            p.command(send=[3, 0, 0, 900, 'ffff0001'])
+            ev = p.wait(lambda e: e.get('recv', [])[:2] == [3, 2], timeout=5)['recv']
+            assert ev[2] == 6, ev
+            assert ev[3] == 900, ev
+            assert 'Up' in lab.neighbors(lab.R1), 'Refuse must not change state'
+            print('PASS Refuse(status 6) for nonsense polling intervals', flush=True)
+
+            # Poll for a net this gateway does not serve -> reason 3.
+            p.command(send=[2, 0, 1, 901, '0000' + other_hex])
+            ev = p.wait(lambda e: e.get('recv', [])[:2] == [8, 0], timeout=5)
+            assert ev['body'][:4] == '0003', ev
+            print('PASS Error(reason 3) for a Poll about an unknown net', flush=True)
+
+            # Two Polls inside the minimum interval -> reason 4.
+            p.command(send=[2, 0, 1, 902, '0000' + shared_hex])
+            p.command(send=[2, 0, 1, 903, '0000' + shared_hex])
+            ev = p.wait(lambda e: e.get('recv', [])[:2] == [8, 0], timeout=5)
+            assert ev['body'][:4] == '0004', ev
+            assert len(ev['body']) == 28, 'Error body must be reason + 12 header octets'
+            print('PASS Error(reason 4) for excessive polling rate', flush=True)
+
+            # Malformed Update body (counts that cannot be parsed) -> reason 2.
+            p.command(send=[1, 0, 1, 904, '0101' + shared_hex])
+            ev = p.wait(lambda e: e.get('recv', [])[:2] == [8, 0], timeout=5)
+            assert ev['body'][:4] == '0002', ev
+            print('PASS Error(reason 2) for a malformed Update', flush=True)
+
+            # An Error message must never be answered by another Error.
+            p.command(send=[8, 0, 1, 905, '0002' + '00' * 12])
+            try:
+                p.wait(lambda e: e.get('recv', [])[:2] == [8, 0], timeout=2)
+            except TimeoutError:
+                print('PASS no Error in response to an Error message', flush=True)
+            else:
+                raise AssertionError('egpd answered an Error with another Error')
+
+            detail = lab.vty(lab.R1, 'egpd', 'show ip egp neighbors detail')
+            assert 'errors tx/rx:' in detail, detail
+            assert 'Up' in detail, detail
+    finally:
+        lab.vty(lab.R1, 'egpd', 'clear ip egp neighbor ' + lab.IP2)
+        lab.wait('error recovery', lambda: lab.both_up() and lab.both_routes(), timeout=70)
+
+
 def main():
     if os.environ.get('LAB_TIMERS') != '1 1':
         raise SystemExit('test-protocol requires LAB_TIMERS="1 1" in lab.env')
@@ -349,6 +405,7 @@ def main():
     omission_aging()
     unsolicited_updates()
     timer_negotiation()
+    error_messages()
     print('PASS protocol regressions and original daemon recovery', flush=True)
 
 

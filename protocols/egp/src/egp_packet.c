@@ -70,8 +70,13 @@ int egp_decode(const uint8_t *b, size_t len, struct egp_message *m)
 		return -1;
 	if (m->type == EGP_REACH)
 		return len == 10 && m->code <= 1 && m->status <= 2 ? 0 : -1;
-	if (m->type == EGP_ERROR)
-		return len == 24 && !m->code ? 0 : -1;
+	if (m->type == EGP_ERROR) {
+		if (len != 24 || m->code)
+			return -1;
+		m->reason = get16(b + 10);
+		memcpy(m->err_header, b + 12, sizeof(m->err_header));
+		return 0;
+	}
 	if (m->code || len < 16)
 		return -1;
 	memcpy(&m->shared, b + 12, 4);
@@ -168,6 +173,13 @@ int egp_encode(uint8_t *b, size_t cap, const struct egp_message *m, struct in_ad
 				}
 			}
 		}
+	} else if (m->type == EGP_ERROR) {
+		/* RFC 904 A.5: header + Reason + the offending 12-octet header. */
+		if (m->code)
+			return -1;
+		len = 24;
+		put16(b + 10, m->reason);
+		memcpy(b + 12, m->err_header, sizeof(m->err_header));
 	} else if (m->type != EGP_REACH && m->type != EGP_ACQUIRE)
 		return -1;
 	put16(b + 4, egp_checksum(b, len));

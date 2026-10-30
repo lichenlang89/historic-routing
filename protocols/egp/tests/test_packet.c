@@ -109,6 +109,38 @@ static void test_distances(void)
 	m.routes[m.count - 1].net = addr("198.18.1.1");
 	assert(egp_encode(b, sizeof(b), &m, addr("192.0.2.1")) < 0);
 }
+static void test_error_message(void)
+{
+	uint8_t b[EGP_MAX_PKT], hdr[12];
+	struct egp_message m = {0}, d;
+	int len, i;
+	for (i = 0; i < 12; i++)
+		hdr[i] = (uint8_t)(0x40 + i);
+	m.type = EGP_ERROR;
+	m.as = 65001;
+	m.seq = 0x1234;
+	m.status = 1;
+	m.reason = EGP_ERR_RATE;
+	memcpy(m.err_header, hdr, sizeof(hdr));
+	len = egp_encode(b, sizeof(b), &m, addr("192.0.2.1"));
+	assert(len == 24);
+	assert(!egp_decode(b, len, &d));
+	assert(d.type == EGP_ERROR && d.code == 0 && d.reason == EGP_ERR_RATE);
+	assert(!memcmp(d.err_header, hdr, sizeof(hdr)));
+	/* The reason lives inside the checksummed body. */
+	b[11] ^= 1;
+	assert(egp_decode(b, len, &d) < 0);
+	b[11] ^= 1;
+	/* RFC 904 A.5: the Error body is exactly 24 octets and Code is 0. */
+	assert(egp_decode(b, len - 1, &d) < 0);
+	assert(egp_decode(b, len + 1, &d) < 0);
+	m.code = 1;
+	assert(egp_encode(b, sizeof(b), &m, addr("192.0.2.1")) < 0);
+	m.code = 0;
+	b[2] = 1;
+	seal(b, len);
+	assert(egp_decode(b, len, &d) < 0);
+}
 int main(void)
 {
 	/* Hand-written RFC 904 NR: one internal gateway 192.0.2.1,
@@ -121,6 +153,7 @@ int main(void)
 	size_t i;
 	test_distances();
 	test_aging();
+	test_error_message();
 	struct egp_update_window window = {0};
 	/* First reply is free; a duplicate reply and a triggered Update share credit. */
 	egp_update_command(&window, 7, true);

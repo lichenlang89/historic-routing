@@ -17,9 +17,9 @@ EGP 在 IETF 的状态是 **Historic**；这里的实现是实验性的 **stub g
 | --- | --- | --- | --- | --- |
 | Update | 1 | 是 | 是 | 携带 `(网络, 网关, distance)`；255 立即撤路，连续三次遗漏后老化 |
 | Poll | 2 | 是 | 是 | 双方在 Up 时按 `poll` 间隔询问；收到 Poll 用 Update 回答 |
-| Acquisition | 3 | 是（code 0/1/3/4） | 是 | 邻居获取：Request/Confirm/Cease/Cease-ack；**code 2 = Refuse 能解码但从不发送** |
+| Acquisition | 3 | 是（code 0/1/2/3/4） | 是 | 邻居获取：Request/Confirm/Refuse/Cease/Cease-ack；Request 的 Hello/Poll 超过 86400s 时回 Refuse(status 6) |
 | Reachability | 5 | 是（code 0/1） | 是 | 本实现用作邻居存活探询（code 0）与确认（code 1） |
-| Error | 8 | **否** | 是 | 只解码并拒绝，不生成；EGP 的 Error 语义未实现 |
+| Error | 8 | 是（reason 1–4） | 是 | 坏头/坏数据域/未知网络/超频轮询；reason 5（no response）不主动生成；收到 Error 只计数、不改状态、不回复 |
 
 ### 报文级简化
 
@@ -81,7 +81,7 @@ CLI 里可见的五个状态（`show ip egp neighbors`）：
 - 接收端检查当前发送序列号 S、共享网络、报文格式、网关与容量；每个发出的 Poll
   区间最多接收一次主动更新。主动更新不消费仍未收到的普通 Poll 响应。
 - Hello 复用当前 S，发送新 Poll 时递增 S（包括 16 位回绕），与 RFC 建议一致。
-- Down 状态不处理主动 Update（RFC 允许此项可选）；无认证、第三方网关和 Error 生成的限制仍在。
+- Down 状态不处理主动 Update（RFC 允许此项可选）；无认证、第三方网关的限制仍在。
 
 ## 3. 定时器
 
@@ -105,6 +105,9 @@ Hello/Poll 最小间隔独立验证、协商，不要求 Poll 大于等于 Hello
   `clear ip egp neighbor <ip>|*`；配置持久化（`write memory` 到集成 `frr.conf`）
 - `show ip route egp` 与 `redistribute egp`（`lib/log.c` 的 `proto_redistnum` 映射随 `0001` 应用，
   默认构建即生效）
+- Refuse（`Acquisition` code 2）与 Error（`type 8`，reason 1/2/3/4）：Request 的定时器无意义时回
+  Refuse(status 6)；坏头/坏数据域、Poll 指到未知网络、轮询超过最小间隔的一半时回 Error。
+  收到的 Error 只计数，不改状态也不回复（RFC 904 §4.5）。
 - vtysh 集成（`VTYSH_EGPD = 0x400000`）
 
 **实验性简化（有意为之，改动需单独提交）**
@@ -119,7 +122,7 @@ Hello/Poll 最小间隔独立验证、协商，不要求 Poll 大于等于 Hello
 **未实现**
 
 - core gateway 行为：第三方路由的中继、EGP 邻居之间的路由再分发、距离/度量比较
-- Error 报文生成；正式的错误码语义
+- Error reason 5（no response）：本实现不主动生成，靠 Poll 超时与遗漏老化处理
 - 与系统 FRR 服务（`frrinit`/systemd/`watchfrr`）的集成：`daemons` 文件里有条目，
   但本项目**不启动系统服务**，实验一律显式跑二进制
 - SELinux `frr_t` 域下运行
