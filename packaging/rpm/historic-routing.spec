@@ -155,6 +155,11 @@ export CFLAGS CXXFLAGS LDFLAGS
 	--protocols egp
 
 
+# RPM 4.20 automatically removes the build directory on success. Preserve the
+# exact make-check diagnostics/fingerprint before rmbuild can discard them.
+mkdir -p %{_topdir}/evidence
+cp -a %{_builddir}/hr-build/logs %{_builddir}/hr-build/fingerprint.txt %{_topdir}/evidence/
+
 # Compile policy independently of the host's loaded policy store.
 mkdir -p selinux-build
 sed 's|/opt/historic-routing/27f287be9|%{hr_prefix}|g' \

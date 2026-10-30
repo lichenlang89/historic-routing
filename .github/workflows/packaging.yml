@@ -73,6 +73,8 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: rpms-${{ github.sha }}
-          path: build/rpmbuild/RPMS/**/*.rpm
+          path: |
+            build/rpmbuild/RPMS/**/*.rpm
+            build/rpmbuild/evidence/
           if-no-files-found: warn
           retention-days: 14

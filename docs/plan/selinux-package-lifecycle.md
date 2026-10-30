@@ -55,3 +55,9 @@ Fedora 42 Disabled 验证本地同源匹配 RPM 与离线策略 store 生命周�
   已卸载缓存的 unit 调 reset-failed 导致测试误失败。
 - 共享 socket 前后对照已通过；Debian 新包实际 egpd stop/start、完整 reload、CRLF
   字节比较通过；Fedora 完整 profile/EGP/整套移除重装矩阵通过。
+
+
+完整矩阵与三包升级/回退均通过，宿主已恢复。归档发现 Fedora RPM 4.20 会在成功后
+自动 rmbuild，导致原 build.sh 的完整 make-check 子日志丢失（顶层 stdout 与 rc 仍在）。
+新增在 %build 成功时保存 logs/fingerprint 到 topdir/evidence，Fedora 再构建并验证保留；
+旧记录不伪装为已有完整原始日志。将以 V2 → V3 三包实测覆盖该最终 Fedora 产物。
