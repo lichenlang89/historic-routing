@@ -1,0 +1,16 @@
+historic-routing-runtime-0.1.1-0.3.devd2c01a5.el10.aarch64
+historic-routing-egp-0.1.1-0.3.devd2c01a5.el10.aarch64
+ZAPI_SOCKET_BEFORE_EGPD_STOP=present
+active
+REPRO_ZEBRA_SOCKET_REMOVED_WHILE_ZEBRA_ALIVE
+EGP local AS 65001, zebra disconnected, 1 network(s) configured
+Peer 198.18.250.12 AS 65002
+  local-address 198.18.250.11, state Up, mode active
+  timers hello 1 poll 1; next hello 1s, next poll 1s, abort in 3600s
+  counters tx/rx: hello 4/0, poll 1/0, update 0/1
+  errors tx/rx: 0/0
+  prefixes 1, last update 0s ago
+  prefix 172.16.0.0/16 distance 1 gateway 198.18.250.12 misses 0 age 0s interior
+Failed to reset failed state of unit historic-routing-egpd.service: Unit historic-routing-egpd.service not loaded.
+Failed to reset failed state of unit historic-routing-zebra.service: Unit historic-routing-zebra.service not loaded.
+NATIVE_SERVICE_RC=0

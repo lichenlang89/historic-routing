@@ -1,0 +1,12 @@
+historic-routing-runtime-0.1.1-0.4.devfd0c3ed.el10.aarch64
+historic-routing-egp-0.1.1-0.4.devfd0c3ed.el10.aarch64
+PASS egpd stop/start retained Zebra PID=2697102 socket inode=2655069 and recovered RIB/kernel routes
+    PID LABEL                           COMMAND         COMMAND
+2697527 system_u:system_r:frr_t:s0      egpd            /opt/historic-routing/27f287be9/sbin/egpd -f /opt/historic-routing/27f287be9/etc/frr/egpd.conf -i /run/historic-routing/frr/egpd.pid -z /run/historic-routing/frr/zserv.api --vty_socket /run/historic-routing/frr -u root -g root
+system_u:system_r:frr_t:s0
+    PID LABEL                           COMMAND         COMMAND
+2697102 system_u:system_r:frr_t:s0      zebra           /opt/historic-routing/27f287be9/sbin/zebra -f /opt/historic-routing/27f287be9/etc/frr/frr.conf -i /run/historic-routing/frr/zebra.pid -z /run/historic-routing/frr/zserv.api --vty_socket /run/historic-routing/frr -u root -g root
+system_u:system_r:frr_t:s0
+Failed to reset failed state of unit historic-routing-egpd.service: Unit historic-routing-egpd.service not loaded.
+Failed to reset failed state of unit historic-routing-zebra.service: Unit historic-routing-zebra.service not loaded.
+NATIVE_SERVICE_RC=0

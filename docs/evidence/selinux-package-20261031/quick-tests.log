@@ -1,0 +1,17 @@
+patches/frr/egp/0001-lib-add-egp-route-type.patch: OK
+patches/frr/egp/0002-zebra-install-egp-routes-with-distance-140.patch: OK
+patches/frr/egp/0003-vtysh-add-egpd-client-and-node.patch: OK
+patches/frr/egp/0004-build-enable-egpd-and-keep-existing-tests.patch: OK
+protocols/egp/src/egpd.c: OK
+protocols/egp/src/egp_packet.c: OK
+protocols/egp/src/egp_age.h: OK
+protocols/egp/src/egp_packet.h: OK
+protocols/egp/src/egp_reach.h: OK
+protocols/egp/src/egp_state.h: OK
+protocols/egp/src/egp_update.h: OK
+protocols/egp/tests/test_packet.c: OK
+[INFO] 已登记协议: egp
+[SKIP] 未提供 --frr：跳过与固定基线的占用比对（只有拿到 BASELINE 源码树时才能做）
+
+汇总: 架构检查通过（1 个协议，0 个冲突）
+EGP codec: golden wire format, bounds, checksum and unaligned tests passed

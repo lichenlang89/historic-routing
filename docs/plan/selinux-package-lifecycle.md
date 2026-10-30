@@ -61,3 +61,15 @@ Fedora 42 Disabled 验证本地同源匹配 RPM 与离线策略 store 生命周�
 自动 rmbuild，导致原 build.sh 的完整 make-check 子日志丢失（顶层 stdout 与 rc 仍在）。
 新增在 %build 成功时保存 logs/fingerprint 到 topdir/evidence，Fedora 再构建并验证保留；
 旧记录不伪装为已有完整原始日志。将以 V2 → V3 三包实测覆盖该最终 Fedora 产物。
+
+
+## 本轮完成与交接
+
+- RHEL V2 全矩阵及 V1/V2 三包升级回退通过；两个进程 frr_t，完整矩阵与生命周期
+  审计监听未捕获相关 AVC。原 vendor Generic Netlink 特性探测诊断单独保留，不扩大权限。
+- Fedora V2 全矩阵、V1/V2 与 V2/V3 升级回退均通过；Disabled 仅证实离线策略 store。
+- Fedora V3 保存完整原始日志，三平台各自 make-check rc=2 的 14 项逐条 KNOWN，无未分类。
+- Debian 新包的实际单独 egpd stop/start、完整 reload、原 CRLF 字节恢复通过。
+- RHEL 原包对与配置、两机 route table/容器/原 FRR PID/模式及策略 store 恢复；
+  RHEL frr/extra_varrun 源哈希及本地 fcontext 保持。新增构建依赖和本任务缓存/证据保留。
+- [完整结果](../evidence/selinux-package-20261031/README.md)。继续独立 PR 审查，不合并、不关闭 #14。

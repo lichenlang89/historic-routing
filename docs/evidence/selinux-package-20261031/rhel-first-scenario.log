@@ -1,0 +1,10 @@
+historic-routing-runtime-0.1.1-0.3.devd2c01a5.el10.aarch64
+historic-routing-egp-0.1.1-0.3.devd2c01a5.el10.aarch64
+Traceback (most recent call last):
+  File "<work>", line 34, in <module>
+    packages = {name: str(next(p for p in rpms if p.name.startswith('historic-routing-' + name + '-')))
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+StopIteration
+Failed to reset failed state of unit historic-routing-egpd.service: Unit historic-routing-egpd.service not loaded.
+Failed to reset failed state of unit historic-routing-zebra.service: Unit historic-routing-zebra.service not loaded.
+NATIVE_SERVICE_RC=1

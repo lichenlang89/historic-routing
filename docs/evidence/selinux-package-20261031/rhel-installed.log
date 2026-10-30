@@ -1,0 +1,766 @@
+historic-routing-runtime-0.1.1-0.4.devfd0c3ed.el10.aarch64
+historic-routing-egp-0.1.1-0.4.devfd0c3ed.el10.aarch64
+COMMAND dnf '--disablerepo=*' -y install <work> RC 1
+Updating Subscription Management repositories.
+Dependencies resolved.
+================================================================================
+ Package                  Arch   Version                     Repository    Size
+================================================================================
+Installing:
+ historic-routing-selinux noarch 0.1.1-0.4.devfd0c3ed.el10   @commandline  22 k
+
+Transaction Summary
+================================================================================
+Install  1 Package
+
+Total size: 22 k
+Installed size: 26 k
+Downloading Packages:
+Running transaction check
+Transaction check succeeded.
+Running transaction test
+Transaction test succeeded.
+Running transaction
+  Preparing        :                                                        1/1
+  Running scriptlet: historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.n   1/1
+Stop historic-routing-egpd.service before first installing the SELinux profile
+error: %prein(historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.noarch) scriptlet failed, exit status 1
+
+Error in PREIN scriptlet in rpm package historic-routing-selinux
+Installed products updated.
+Error: Transaction failed
+
+Failed:
+  historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.noarch
+
+
+PASS live first-install refused without restarting services
+STOPPED_UNIT historic-routing-egpd.service ActiveState=inactive MainPID=0
+STOPPED_UNIT historic-routing-zebra.service ActiveState=inactive MainPID=0
+COMMAND dnf '--disablerepo=*' -y install <work> RC 0
+Updating Subscription Management repositories.
+Dependencies resolved.
+================================================================================
+ Package                  Arch   Version                     Repository    Size
+================================================================================
+Installing:
+ historic-routing-selinux noarch 0.1.1-0.4.devfd0c3ed.el10   @commandline  22 k
+
+Transaction Summary
+================================================================================
+Install  1 Package
+
+Total size: 22 k
+Installed size: 26 k
+Downloading Packages:
+Running transaction check
+Transaction check succeeded.
+Running transaction test
+Transaction test succeeded.
+Running transaction
+  Preparing        :                                                        1/1
+  Running scriptlet: historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.n   1/1
+  Installing       : historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.n   1/1
+  Running scriptlet: historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.n   1/1
+Installed products updated.
+
+Installed:
+  historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.noarch
+
+Complete!
+
+STOPPED_UNIT historic-routing-egpd.service ActiveState=inactive MainPID=0
+STOPPED_UNIT historic-routing-zebra.service ActiveState=inactive MainPID=0
+EXACT_CONFIG frr.conf 924ad51f052ede6d186803a20d437a1dcd12229c61b1054099d520e6f6e26482
+EXACT_CONFIG egpd.conf fc6315eaf971ab62b8454391380a47b74b234011cf460074a0aaf6ffc925b8dd
+EXACT_CONFIG vtysh.conf e7f2602341ca3386776a69ee70948861974b90876b41c90de9664de6b77523a9
+EXACT_CONFIG daemons 2d6ee3f80d483267331d3ccc698db25a632e18be3f363cc484ca1fd42b139278
+DOMAIN historic-routing-egpd.service MainPID=2707363 label=system_u:system_r:frr_t:s0
+DOMAIN historic-routing-zebra.service MainPID=2707348 label=system_u:system_r:frr_t:s0
+BACKEND {"ip1": "198.18.250.11", "ip2": "198.18.250.12", "packages": "rpm", "peer": {"netns": "hrsel-r2", "socket": "/run/hr-selinux-peer"}, "prefix": "/opt/historic-routing/27f287be9", "target": {"netns": "hrsel-r1", "socket": "/run/historic-routing/frr"}}
+PLATFORM target
+NAME="Red Hat Enterprise Linux"
+VERSION="10.2 (Coughlan)"
+RELEASE_TYPE=stable
+ID="rhel"
+ID_LIKE="centos fedora"
+VERSION_ID="10.2"
+PLATFORM_ID="platform:el10"
+PRETTY_NAME="Red Hat Enterprise Linux 10.2 (Coughlan)"
+ANSI_COLOR="0;31"
+LOGO="fedora-logo-icon"
+CPE_NAME="cpe:/o:redhat:enterprise_linux:10.2"
+HOME_URL="https://www.redhat.com/"
+VENDOR_NAME="Red Hat"
+VENDOR_URL="https://www.redhat.com/"
+DOCUMENTATION_URL="https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/10"
+BUG_REPORT_URL="https://issues.redhat.com/"
+
+REDHAT_BUGZILLA_PRODUCT="Red Hat Enterprise Linux 10"
+REDHAT_BUGZILLA_PRODUCT_VERSION=10.2
+REDHAT_SUPPORT_PRODUCT="Red Hat Enterprise Linux"
+REDHAT_SUPPORT_PRODUCT_VERSION="10.2"
+
+historic-routing-runtime-0.1.1-0.4.devfd0c3ed.el10.aarch64
+historic-routing-egp-0.1.1-0.4.devfd0c3ed.el10.aarch64
+
+# /usr/lib/systemd/system/historic-routing-egpd.service
+[Unit]
+# SPDX-License-Identifier: GPL-2.0-or-later
+# historic-routing 的 EGP daemon（实验性 stub gateway，开发验证构建）。
+# 依赖同一次构建的 historic-routing-zebra（通过 ZAPI 下发路由）。
+Description=historic-routing EGP daemon (experimental, non-production)
+Documentation=https://github.com/lichenlang89/historic-routing
+After=network.target historic-routing-zebra.service
+Wants=historic-routing-zebra.service
+ConditionPathExists=/opt/historic-routing/27f287be9/sbin/egpd
+
+[Service]
+Type=simple
+# Zebra owns the shared runtime directory; stopping egpd must keep zserv.api.
+ExecStart=/opt/historic-routing/27f287be9/sbin/egpd \
+	-f /opt/historic-routing/27f287be9/etc/frr/egpd.conf \
+	-i /run/historic-routing/frr/egpd.pid \
+	-z /run/historic-routing/frr/zserv.api \
+	--vty_socket /run/historic-routing/frr \
+	-u root -g root
+ExecReload=/opt/historic-routing/27f287be9/sbin/frr-reload.py --reload --daemon egpd \
+	--bindir /opt/historic-routing/27f287be9/bin --confdir /opt/historic-routing/27f287be9/etc/frr \
+	--logfile /run/historic-routing/frr/egpd-reload.log \
+	--rundir /run/historic-routing/frr --vty_socket /run/historic-routing/frr \
+	/opt/historic-routing/27f287be9/etc/frr/egpd.conf
+# Cease may need the RFC 904 120-second abort timeout.
+TimeoutStartSec=150
+KillMode=mixed
+Restart=on-failure
+RestartSec=2
+StateDirectory=
+
+[Install]
+WantedBy=multi-user.target
+
+# /usr/lib/systemd/system/historic-routing-egpd.service.d/20-selinux.conf
+# SPDX-License-Identifier: GPL-2.0-or-later
+[Service]
+Environment=HOME=/run/historic-routing/frr PYTHONNOUSERSITE=1
+ExecStartPre=/usr/libexec/historic-routing/selinux-policy prepare
+
+# /etc/systemd/system/historic-routing-egpd.service.d/90-hrpkg-netns.conf
+[Service]
+NetworkNamespacePath=/run/netns/hrsel-r1
+
+MainPID=2707363
+ExecStart={ path=/opt/historic-routing/27f287be9/sbin/egpd ; argv[]=/opt/historic-routing/27f287be9/sbin/egpd -f /opt/historic-routing/27f287be9/etc/frr/egpd.conf -i /run/historic-routing/frr/egpd.pid -z /run/historic-routing/frr/zserv.api --vty_socket /run/historic-routing/frr -u root -g root ; ignore_errors=no ; start_time=[Sat 2026-10-31 06:15:56 CST] ; stop_time=[n/a] ; pid=2707363 ; code=(null) ; status=0/0 }
+ExecReload={ path=/opt/historic-routing/27f287be9/sbin/frr-reload.py ; argv[]=/opt/historic-routing/27f287be9/sbin/frr-reload.py --reload --daemon egpd --bindir /opt/historic-routing/27f287be9/bin --confdir /opt/historic-routing/27f287be9/etc/frr --logfile /run/historic-routing/frr/egpd-reload.log --rundir /run/historic-routing/frr --vty_socket /run/historic-routing/frr /opt/historic-routing/27f287be9/etc/frr/egpd.conf ; ignore_errors=no ; start_time=[n/a] ; stop_time=[n/a] ; pid=0 ; code=(null) ; status=0/0 }
+FragmentPath=/usr/lib/systemd/system/historic-routing-egpd.service
+DropInPaths=/usr/lib/systemd/system/historic-routing-egpd.service.d/20-selinux.conf /etc/systemd/system/historic-routing-egpd.service.d/90-hrpkg-netns.conf
+
+PLATFORM peer
+NAME="Red Hat Enterprise Linux"
+VERSION="10.2 (Coughlan)"
+RELEASE_TYPE=stable
+ID="rhel"
+ID_LIKE="centos fedora"
+VERSION_ID="10.2"
+PLATFORM_ID="platform:el10"
+PRETTY_NAME="Red Hat Enterprise Linux 10.2 (Coughlan)"
+ANSI_COLOR="0;31"
+LOGO="fedora-logo-icon"
+CPE_NAME="cpe:/o:redhat:enterprise_linux:10.2"
+HOME_URL="https://www.redhat.com/"
+VENDOR_NAME="Red Hat"
+VENDOR_URL="https://www.redhat.com/"
+DOCUMENTATION_URL="https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/10"
+BUG_REPORT_URL="https://issues.redhat.com/"
+
+REDHAT_BUGZILLA_PRODUCT="Red Hat Enterprise Linux 10"
+REDHAT_BUGZILLA_PRODUCT_VERSION=10.2
+REDHAT_SUPPORT_PRODUCT="Red Hat Enterprise Linux"
+REDHAT_SUPPORT_PRODUCT_VERSION="10.2"
+
+historic-routing-runtime-0.1.1-0.4.devfd0c3ed.el10.aarch64
+historic-routing-egp-0.1.1-0.4.devfd0c3ed.el10.aarch64
+
+SYSTEMCTL_RELOAD node=target rc=0 elapsed=0.10s MainPID=2707363
+PASS 重载新增一条 network：egpd pid 不变、邻居不抖、原有路由保留
+SYSTEMCTL_RELOAD node=target rc=0 elapsed=0.09s MainPID=2707363
+PASS 同配置二次重载幂等（frr-reload 报无变化，pid 不变）
+SYSTEMCTL_RELOAD node=target rc=0 elapsed=0.09s MainPID=2707363
+PASS 恢复原配置：只撤掉新增网络，原路由与邻居保持
+RELOAD_DIAGNOSTIC
+Job for historic-routing-egpd.service failed.
+See "systemctl status historic-routing-egpd.service" and "journalctl -xeu historic-routing-egpd.service" for details.
+Oct 31 06:13:51 <host> frr-reload.py[2702344]: line 3: Failure to communicate[13] to egpd, line: egp neighbor 198.18.250.12 local-address 198.18.250.11 remote-as 65001
+Oct 31 06:13:51 <host> frr-reload.py[2702344]: [2702414|egpd] Configuration file[/opt/historic-routing/27f287be9/etc/frr/frr.conf] processing failure: 13
+Oct 31 06:13:51 <host> frr-reload.py[2702344]: Failed to apply EGP configuration commands ['egp neighbor 198.18.250.12 local-address 198.18.250.11 remote-as 65001\n', 'egp neighbor 198.18.250.12 local-address 198.18.250.11 remote-as 65001\n']: vtysh (exec file) exited with status 13:
+Oct 31 06:13:51 <host> frr-reload.py[2702344]: [2702401|zebra] sending configuration
+Oct 31 06:13:51 <host> frr-reload.py[2702344]: Waiting for children to finish applying config...
+Oct 31 06:13:51 <host> frr-reload.py[2702344]: [2702414|egpd] sending configuration
+Oct 31 06:13:51 <host> frr-reload.py[2702344]: Set local-as first; distinct ASes and peers on the same classful network required
+Oct 31 06:13:51 <host> frr-reload.py[2702344]: Set local-as first; distinct ASes and peers on the same classful network required
+Oct 31 06:13:51 <host> frr-reload.py[2702344]: [2702401|zebra] done
+Oct 31 06:13:51 <host> frr-reload.py[2702344]: line 1: Failure to communicate[13] to egpd, line: egp neighbor 198.18.250.12 local-address 198.18.250.11 remote-as 65001
+Oct 31 06:13:51 <host> frr-reload.py[2702344]: line 3: Failure to communicate[13] to egpd, line: egp neighbor 198.18.250.12 local-address 198.18.250.11 remote-as 65001
+Oct 31 06:13:51 <host> frr-reload.py[2702344]: [2702414|egpd] Configuration file[/opt/historic-routing/27f287be9/etc/frr/frr.conf] processing failure: 13
+Oct 31 06:13:51 <host> systemd[1]: historic-routing-egpd.service: Control process exited, code=exited, status=1/FAILURE
+Oct 31 06:13:51 <host> systemd[1]: Reload failed for historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+Oct 31 06:13:51 <host> systemd[1]: Reloading historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production)...
+Oct 31 06:13:51 <host> frr-reload.py[2702427]: [2702435|zebra] sending configuration
+Oct 31 06:13:51 <host> frr-reload.py[2702427]: [2702448|egpd] sending configuration
+Oct 31 06:13:51 <host> frr-reload.py[2702427]: Waiting for children to finish applying config...
+Oct 31 06:13:51 <host> frr-reload.py[2702427]: [2702435|zebra] done
+Oct 31 06:13:51 <host> frr-reload.py[2702427]: [2702448|egpd] done
+Oct 31 06:13:51 <host> frr-reload.py[2702427]: [2702460|zebra] sending configuration
+Oct 31 06:13:51 <host> frr-reload.py[2702427]: [2702473|egpd] sending configuration
+Oct 31 06:13:51 <host> frr-reload.py[2702427]: Waiting for children to finish applying config...
+Oct 31 06:13:51 <host> frr-reload.py[2702427]: [2702460|zebra] done
+Oct 31 06:13:51 <host> frr-reload.py[2702427]: [2702473|egpd] done
+Oct 31 06:13:51 <host> systemd[1]: Reloaded historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+Oct 31 06:13:55 <host> systemd[1]: Reloading historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production)...
+Oct 31 06:13:55 <host> frr-reload.py[2703224]: Waiting for children to finish applying config...
+Oct 31 06:13:55 <host> frr-reload.py[2703224]: [2703232|zebra] sending configuration
+Oct 31 06:13:55 <host> frr-reload.py[2703224]: [2703245|egpd] sending configuration
+Oct 31 06:13:55 <host> frr-reload.py[2703224]: [2703232|zebra] done
+Oct 31 06:13:55 <host> frr-reload.py[2703224]: [2703245|egpd] done
+Oct 31 06:13:55 <host> systemd[1]: Reloaded historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+Oct 31 06:13:55 <host> systemd[1]: Stopping historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production)...
+Oct 31 06:13:55 <host> systemd[1]: historic-routing-egpd.service: Deactivated successfully.
+Oct 31 06:13:55 <host> systemd[1]: Stopped historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+Oct 31 06:13:55 <host> systemd[1]: historic-routing-egpd.service: Consumed 1.137s CPU time, 34.3M memory peak.
+Oct 31 06:13:56 <host> systemd[1]: Starting historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production)...
+Oct 31 06:13:56 <host> systemd[1]: Started historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+Oct 31 06:14:05 <host> systemd[1]: Stopping historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production)...
+Oct 31 06:14:06 <host> systemd[1]: historic-routing-egpd.service: Deactivated successfully.
+Oct 31 06:14:06 <host> systemd[1]: Stopped historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+Oct 31 06:14:10 <host> systemd[1]: Starting historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production)...
+Oct 31 06:14:10 <host> selinux-policy[2703635]: historic-routing SELinux: the packaged priority-200 policy module is missing
+Oct 31 06:14:10 <host> systemd[1]: historic-routing-egpd.service: Control process exited, code=exited, status=1/FAILURE
+Oct 31 06:14:10 <host> systemd[1]: historic-routing-egpd.service: Failed with result 'exit-code'.
+Oct 31 06:14:10 <host> systemd[1]: Failed to start historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+Oct 31 06:14:10 <host> systemd[1]: Stopped historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+Oct 31 06:15:46 <host> systemd[1]: Started historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+Oct 31 06:15:50 <host> systemd[1]: Stopping historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production)...
+Oct 31 06:15:51 <host> systemd[1]: historic-routing-egpd.service: Deactivated successfully.
+Oct 31 06:15:51 <host> systemd[1]: Stopped historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+Oct 31 06:15:56 <host> systemd[1]: Starting historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production)...
+Oct 31 06:15:56 <host> systemd[1]: Started historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+Oct 31 06:16:00 <host> systemd[1]: Reloading historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production)...
+Oct 31 06:16:00 <host> frr-reload.py[2707463]: [2707471|zebra] sending configuration
+Oct 31 06:16:00 <host> frr-reload.py[2707463]: [2707484|egpd] sending configuration
+Oct 31 06:16:00 <host> frr-reload.py[2707463]: Waiting for children to finish applying config...
+Oct 31 06:16:00 <host> frr-reload.py[2707463]: [2707471|zebra] done
+Oct 31 06:16:00 <host> frr-reload.py[2707463]: [2707484|egpd] done
+Oct 31 06:16:00 <host> frr-reload.py[2707463]: [2707496|zebra] sending configuration
+Oct 31 06:16:00 <host> frr-reload.py[2707463]: [2707509|egpd] sending configuration
+Oct 31 06:16:00 <host> frr-reload.py[2707463]: Waiting for children to finish applying config...
+Oct 31 06:16:00 <host> frr-reload.py[2707463]: [2707496|zebra] done
+Oct 31 06:16:00 <host> frr-reload.py[2707463]: [2707509|egpd] done
+Oct 31 06:16:00 <host> systemd[1]: Reloaded historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+Oct 31 06:16:01 <host> systemd[1]: Reloading historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production)...
+Oct 31 06:16:01 <host> systemd[1]: Reloaded historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+Oct 31 06:16:01 <host> systemd[1]: Reloading historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production)...
+Oct 31 06:16:01 <host> frr-reload.py[2707540]: [2707548|zebra] sending configuration
+Oct 31 06:16:01 <host> frr-reload.py[2707540]: Waiting for children to finish applying config...
+Oct 31 06:16:01 <host> frr-reload.py[2707540]: [2707561|egpd] sending configuration
+Oct 31 06:16:01 <host> frr-reload.py[2707540]: [2707548|zebra] done
+Oct 31 06:16:01 <host> frr-reload.py[2707540]: [2707561|egpd] done
+Oct 31 06:16:01 <host> systemd[1]: Reloaded historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+Oct 31 06:16:04 <host> systemd[1]: Reloading historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production)...
+Oct 31 06:16:04 <host> frr-reload.py[2707582]: vtysh failed to process new configuration: vtysh (mark file) exited with status 2:
+Oct 31 06:16:04 <host> frr-reload.py[2707582]: b'line 11: % Unknown command: egp timers 0 1\n\n'
+Oct 31 06:16:04 <host> systemd[1]: historic-routing-egpd.service: Control process exited, code=exited, status=1/FAILURE
+Oct 31 06:16:04 <host> systemd[1]: Reload failed for historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+
+SYSTEMCTL_RELOAD node=target rc=1 elapsed=0.09s MainPID=2707363
+PASS 语法错误返回非零与诊断，运行配置和原路由保持
+PASS 有邻居时直接删除 AS/timers 被拒绝
+SYSTEMCTL_RELOAD node=target rc=0 elapsed=0.08s MainPID=2707363
+SYSTEMCTL_RELOAD node=target rc=0 elapsed=0.07s MainPID=2707363
+PASS 全量清空及重复应用：AS=0、默认 timers、无残留配置或路由
+SYSTEMCTL_RELOAD node=target rc=0 elapsed=0.10s MainPID=2707363
+SYSTEMCTL_RELOAD node=target rc=0 elapsed=0.13s MainPID=2707363
+PASS timers 变更按序重建邻接，egpd PID 保持
+SYSTEMCTL_RELOAD node=target rc=0 elapsed=0.12s MainPID=2707363
+PASS AS 变更按序应用，egpd PID 保持
+SYSTEMCTL_RELOAD node=target rc=0 elapsed=0.10s MainPID=2707363
+RELOAD_DIAGNOSTIC
+Job for historic-routing-egpd.service failed.
+See "systemctl status historic-routing-egpd.service" and "journalctl -xeu historic-routing-egpd.service" for details.
+Oct 31 06:16:16 <host> frr-reload.py[2707865]: [2707897|zebra] sending configuration
+Oct 31 06:16:16 <host> frr-reload.py[2707865]: Waiting for children to finish applying config...
+Oct 31 06:16:16 <host> frr-reload.py[2707865]: [2707910|egpd] sending configuration
+Oct 31 06:16:16 <host> frr-reload.py[2707865]: [2707897|zebra] done
+Oct 31 06:16:16 <host> frr-reload.py[2707865]: [2707910|egpd] done
+Oct 31 06:16:16 <host> frr-reload.py[2707865]: [2707920|zebra] sending configuration
+Oct 31 06:16:16 <host> frr-reload.py[2707865]: [2707933|egpd] sending configuration
+Oct 31 06:16:16 <host> frr-reload.py[2707865]: Waiting for children to finish applying config...
+Oct 31 06:16:16 <host> frr-reload.py[2707865]: [2707920|zebra] done
+Oct 31 06:16:16 <host> frr-reload.py[2707865]: [2707933|egpd] done
+Oct 31 06:16:16 <host> frr-reload.py[2707865]: Waiting for children to finish applying config...
+Oct 31 06:16:16 <host> frr-reload.py[2707865]: [2707945|zebra] sending configuration
+Oct 31 06:16:16 <host> frr-reload.py[2707865]: [2707958|egpd] sending configuration
+Oct 31 06:16:16 <host> frr-reload.py[2707865]: [2707945|zebra] done
+Oct 31 06:16:16 <host> frr-reload.py[2707865]: [2707958|egpd] done
+Oct 31 06:16:16 <host> systemd[1]: Reloaded historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+Oct 31 06:16:16 <host> systemd[1]: Reloading historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production)...
+Oct 31 06:16:16 <host> frr-reload.py[2707972]: [2707980|zebra] sending configuration
+Oct 31 06:16:16 <host> frr-reload.py[2707972]: Waiting for children to finish applying config...
+Oct 31 06:16:16 <host> frr-reload.py[2707972]: [2707993|egpd] sending configuration
+Oct 31 06:16:16 <host> frr-reload.py[2707972]: [2707980|zebra] done
+Oct 31 06:16:16 <host> frr-reload.py[2707972]: [2707993|egpd] done
+Oct 31 06:16:16 <host> frr-reload.py[2707972]: [2708004|zebra] sending configuration
+Oct 31 06:16:16 <host> frr-reload.py[2707972]: Waiting for children to finish applying config...
+Oct 31 06:16:16 <host> frr-reload.py[2707972]: [2708017|egpd] sending configuration
+Oct 31 06:16:16 <host> frr-reload.py[2707972]: [2708004|zebra] done
+Oct 31 06:16:16 <host> frr-reload.py[2707972]: [2708017|egpd] done
+Oct 31 06:16:16 <host> frr-reload.py[2707972]: [2708027|zebra] sending configuration
+Oct 31 06:16:16 <host> frr-reload.py[2707972]: Waiting for children to finish applying config...
+Oct 31 06:16:16 <host> frr-reload.py[2707972]: [2708040|egpd] sending configuration
+Oct 31 06:16:16 <host> frr-reload.py[2707972]: [2708027|zebra] done
+Oct 31 06:16:16 <host> frr-reload.py[2707972]: [2708040|egpd] done
+Oct 31 06:16:16 <host> frr-reload.py[2707972]: Waiting for children to finish applying config...
+Oct 31 06:16:16 <host> frr-reload.py[2707972]: [2708052|zebra] sending configuration
+Oct 31 06:16:16 <host> frr-reload.py[2707972]: [2708065|egpd] sending configuration
+Oct 31 06:16:16 <host> frr-reload.py[2707972]: [2708052|zebra] done
+Oct 31 06:16:16 <host> frr-reload.py[2707972]: [2708065|egpd] done
+Oct 31 06:16:16 <host> systemd[1]: Reloaded historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+Oct 31 06:16:21 <host> systemd[1]: Reloading historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production)...
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: Waiting for children to finish applying config...
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: [2708101|zebra] sending configuration
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: [2708114|egpd] sending configuration
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: [2708101|zebra] done
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: [2708114|egpd] done
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: [2708125|zebra] sending configuration
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: [2708138|egpd] sending configuration
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: Waiting for children to finish applying config...
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: Set local-as first; distinct ASes and peers on the same classful network required
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: line 1: Failure to communicate[13] to egpd, line: egp neighbor 198.18.250.12 local-address 198.18.250.11 remote-as 65001
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: [2708138|egpd] Configuration file[/opt/historic-routing/27f287be9/etc/frr/frr.conf] processing failure: 13
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: [2708125|zebra] done
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: Failed to apply EGP configuration commands ['egp neighbor 198.18.250.12 local-address 198.18.250.11 remote-as 65001\n']: vtysh (exec file) exited with status 13:
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: [2708125|zebra] sending configuration
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: [2708138|egpd] sending configuration
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: Waiting for children to finish applying config...
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: Set local-as first; distinct ASes and peers on the same classful network required
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: line 1: Failure to communicate[13] to egpd, line: egp neighbor 198.18.250.12 local-address 198.18.250.11 remote-as 65001
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: [2708138|egpd] Configuration file[/opt/historic-routing/27f287be9/etc/frr/frr.conf] processing failure: 13
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: [2708125|zebra] done
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: [2708150|zebra] sending configuration
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: Waiting for children to finish applying config...
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: [2708163|egpd] sending configuration
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: Set local-as first; distinct ASes and peers on the same classful network required
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: Set local-as first; distinct ASes and peers on the same classful network required
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: [2708150|zebra] done
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: line 1: Failure to communicate[13] to egpd, line: egp neighbor 198.18.250.12 local-address 198.18.250.11 remote-as 65001
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: line 3: Failure to communicate[13] to egpd, line: egp neighbor 198.18.250.12 local-address 198.18.250.11 remote-as 65001
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: [2708163|egpd] Configuration file[/opt/historic-routing/27f287be9/etc/frr/frr.conf] processing failure: 13
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: Failed to apply EGP configuration commands ['egp neighbor 198.18.250.12 local-address 198.18.250.11 remote-as 65001\n', 'egp neighbor 198.18.250.12 local-address 198.18.250.11 remote-as 65001\n']: vtysh (exec file) exited with status 13:
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: [2708150|zebra] sending configuration
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: Waiting for children to finish applying config...
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: [2708163|egpd] sending configuration
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: Set local-as first; distinct ASes and peers on the same classful network required
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: Set local-as first; distinct ASes and peers on the same classful network required
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: [2708150|zebra] done
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: line 1: Failure to communicate[13] to egpd, line: egp neighbor 198.18.250.12 local-address 198.18.250.11 remote-as 65001
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: line 3: Failure to communicate[13] to egpd, line: egp neighbor 198.18.250.12 local-address 198.18.250.11 remote-as 65001
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: [2708163|egpd] Configuration file[/opt/historic-routing/27f287be9/etc/frr/frr.conf] processing failure: 13
+Oct 31 06:16:22 <host> systemd[1]: historic-routing-egpd.service: Control process exited, code=exited, status=1/FAILURE
+Oct 31 06:16:22 <host> systemd[1]: Reload failed for historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+
+SYSTEMCTL_RELOAD node=target rc=1 elapsed=0.12s MainPID=2707363
+SYSTEMCTL_RELOAD node=target rc=0 elapsed=0.09s MainPID=2707363
+PASS 语义错误返回非零，重载原配置后恢复邻接与双向路由
+PASS installed package systemctl reload behavior cases
+SYSTEMCTL_RELOAD node=target rc=0 elapsed=0.09s MainPID=2707363
+RESTORED_CONFIG sha256=fc6315eaf971ab62b8454391380a47b74b234011cf460074a0aaf6ffc925b8dd
+PASS original file bytes, PID, neighbors and routes restored
+EXACT_CONFIG frr.conf 924ad51f052ede6d186803a20d437a1dcd12229c61b1054099d520e6f6e26482
+EXACT_CONFIG egpd.conf fc6315eaf971ab62b8454391380a47b74b234011cf460074a0aaf6ffc925b8dd
+EXACT_CONFIG vtysh.conf e7f2602341ca3386776a69ee70948861974b90876b41c90de9664de6b77523a9
+EXACT_CONFIG daemons 2d6ee3f80d483267331d3ccc698db25a632e18be3f363cc484ca1fd42b139278
+PASS packaged profile full reload and exact configuration
+STOPPED_UNIT historic-routing-egpd.service ActiveState=inactive MainPID=0
+STOPPED_UNIT historic-routing-zebra.service ActiveState=inactive MainPID=0
+DOMAIN historic-routing-egpd.service MainPID=2709092 label=system_u:system_r:frr_t:s0
+DOMAIN historic-routing-zebra.service MainPID=2709077 label=system_u:system_r:frr_t:s0
+PASS removed runtime root recreated and labeled by installed units
+COMMAND dnf '--disablerepo=*' -y reinstall <work> RC 0
+Updating Subscription Management repositories.
+Dependencies resolved.
+================================================================================
+ Package                  Arch   Version                     Repository    Size
+================================================================================
+Reinstalling:
+ historic-routing-selinux noarch 0.1.1-0.4.devfd0c3ed.el10   @commandline  22 k
+
+Transaction Summary
+================================================================================
+
+Total size: 22 k
+Installed size: 26 k
+Downloading Packages:
+Running transaction check
+Transaction check succeeded.
+Running transaction test
+Transaction test succeeded.
+Running transaction
+  Preparing        :                                                        1/1
+  Running scriptlet: historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.n   1/2
+  Reinstalling     : historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.n   1/2
+  Running scriptlet: historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.n   1/2
+  Running scriptlet: historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.n   2/2
+  Cleanup          : historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.n   2/2
+  Running scriptlet: historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.n   2/2
+Installed products updated.
+
+Reinstalled:
+  historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.noarch
+
+Complete!
+
+PASS live profile reinstall retains module and daemon PIDs
+STOPPED_UNIT historic-routing-egpd.service ActiveState=inactive MainPID=0
+STOPPED_UNIT historic-routing-zebra.service ActiveState=inactive MainPID=0
+COMMAND semodule -s targeted -X 200 -r historic_routing_egp RC 0
+libsemanage.semanage_direct_remove_key: Removing last historic_routing_egp module (no other historic_routing_egp module exists at another priority).
+
+COMMAND systemctl start historic-routing-zebra.service historic-routing-egpd.service RC 1
+Job for historic-routing-zebra.service failed because the control process exited with error code.
+See "systemctl status historic-routing-zebra.service" and "journalctl -xeu historic-routing-zebra.service" for details.
+Job for historic-routing-egpd.service failed because the control process exited with error code.
+See "systemctl status historic-routing-egpd.service" and "journalctl -xeu historic-routing-egpd.service" for details.
+
+PASS missing policy blocks both service starts
+STOPPED_UNIT historic-routing-egpd.service ActiveState=inactive MainPID=0
+STOPPED_UNIT historic-routing-zebra.service ActiveState=inactive MainPID=0
+COMMAND dnf '--disablerepo=*' -y reinstall <work> RC 0
+Updating Subscription Management repositories.
+Dependencies resolved.
+================================================================================
+ Package                  Arch   Version                     Repository    Size
+================================================================================
+Reinstalling:
+ historic-routing-selinux noarch 0.1.1-0.4.devfd0c3ed.el10   @commandline  22 k
+
+Transaction Summary
+================================================================================
+
+Total size: 22 k
+Installed size: 26 k
+Downloading Packages:
+Running transaction check
+Transaction check succeeded.
+Running transaction test
+Transaction test succeeded.
+Running transaction
+  Preparing        :                                                        1/1
+  Running scriptlet: historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.n   1/2
+  Reinstalling     : historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.n   1/2
+  Running scriptlet: historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.n   1/2
+  Running scriptlet: historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.n   2/2
+  Cleanup          : historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.n   2/2
+  Running scriptlet: historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.n   2/2
+Installed products updated.
+
+Reinstalled:
+  historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.noarch
+
+Complete!
+
+STOPPED_UNIT historic-routing-egpd.service ActiveState=inactive MainPID=0
+STOPPED_UNIT historic-routing-zebra.service ActiveState=inactive MainPID=0
+DOMAIN historic-routing-egpd.service MainPID=2709649 label=system_u:system_r:frr_t:s0
+DOMAIN historic-routing-zebra.service MainPID=2709633 label=system_u:system_r:frr_t:s0
+PASS package reinstall recovers missing policy without manual relabel
+COMMAND dnf '--disablerepo=*' -y --setopt=clean_requirements_on_remove=False remove historic-routing-selinux RC 0
+Updating Subscription Management repositories.
+Dependencies resolved.
+================================================================================
+ Package                  Arch   Version                    Repository     Size
+================================================================================
+Removing:
+ historic-routing-selinux noarch 0.1.1-0.4.devfd0c3ed.el10  @@commandline  26 k
+
+Transaction Summary
+================================================================================
+Remove  1 Package
+
+Freed space: 26 k
+Running transaction check
+Transaction check succeeded.
+Running transaction test
+Transaction test succeeded.
+Running transaction
+  Preparing        :                                                        1/1
+  Running scriptlet: historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.n   1/1
+libsemanage.semanage_direct_remove_key: Removing last historic_routing_egp module (no other historic_routing_egp module exists at another priority).
+
+  Erasing          : historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.n   1/1
+  Running scriptlet: historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.n   1/1
+Installed products updated.
+
+Removed:
+  historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.noarch
+
+Complete!
+
+STOPPED_UNIT historic-routing-egpd.service ActiveState=inactive MainPID=0
+STOPPED_UNIT historic-routing-zebra.service ActiveState=inactive MainPID=0
+EXACT_CONFIG frr.conf 924ad51f052ede6d186803a20d437a1dcd12229c61b1054099d520e6f6e26482
+EXACT_CONFIG egpd.conf fc6315eaf971ab62b8454391380a47b74b234011cf460074a0aaf6ffc925b8dd
+EXACT_CONFIG vtysh.conf e7f2602341ca3386776a69ee70948861974b90876b41c90de9664de6b77523a9
+EXACT_CONFIG daemons 2d6ee3f80d483267331d3ccc698db25a632e18be3f363cc484ca1fd42b139278
+COMMAND semodule -s targeted -X 400 -i <work> RC 0
+libsemanage.semanage_direct_install_file: Warning: SELinux userspace will refer to the module from <work> as historic_routing_egp rather than collision. (No such file or directory).
+
+COMMAND dnf '--disablerepo=*' -y install <work> RC 1
+Updating Subscription Management repositories.
+Dependencies resolved.
+================================================================================
+ Package                  Arch   Version                     Repository    Size
+================================================================================
+Installing:
+ historic-routing-selinux noarch 0.1.1-0.4.devfd0c3ed.el10   @commandline  22 k
+
+Transaction Summary
+================================================================================
+Install  1 Package
+
+Total size: 22 k
+Installed size: 26 k
+Downloading Packages:
+Running transaction check
+Transaction check succeeded.
+Running transaction test
+Transaction test succeeded.
+Running transaction
+  Preparing        :                                                        1/1
+  Running scriptlet: historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.n   1/1
+A local historic_routing_egp module exists; review/remove it before installing this RPM
+error: %prein(historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.noarch) scriptlet failed, exit status 1
+
+Error in PREIN scriptlet in rpm package historic-routing-selinux
+Installed products updated.
+Error: Transaction failed
+
+Failed:
+  historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.noarch
+
+
+PASS first install refuses an unowned priority-400 module
+COMMAND semodule -s targeted -X 400 -r historic_routing_egp RC 0
+libsemanage.semanage_direct_remove_key: Removing last historic_routing_egp module (no other historic_routing_egp module exists at another priority).
+
+DOMAIN historic-routing-egpd.service MainPID=2710575 label=system_u:system_r:unconfined_service_t:s0
+DOMAIN historic-routing-zebra.service MainPID=2710574 label=system_u:system_r:unconfined_service_t:s0
+STOPPED_UNIT historic-routing-egpd.service ActiveState=inactive MainPID=0
+STOPPED_UNIT historic-routing-zebra.service ActiveState=inactive MainPID=0
+COMMAND dnf '--disablerepo=*' -y install <work> RC 0
+Updating Subscription Management repositories.
+Dependencies resolved.
+================================================================================
+ Package                  Arch   Version                     Repository    Size
+================================================================================
+Installing:
+ historic-routing-selinux noarch 0.1.1-0.4.devfd0c3ed.el10   @commandline  22 k
+
+Transaction Summary
+================================================================================
+Install  1 Package
+
+Total size: 22 k
+Installed size: 26 k
+Downloading Packages:
+Running transaction check
+Transaction check succeeded.
+Running transaction test
+Transaction test succeeded.
+Running transaction
+  Preparing        :                                                        1/1
+  Running scriptlet: historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.n   1/1
+  Installing       : historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.n   1/1
+  Running scriptlet: historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.n   1/1
+Installed products updated.
+
+Installed:
+  historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.noarch
+
+Complete!
+
+DOMAIN historic-routing-egpd.service MainPID=2710783 label=system_u:system_r:frr_t:s0
+DOMAIN historic-routing-zebra.service MainPID=2710768 label=system_u:system_r:frr_t:s0
+PASS profile-only erase, default restart, profile reinstall and route recovery
+COMMAND dnf '--disablerepo=*' -y --setopt=clean_requirements_on_remove=False remove historic-routing-egp RC 0
+Updating Subscription Management repositories.
+Dependencies resolved.
+================================================================================
+ Package               Arch     Version                    Repository      Size
+================================================================================
+Removing:
+ historic-routing-egp  aarch64  0.1.1-0.4.devfd0c3ed.el10  @@commandline  214 k
+
+Transaction Summary
+================================================================================
+Remove  1 Package
+
+Freed space: 214 k
+Running transaction check
+Transaction check succeeded.
+Running transaction test
+Transaction test succeeded.
+Running transaction
+  Preparing        :                                                        1/1
+  Running scriptlet: historic-routing-egp-0.1.1-0.4.devfd0c3ed.el10.aarch   1/1
+  Erasing          : historic-routing-egp-0.1.1-0.4.devfd0c3ed.el10.aarch   1/1
+warning: /opt/historic-routing/27f287be9/etc/frr/egpd.conf saved as /opt/historic-routing/27f287be9/etc/frr/egpd.conf.rpmsave
+
+  Running scriptlet: historic-routing-egp-0.1.1-0.4.devfd0c3ed.el10.aarch   1/1
+Installed products updated.
+
+Removed:
+  historic-routing-egp-0.1.1-0.4.devfd0c3ed.el10.aarch64
+
+Complete!
+
+PASS EGP erase retained the live Zebra socket inode
+COMMAND dnf '--disablerepo=*' -y install <work> RC 0
+Updating Subscription Management repositories.
+Dependencies resolved.
+================================================================================
+ Package               Arch     Version                     Repository     Size
+================================================================================
+Installing:
+ historic-routing-egp  aarch64  0.1.1-0.4.devfd0c3ed.el10   @commandline   58 k
+
+Transaction Summary
+================================================================================
+Install  1 Package
+
+Total size: 58 k
+Installed size: 214 k
+Downloading Packages:
+Running transaction check
+Transaction check succeeded.
+Running transaction test
+Transaction test succeeded.
+Running transaction
+  Preparing        :                                                        1/1
+  Installing       : historic-routing-egp-0.1.1-0.4.devfd0c3ed.el10.aarch   1/1
+  Running scriptlet: historic-routing-egp-0.1.1-0.4.devfd0c3ed.el10.aarch   1/1
+Installed products updated.
+
+Installed:
+  historic-routing-egp-0.1.1-0.4.devfd0c3ed.el10.aarch64
+
+Complete!
+
+DOMAIN historic-routing-egpd.service MainPID=2711030 label=system_u:system_r:frr_t:s0
+DOMAIN historic-routing-zebra.service MainPID=2710768 label=system_u:system_r:frr_t:s0
+PASS EGP-only erase stopped egpd, retained Zebra and rpmsave, then recovered
+COMMAND dnf '--disablerepo=*' -y --setopt=clean_requirements_on_remove=False remove historic-routing-runtime RC 0
+Updating Subscription Management repositories.
+Dependencies resolved.
+================================================================================
+ Package                  Arch    Version                   Repository     Size
+================================================================================
+Removing:
+ historic-routing-runtime aarch64 0.1.1-0.4.devfd0c3ed.el10 @@commandline 9.9 M
+Removing dependent packages:
+ historic-routing-egp     aarch64 0.1.1-0.4.devfd0c3ed.el10 @@commandline 214 k
+ historic-routing-selinux noarch  0.1.1-0.4.devfd0c3ed.el10 @@commandline  26 k
+
+Transaction Summary
+================================================================================
+Remove  3 Packages
+
+Freed space: 10 M
+Running transaction check
+Transaction check succeeded.
+Running transaction test
+Transaction test succeeded.
+Running transaction
+  Preparing        :                                                        1/1
+  Running scriptlet: historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.n   1/3
+libsemanage.semanage_direct_remove_key: Removing last historic_routing_egp module (no other historic_routing_egp module exists at another priority).
+
+  Erasing          : historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.n   1/3
+  Running scriptlet: historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.n   1/3
+  Running scriptlet: historic-routing-egp-0.1.1-0.4.devfd0c3ed.el10.aarch   2/3
+  Erasing          : historic-routing-egp-0.1.1-0.4.devfd0c3ed.el10.aarch   2/3
+warning: /opt/historic-routing/27f287be9/etc/frr/egpd.conf saved as /opt/historic-routing/27f287be9/etc/frr/egpd.conf.rpmsave
+
+  Running scriptlet: historic-routing-egp-0.1.1-0.4.devfd0c3ed.el10.aarch   2/3
+  Running scriptlet: historic-routing-runtime-0.1.1-0.4.devfd0c3ed.el10.a   3/3
+  Erasing          : historic-routing-runtime-0.1.1-0.4.devfd0c3ed.el10.a   3/3
+warning: /opt/historic-routing/27f287be9/etc/frr/vtysh.conf saved as /opt/historic-routing/27f287be9/etc/frr/vtysh.conf.rpmsave
+warning: /opt/historic-routing/27f287be9/etc/frr/frr.conf saved as /opt/historic-routing/27f287be9/etc/frr/frr.conf.rpmsave
+warning: /opt/historic-routing/27f287be9/etc/frr/daemons saved as /opt/historic-routing/27f287be9/etc/frr/daemons.rpmsave
+
+  Running scriptlet: historic-routing-runtime-0.1.1-0.4.devfd0c3ed.el10.a   3/3
+Installed products updated.
+
+Removed:
+  historic-routing-egp-0.1.1-0.4.devfd0c3ed.el10.aarch64
+  historic-routing-runtime-0.1.1-0.4.devfd0c3ed.el10.aarch64
+  historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.noarch
+
+Complete!
+
+STOPPED_UNIT historic-routing-egpd.service ActiveState=inactive MainPID=0
+STOPPED_UNIT historic-routing-zebra.service ActiveState=inactive MainPID=0
+PRESERVED_RPMSAVE frr.conf 924ad51f052ede6d186803a20d437a1dcd12229c61b1054099d520e6f6e26482
+PRESERVED_RPMSAVE egpd.conf fc6315eaf971ab62b8454391380a47b74b234011cf460074a0aaf6ffc925b8dd
+PRESERVED_RPMSAVE vtysh.conf e7f2602341ca3386776a69ee70948861974b90876b41c90de9664de6b77523a9
+PRESERVED_RPMSAVE daemons 2d6ee3f80d483267331d3ccc698db25a632e18be3f363cc484ca1fd42b139278
+COMMAND dnf '--disablerepo=*' -y install <work> <work> <work> RC 0
+Updating Subscription Management repositories.
+Dependencies resolved.
+================================================================================
+ Package                  Arch    Version                    Repository    Size
+================================================================================
+Installing:
+ historic-routing-egp     aarch64 0.1.1-0.4.devfd0c3ed.el10  @commandline  58 k
+ historic-routing-runtime aarch64 0.1.1-0.4.devfd0c3ed.el10  @commandline 1.7 M
+ historic-routing-selinux noarch  0.1.1-0.4.devfd0c3ed.el10  @commandline  22 k
+
+Transaction Summary
+================================================================================
+Install  3 Packages
+
+Total size: 1.8 M
+Installed size: 10 M
+Downloading Packages:
+Running transaction check
+Transaction check succeeded.
+Running transaction test
+Transaction test succeeded.
+Running transaction
+  Preparing        :                                                        1/1
+  Installing       : historic-routing-runtime-0.1.1-0.4.devfd0c3ed.el10.a   1/3
+  Running scriptlet: historic-routing-runtime-0.1.1-0.4.devfd0c3ed.el10.a   1/3
+  Installing       : historic-routing-egp-0.1.1-0.4.devfd0c3ed.el10.aarch   2/3
+  Running scriptlet: historic-routing-egp-0.1.1-0.4.devfd0c3ed.el10.aarch   2/3
+  Running scriptlet: historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.n   3/3
+  Installing       : historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.n   3/3
+  Running scriptlet: historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.n   3/3
+Installed products updated.
+
+Installed:
+  historic-routing-egp-0.1.1-0.4.devfd0c3ed.el10.aarch64
+  historic-routing-runtime-0.1.1-0.4.devfd0c3ed.el10.aarch64
+  historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.noarch
+
+Complete!
+
+STOPPED_UNIT historic-routing-egpd.service ActiveState=inactive MainPID=0
+STOPPED_UNIT historic-routing-zebra.service ActiveState=inactive MainPID=0
+DOMAIN historic-routing-egpd.service MainPID=2712419 label=system_u:system_r:frr_t:s0
+DOMAIN historic-routing-zebra.service MainPID=2712403 label=system_u:system_r:frr_t:s0
+EXACT_CONFIG frr.conf 924ad51f052ede6d186803a20d437a1dcd12229c61b1054099d520e6f6e26482
+EXACT_CONFIG egpd.conf fc6315eaf971ab62b8454391380a47b74b234011cf460074a0aaf6ffc925b8dd
+EXACT_CONFIG vtysh.conf e7f2602341ca3386776a69ee70948861974b90876b41c90de9664de6b77523a9
+EXACT_CONFIG daemons 2d6ee3f80d483267331d3ccc698db25a632e18be3f363cc484ca1fd42b139278
+PASS whole bundle erase stopped units and removed module; reinstall restored routes/config
+Failed to reset failed state of unit historic-routing-egpd.service: Unit historic-routing-egpd.service not loaded.
+Failed to reset failed state of unit historic-routing-zebra.service: Unit historic-routing-zebra.service not loaded.
+NATIVE_SERVICE_RC=0
