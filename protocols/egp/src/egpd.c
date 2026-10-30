@@ -7,6 +7,7 @@
 #include "egp_update.h"
 #include "lib/command.h"
 #include "lib/frrevent.h"
+#include "lib/if.h"
 #include "lib/json.h"
 #include "lib/libfrr.h"
 #include "lib/log.h"
@@ -433,7 +434,8 @@ static void receive(struct event *event)
 	 * gateways on the common network without acting as a core relay. */
 	for (i = 0; i < m.count; i++) {
 		if (!egp_gateway(n->shared, m.routes[i].gateway) ||
-		    m.routes[i].gateway.s_addr == n->local.s_addr) {
+		    m.routes[i].gateway.s_addr == n->local.s_addr ||
+		    if_address_is_local(&m.routes[i].gateway, AF_INET, VRF_DEFAULT)) {
 			send_error(n, EGP_ERR_FIELD, egp, egplen, m.seq);
 			return;
 		}
@@ -908,6 +910,20 @@ static void rotate(void)
 {
 	zlog_rotate();
 }
+/* The shared ZAPI handlers maintain interfaces, but address notifications need
+ * explicit consumers. Keep all local IPv4 addresses (including secondary and
+ * loopback addresses) available to the default-VRF next-hop check. */
+static int interface_address(ZAPI_CALLBACK_ARGS)
+{
+	struct connected *c = zebra_interface_address_read(cmd, zclient->ibuf, vrf_id);
+	if (c && cmd == ZEBRA_INTERFACE_ADDRESS_DELETE)
+		connected_free(&c);
+	return 0;
+}
+static zclient_handler *const zebra_handlers[] = {
+    [ZEBRA_INTERFACE_ADDRESS_ADD] = interface_address,
+    [ZEBRA_INTERFACE_ADDRESS_DELETE] = interface_address,
+};
 static struct frr_signal_t signals[] = {
     {.signal = SIGINT, .handler = terminate},
     {.signal = SIGTERM, .handler = terminate},
@@ -924,7 +940,8 @@ int main(int argc, char **argv)
 			frr_help_exit(1);
 	master = frr_init();
 	vrf_init(NULL, NULL, NULL, NULL);
-	zc = zclient_new(master, &zclient_options_default, NULL, 0);
+	zc = zclient_new(master, &zclient_options_default, zebra_handlers,
+	                 array_size(zebra_handlers));
 	zclient_init(zc, ZEBRA_ROUTE_EGP, 0, &privileges);
 	zc->zebra_connected = connected;
 	install_node(&egp_node);

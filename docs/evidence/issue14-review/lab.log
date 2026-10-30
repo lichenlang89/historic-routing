@@ -1,0 +1,92 @@
+[16:59:46Z] lab   实验镜像: localhost/hr-rfc904-lab:20261026
+[16:59:46Z] lab   安装前缀: <after-prefix>（egpd/zebra/vtysh/libfrr 均存在，var/run 挂载点已就绪）
+[16:59:46Z] lab   资源名无冲突: egp-i14v-r1 / egp-i14v-r2 / egp-i14v-net
+[16:59:46Z] lab   探针通过: libfrr 来自挂载前缀；具备 NET_ADMIN + NET_RAW
+[16:59:46Z] lab   创建实验网络 egp-i14v-net（198.18.248.0/24）
+[16:59:46Z] lab   创建容器 egp-i14v-r1（198.18.248.1）
+[16:59:46Z] lab   创建容器 egp-i14v-r2（198.18.248.2）
+[16:59:46Z] lab   [egp-i14v-r1] stub0=10.0.0.1/8 宣告 10.0.0.0 邻居 198.18.248.2 AS 65002 本地 AS 65001
+[16:59:49Z] lab   [egp-i14v-r2] stub0=172.16.0.1/16 宣告 172.16.0.0 邻居 198.18.248.1 AS 65001 本地 AS 65002
+[16:59:55Z] lab   两端 EGP 邻居均已 Up（约 4s）
+[16:59:55Z] lab   实验就绪：./lab.sh status / ./lab.sh test / ./lab.sh vty 1
+PASS learn non-default distance 9
+PASS withdraw one net while learning another
+PASS all-unreachable Update removes last route
+PASS distance zero remains reachable
+PASS three empty Updates age out an omitted route
+PASS original daemons restored
+PASS active stays Up using Update responses only
+PASS stale responses do not renew reachability
+PASS passive stays Up using Poll Up commands only
+PASS passive four-T1 expiry
+PASS Refuse stops acquisition
+PASS repeated Cease is acknowledged in Idle
+PASS wrong Cease-ack leaves teardown pending
+PASS Cease retransmits with the same sequence after P3
+PASS matching Cease-ack releases resources
+PASS first two omissions retain the route
+PASS reappearance resets omission history
+PASS third consecutive omission withdraws from RIB and kernel
+PASS explicit 255 still withdraws on the first Update
+PASS mixed interior/exterior gateways installed; distances across ASes not compared
+PASS local/network/broadcast next hops reject the whole Update without aging
+PASS one gateway withdrawal selects the remaining candidate in RIB and kernel
+PASS third-party candidates age out on the third accepted omission
+PASS lo local IPv4 rejected atomically; omissions and both receive credits retained
+PASS eth0 local IPv4 rejected atomically; omissions and both receive credits retained
+PASS address deletion refreshes the local-address view
+PASS unsolicited wrong sequence rejected
+PASS second unsolicited Update in one Poll window rejected
+PASS unsolicited does not consume the solicited response
+PASS new Poll renews unsolicited receive budget
+PASS duplicate Poll reply consumes the unsolicited transmit budget
+PASS network change emits unsolicited Update using last command sequence
+PASS unsolicited Update blocks extra duplicate Poll replies
+PASS new Poll renews unsolicited transmit budget
+PASS independent Hello=3/Poll=1 minima establish reachability
+PASS Error(reason 1) for a truncated Request
+PASS Error(reason 2) for a nonsense Request interval
+PASS Error(reason 1) for an illegal Request Status
+PASS Error(reason 3) for a Poll about an unknown net
+PASS Error(reason 4) for excessive polling rate
+PASS Error(reason 2) for a malformed Update
+PASS no Error in response to an Error message
+PASS protocol regressions and original daemon recovery
+EGP 双路由器实验集成测试
+  参数: R1=egp-i14v-r1(198.18.248.1,AS65001)  R2=egp-i14v-r2(198.18.248.2,AS65002)  前缀=/build/prefix  UDP端口=9999
+  宣告: 10.0.0.0 @ 10.0.0.1/8 ; 172.16.0.0 @ 172.16.0.1/16
+
+PASS  01 两个 egpd 进程正常启动                            egp-i14v-r1: egpd=17 zebra=11; egp-i14v-r2: egpd=17 zebra=11
+PASS  02 双方邻居状态 Up                                 R1->198.18.248.2 Up(AS65002,active)  R2->198.18.248.1 Up(AS65001,passive)
+PASS  03 双向学习 EGP 路由                               egp-i14v-r1 学到 172.16.0.0/16（protocol=egp）；egp-i14v-r2 学到 10.0.0.0/8（protocol=egp）
+PASS  04 zebra 显示类型 G、管理距离 140                     JSON protocol=egp distance=140；文本 R1: G>* 172.16.0.0/16 [140/1]  R2: G>* 10.0.0.0/8 [140/1]；show ip route egp 命中 egp-i14v-r1:172.16.0.0/16 egp-i14v-r2:10.0.0.0/8
+PASS  05 内核路由表存在学习到的路由                             R1: 172.16.0.0/16 via 198.18.248.2 proto zebra；R2: 10.0.0.0/8 via 198.18.248.1 proto zebra
+PASS  06 两个 Stub 网络之间 UDP 双向通信                     10.0.0.1->172.16.0.1: OK ECHO:p1-to-p2 ; 172.16.0.1->10.0.0.1: OK ECHO:p2-to-p1
+PASS  07 取消 network 通告后对端撤路                        撤宣告后 4s：egp-i14v-r2 的 RIB 与内核均无 10.0.0.0/8
+PASS  08 重新宣告后路由恢复                                 重宣告后 1s：egp-i14v-r2 恢复 10.0.0.0/8 via 198.18.248.1
+PASS  09 egpd 异常退出后过期路由撤销                          SIGKILL egpd@egp-i14v-r2(pid=17) 后 4s：egp-i14v-r1 撤掉 172.16.0.0/16
+PASS  10 egpd 重启后邻居与路由重建                           重启 egpd@egp-i14v-r2 后 3s：邻居 Up、双向路由恢复
+PASS  11 zebra 重启后 egpd 重新下发路由                     重启 zebra@egp-i14v-r1 后 0s：172.16.0.0/16 重新出现在 zebra 与内核
+PASS  12 删除 EGP 邻居后路由撤销                            删邻居后 0s egp-i14v-r1 撤路、0s egp-i14v-r2 撤路；邻居已重新配置
+PASS  13 实验恢复（收尾校验）                                4s 内双方邻居 Up、双向路由齐备
+
+汇总: 13 通过 / 0 失败 / 共 13 项
+  [PASS] 01 两个 egpd 进程正常启动                              0.3s  egp-i14v-r1: egpd=17 zebra=11; egp-i14v-r2: egpd=17 zebra=11
+  [PASS] 02 双方邻居状态 Up                                   0.2s  R1->198.18.248.2 Up(AS65002,active)  R2->198.18.248.1 Up(AS65001,passive)
+  [PASS] 03 双向学习 EGP 路由                                 0.1s  egp-i14v-r1 学到 172.16.0.0/16（protocol=egp）；egp-i14v-r2 学到 10.0.0.0/8（protocol=egp）
+  [PASS] 04 zebra 显示类型 G、管理距离 140                       0.5s  JSON protocol=egp distance=140；文本 R1: G>* 172.16.0.0/16 [140/1]  R2: G>* 10.0.0.0/8 [140/1]；show ip route egp 命中 egp-i14v-r1:172.16.0.0/16 egp-i14v-r2:10.0.0.0/8
+  [PASS] 05 内核路由表存在学习到的路由                               0.2s  R1: 172.16.0.0/16 via 198.18.248.2 proto zebra；R2: 10.0.0.0/8 via 198.18.248.1 proto zebra
+  [PASS] 06 两个 Stub 网络之间 UDP 双向通信                       0.3s  10.0.0.1->172.16.0.1: OK ECHO:p1-to-p2 ; 172.16.0.1->10.0.0.1: OK ECHO:p2-to-p1
+  [PASS] 07 取消 network 通告后对端撤路                          3.6s  撤宣告后 4s：egp-i14v-r2 的 RIB 与内核均无 10.0.0.0/8
+  [PASS] 08 重新宣告后路由恢复                                   1.5s  重宣告后 1s：egp-i14v-r2 恢复 10.0.0.0/8 via 198.18.248.1
+  [PASS] 09 egpd 异常退出后过期路由撤销                            3.9s  SIGKILL egpd@egp-i14v-r2(pid=17) 后 4s：egp-i14v-r1 撤掉 172.16.0.0/16
+  [PASS] 10 egpd 重启后邻居与路由重建                             4.1s  重启 egpd@egp-i14v-r2 后 3s：邻居 Up、双向路由恢复
+  [PASS] 11 zebra 重启后 egpd 重新下发路由                       4.7s  重启 zebra@egp-i14v-r1 后 0s：172.16.0.0/16 重新出现在 zebra 与内核
+  [PASS] 12 删除 EGP 邻居后路由撤销                              0.3s  删邻居后 0s egp-i14v-r1 撤路、0s egp-i14v-r2 撤路；邻居已重新配置
+  [PASS] 13 实验恢复（收尾校验）                                  0.0s  4s 内双方邻居 Up、双向路由齐备
+
+日志: /var/tmp/hr14-review/logs/test-20261031-010341.log
+[17:04:05Z] lab   删除容器 egp-i14v-r1
+[17:04:05Z] lab   删除容器 egp-i14v-r2
+[17:04:06Z] lab   删除网络 egp-i14v-net
+[17:04:06Z] lab   清理完成（本实验资源已全部移除）

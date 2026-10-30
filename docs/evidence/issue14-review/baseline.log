@@ -1,0 +1,35 @@
+[16:56:17Z] lab   实验镜像: localhost/hr-rfc904-lab:20261026
+[16:56:17Z] lab   安装前缀: <before-prefix>（egpd/zebra/vtysh/libfrr 均存在，var/run 挂载点已就绪）
+[16:56:17Z] lab   资源名无冲突: egp-i14v-r1 / egp-i14v-r2 / egp-i14v-net
+[16:56:17Z] lab   探针通过: libfrr 来自挂载前缀；具备 NET_ADMIN + NET_RAW
+[16:56:17Z] lab   创建实验网络 egp-i14v-net（198.18.248.0/24）
+[16:56:17Z] lab   创建容器 egp-i14v-r1（198.18.248.1）
+[16:56:17Z] lab   创建容器 egp-i14v-r2（198.18.248.2）
+[16:56:17Z] lab   [egp-i14v-r1] stub0=10.0.0.1/8 宣告 10.0.0.0 邻居 198.18.248.2 AS 65002 本地 AS 65001
+[16:56:20Z] lab   [egp-i14v-r2] stub0=172.16.0.1/16 宣告 172.16.0.0 邻居 198.18.248.1 AS 65001 本地 AS 65002
+[16:56:26Z] lab   两端 EGP 邻居均已 Up（约 4s）
+[16:56:26Z] lab   实验就绪：./lab.sh status / ./lab.sh test / ./lab.sh vty 1
+FAIL local gateway accepted: {"address": "198.18.248.2", "as": 65002, "state": "Up", "mode": "active", "hello": 1, "poll": 10, "prefixCount": 3, "helloTx": 34, "helloRx": 0, "pollTx": 5, "pollRx": 1, "updateTx": 3, "updateRx": 5, "errorTx": 0, "errorRx": 0, "lastUpdateAge": 6, "prefixes": [{"prefix": "172.16.0.0/16", "distance": 9, "gateway": "198.18.248.2", "misses": 2, "exterior": false}, {"prefix": "172.18.0.0/16", "distance": 1, "gateway": "198.18.248.4", "misses": 0, "exterior": false}, {"prefix": "172.18.0.0/16", "distance": 7, "gateway": "198.18.248.2", "misses": 0, "exterior": false}]}
+kernel=[{"dst": "default", "gateway": "198.18.248.1", "dev": "eth0", "protocol": "static", "metric": 100, "flags": []}, {"dst": "10.0.0.0/8", "dev": "stub0", "protocol": "kernel", "scope": "link", "prefsrc": "10.0.0.1", "flags": []}, {"dst": "172.16.0.0/16", "nhid": 13, "gateway": "198.18.248.2", "dev": "eth0", "protocol": "zebra", "metric": 20, "flags": []}, {"dst": "172.18.0.0/16", "nhid": 28, "gateway": "198.18.248.4", "dev": "lo", "protocol": "zebra", "metric": 20, "flags": []}, {"dst": "198.18.248.0/24", "dev": "eth0", "protocol": "kernel", "scope": "link", "prefsrc": "198.18.248.1", "flags": []}]
+Traceback (most recent call last):
+  File "<repo>/lab/egp/test_protocol.py", line 115, in wait
+    event = self.events.get(timeout=max(.01, deadline-time.monotonic()))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib64/python3.12/queue.py", line 179, in get
+    raise Empty
+_queue.Empty
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "<repo>/lab/egp/test_protocol.py", line 542, in local_gateways
+    error = p.wait(lambda e: e.get('recv', [])[:2] == [8, 0]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>/lab/egp/test_protocol.py", line 117, in wait
+    raise TimeoutError('expected peer event not received') from exc
+TimeoutError: expected peer event not received
+[16:57:00Z] lab   删除容器 egp-i14v-r1
+[16:57:00Z] lab   删除容器 egp-i14v-r2
+[16:57:01Z] lab   删除网络 egp-i14v-net
+[16:57:01Z] lab   清理完成（本实验资源已全部移除）

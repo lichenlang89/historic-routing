@@ -1,0 +1,5 @@
+56140306dc572a1f9283ccba1862fbdd5120a9f8b5090aad2b573e47d169dc60  <prefix>/sbin/egpd
+3bb3f9423b7653b1bbf9bdf3acf29e2f4d4673e5552d93e840d06a7ea09e2469  <prefix>/sbin/zebra
+f065ffa1affe4f9614d67cf9028a5ff49274b8890855fbd3662946e950d1dc96  <prefix>/bin/vtysh
+fbf745592e839096afdbc6516d320f7cab66d5bf65c76a47d61d57868eedd0ff  <prefix>/lib/libfrr.so.0.0.0
+50acdfcb8fbc8a28c5a53feca267970089e4790090584ca75914e255e64ef944  <prefix>/sbin/frr-reload.py

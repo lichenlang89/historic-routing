@@ -134,6 +134,8 @@ semantic failures, and recovery.
   (RFC 904 section 4.4/A.4; RFC 888 sections 5/8). The router's own address,
   network/broadcast gateways, ambiguous duplicate claims from one gateway and
   excess capacity reject the whole Update without changing routes or omissions.
+  Local-address validation covers all default-VRF IPv4 addresses, including
+  secondary/loopback addresses, via ZAPI address-add/delete notifications.
   Distinct gateways may advertise the same network. Each candidate withdraws
   or ages independently; stable first-live peer/candidate order wins, without
   comparing distances across ASes. Solicited/unsolicited receive windows remain

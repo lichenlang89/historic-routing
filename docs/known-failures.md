@@ -2,7 +2,7 @@
 
 > 本文件由 `scripts/parse-make-check.py` 从 `make check` 原始日志生成，**不要手工编辑**；重跑 `scripts/verify.sh` 会覆盖它。
 
-- 原始结果：**14 failed / 514 passed / 5 skipped in 8.55s**，`make check` 退出码非 0（未伪装成通过）
+- 原始结果：**14 failed / 514 passed / 5 skipped in 8.27s**，`make check` 退出码非 0（未伪装成通过）
 - 本次 configure 关闭的模块：`doc protobuf ospfapi ospfclient isisd pimd pim6d ldpd nhrpd babeld pbrd fabricd vrrpd pathd`
 - 判定口径：只看每个失败测试**自己的异常文本**是否指向被关闭模块的可执行文件；不按目录推断。
 

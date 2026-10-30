@@ -485,6 +485,94 @@ def multiple_gateways():
         lab.wait('multi-gateway recovery', lambda: lab.both_up() and lab.both_routes(), timeout=70)
 
 
+def local_gateways():
+    """Reject every default-VRF local IPv4 before aging or receive credit."""
+    aliases = [(lab.IP1.rsplit('.', 1)[0] + '.4', 'lo', '/32'),
+               (lab.IP1.rsplit('.', 1)[0] + '.5', 'eth0', '/24')]
+    shared = socket.inet_aton(lab.IP1)[:3] + b'\0'
+    target = '172.18.0.0/16'
+    added = []
+
+    def state():
+        return json.loads(lab.vty(lab.R1, 'egpd', 'show ip egp neighbors json'))['peers'][0]
+
+    def installed(gateway, metric):
+        return ((lab.egp_route(lab.R1, target) or {}).get('metric') == metric
+                and lab.has_kernel(lab.R1, target, gw=gateway))
+
+    try:
+        # Add addresses after egpd starts: the address view must be live.
+        for address, interface, mask in aliases:
+            lab.rsh(lab.R1, 'ip', 'addr', 'add', address + mask, 'dev', interface)
+            added.append((address, interface, mask))
+        with Peer(lab.R2, lab.IP2, lab.IP1, lab.AS2) as p:
+            p.command(plan={'hello': True, 'updates': False})
+            p.command(send=[3, 0, 2, 910, '0001000a'])
+            p.wait(lambda e: e.get('recv', [])[:2] == [3, 1] and e['recv'][3] == 910)
+
+            def poll():
+                p.saved.clear()
+                while not p.events.empty():
+                    p.events.get_nowait()
+                return p.wait(lambda e: e.get('recv', [])[:2] == [2, 0], timeout=15)['recv'][3]
+
+            def send(seq, status, blocks):
+                body = bytes([len(blocks), 0]) + shared
+                for gateway, routes in blocks:
+                    body += socket.inet_aton(gateway)[3:] + bytes([len(routes)])
+                    for net, distance in routes:
+                        ip = socket.inet_aton(net)
+                        n = 1 if ip[0] < 128 else 2 if ip[0] < 192 else 3
+                        body += bytes([distance, 1]) + ip[:n]
+                p.command(send=[1, 0, status, seq, body.hex()])
+
+            send(poll(), 1, [(lab.IP2, [(lab.NET2, 9)])])
+            lab.wait('local-gateway baseline', lambda: (lab.egp_route(lab.R1, lab.NET2_CIDR) or {}).get('metric') == 9)
+            for address, interface, mask in aliases:
+                # A nonzero omission counter makes accidental aging visible.
+                send(poll(), 1, [])
+                lab.wait('baseline omission recorded', lambda: any(r['misses'] for r in state()['prefixes']))
+                seq = poll()
+                before = state()['prefixes']
+                invalid = [(address, [('172.18.0.0', 1)]),
+                           (lab.IP2, [('172.18.0.0', 7)])]
+                for status in (1, 129):
+                    send(seq, status, invalid)
+                    try:
+                        error = p.wait(lambda e: e.get('recv', [])[:2] == [8, 0]
+                                       and e['recv'][3] == seq)
+                    except TimeoutError:
+                        print('FAIL local gateway accepted: ' + json.dumps(state())
+                              + '\nkernel=' + json.dumps(lab.kernel_routes(lab.R1)), flush=True)
+                        raise
+                    assert error['body'][:4] == '0002', error
+                    assert state()['prefixes'] == before
+                    assert not lab.has_kernel(lab.R1, target)
+                    assert lab.has_kernel(lab.R1, lab.NET2_CIDR, gw=lab.IP2)
+                valid = [(lab.IP2, [(lab.NET2, 9), ('172.18.0.0', 7)])]
+                send(seq, 129, valid)
+                lab.wait('same-sequence unsolicited credit retained', lambda: installed(lab.IP2, 7), timeout=2)
+                send(seq, 1, [(lab.IP2, [(lab.NET2, 9), ('172.18.0.0', 5)])])
+                lab.wait('same-sequence Poll response retained', lambda: installed(lab.IP2, 5), timeout=2)
+                print('PASS ' + interface + ' local IPv4 rejected atomically; omissions and both receive credits retained', flush=True)
+                # Remove the test route before the next rejection assertion.
+                send(poll(), 1, [(lab.IP2, [(lab.NET2, 9), ('172.18.0.0', 255)])])
+                lab.wait('test route withdrawn', lambda: not lab.has_kernel(lab.R1, target))
+
+            address, interface, mask = aliases[1]
+            lab.rsh(lab.R1, 'ip', 'addr', 'del', address + mask, 'dev', interface)
+            added.remove((address, interface, mask))
+            send(poll(), 1, [(lab.IP2, [(lab.NET2, 9)]),
+                             (address, [('172.18.0.0', 7)])])
+            lab.wait('deleted address becomes a valid third-party gateway', lambda: installed(address, 7), timeout=2)
+            print('PASS address deletion refreshes the local-address view', flush=True)
+    finally:
+        for address, interface, mask in added:
+            lab.rsh(lab.R1, 'ip', 'addr', 'del', address + mask, 'dev', interface)
+        lab.vty(lab.R1, 'egpd', 'clear ip egp neighbor ' + lab.IP2)
+        lab.wait('local-gateway recovery', lambda: lab.both_up() and lab.both_routes(), timeout=70)
+
+
 def main():
     if os.environ.get('LAB_TIMERS') != '1 1':
         raise SystemExit('test-protocol requires LAB_TIMERS="1 1" in lab.env')
@@ -492,6 +580,7 @@ def main():
     control_states()
     omission_aging()
     multiple_gateways()
+    local_gateways()
     unsolicited_updates()
     timer_negotiation()
     error_messages()

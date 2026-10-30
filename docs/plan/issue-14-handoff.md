@@ -94,3 +94,31 @@ cd lab/egp
 变更前保存 `egpd.conf`。语义失败后恢复文件并重新 reload，再检查两端邻接和路由；
 若回退软件，runtime 与 egp 也必须成对回退。旧版本 unit 有已知 HUP 缺陷，维护窗口内
 使用明确的进程重启流程，不能把重启恢复记为无损 reload。
+
+
+## PR #15 评审增补：默认 VRF 的全部本机 IPv4
+
+评审：[P2 评论](https://github.com/lichenlang89/historic-routing/pull/15#discussion_r4426172822)。
+前文为首轮 `c651234` 的执行记录；本节记录以该提交为基线的后续修复。
+
+已用修复前产物和独立原始报文复现：默认 VRF 的 loopback alias 出现在同前缀的
+有效对端候选之前时，内核把远端网络安装为 `via <本机 alias> dev lo`，原路由遗漏次数
+从 1 被错误推进为 2。新增测试在修复前因缺少 Error 响应失败，错误候选和内核路由
+均记录于日志，不以编译或环境错误代替复现。
+
+接收路径现使用 FRR `if_address_is_local(..., AF_INET, VRF_DEFAULT)` 作精确地址检查；
+原有邻接 `local-address` 判断保留。通过 ZAPI 的地址 ADD/DELETE 回调维护 connected
+地址表；删除通知读出的 connected 对象按 FRR API 约定释放。检查位于候选合并、遗漏
+更新和接收额度消费之前。没有把整个直连子网当成本机地址，也不比较跨 AS 距离。
+
+新增回归动态添加 `lo` 的 /32 alias 与 eth0 的 /24 secondary，分别发送包含本机网关和
+有效对端候选的匹配报文，检查 reason 2、整包拒绝、原路由/遗漏次数不变；再在同一 Poll
+序列号上发送合法主动 Update 和普通响应，证明两种接收额度均保留。删除 secondary 后，
+其地址能重新作为合法第三方网关被接受，验证地址表增删生效；最终恢复原守护进程、地址、
+定时器、邻接及路由。测试接入现有 `lab.sh test-protocol` 与原有双架构 CI。
+
+本轮另执行快速 ASan/UBSan/哈希/资源检查、完整构建/check/dist、`test-updates`、
+完整 `test-protocol` 和 13 项转发/恢复检查。完整 FRR make check 的 14 项 isisd/pimd
+缺产物失败仍保留直接日志和 rc=2（514 passed / 5 skipped），没有宣称完整上游套件全绿。
+本轮不重复慢定时器、包安装、systemd/SELinux 或 TShark 验收，首轮与未验证边界继续适用。
+执行日志及哈希见 [评审增补证据](../evidence/issue14-review/)。
