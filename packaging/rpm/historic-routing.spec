@@ -217,7 +217,7 @@ cat > %{buildroot}%{hr_prefix}/etc/frr/egpd.conf <<'CONF'
 ! 用 systemd 的 historic-routing-egpd.service 时读这个文件；
 ! 与 zebra 共用 frr.conf 的集成模式请改用 vtysh 配置。
 hostname egp-r1
-log file %{hr_prefix}/run/egpd.log
+log stdout
 egp local-as 65001
 egp timers 30 120
 CONF

@@ -32,7 +32,8 @@ Description: FRRouting-based framework for historic routing protocols
  recorded in BUILD-INFO.txt and does not touch the distribution FRR
  (/usr/sbin/frr*, /etc/frr, /usr/lib/*/frr, frr.service).
  .
- NOTE: @KIND_LONG@ (exact source commit is recorded in BUILD-INFO.txt).
+ NOTE: @KIND_LONG@.
+ The exact source commit is recorded in BUILD-INFO.txt.
  Its zebra and the distribution frr.service both program the kernel RIB,
  so they must not run at the same time.
 

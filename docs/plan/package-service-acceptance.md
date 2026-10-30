@@ -40,3 +40,10 @@ DEB 在允许主机内的 Debian arm64 隔离环境构建和安装，按实际�
 - Debian 首次构建因缺 libtool 失败，补齐 Build-Depends libtool-bin，日志保留。
 - Debian 在线取固定 FRR 提交遇到 TLS 中断；改用校验过的离线镜像，复现 package-deb.sh
   仅复制 tar 而遗漏 SHA256SUMS/VENDOR.txt 的错误；补齐配套元数据后继续验证。
+
+- Debian 13.7/arm64 已构建并正常 apt 安装匹配包，实际两容器 systemd reload 全部用例通过。
+  首次容器 setup 因 /proc/sys 只读失败，改在 podman run 时设置 sysctl，保留首次环境日志。
+- RHEL 默认配置启动时服务虽 active，但 journal 提示旧 prefix/run/egpd.log 不存在。
+  RPM 默认配置改为 log stdout；DEB 也显式选择 stdout，由 systemd journal 收集。
+  接下来用新开发包验证升级与回退。
+- 本轮 Debian 第一版 lintian 的 3 条长行警告逐条保留；格式修正随新包重新验证。
