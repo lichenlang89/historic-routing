@@ -204,7 +204,11 @@ fi
 # ---------- 4. dpkg-buildpackage ----------
 LOG="$WORK/dpkg-buildpackage.log"
 log "== 开始 dpkg-buildpackage -b（%build 会从固定 FRR 基线完整构建，约数分钟）"
-( cd "$SRC" && dpkg-buildpackage -us -uc -b -tc ) >"$LOG" 2>&1
+# -tc deletes hr-build (including the full make-check evidence) after building.
+# --keep must preserve those logs and the fingerprint, not only the source tree.
+dpkg_args=(-us -uc -b)
+[ "$KEEP" = 1 ] || dpkg_args+=(-tc)
+( cd "$SRC" && dpkg-buildpackage "${dpkg_args[@]}" ) >"$LOG" 2>&1
 rc=$?
 if [ "$rc" != 0 ]; then
 	echo "---- 构建日志尾部 ----"
