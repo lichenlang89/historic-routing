@@ -60,6 +60,7 @@ jobs:
               ./lab.sh up
               ./lab.sh test-updates
               if [ -f test_protocol.py ]; then ./lab.sh test-protocol; fi
+              if [ -f test_reload.py ]; then ./lab.sh reload; fi
               ./lab.sh test-timers
               ./lab.sh test
             '

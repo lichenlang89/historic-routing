@@ -36,7 +36,7 @@ struct neighbor {
 	uint8_t misses[EGP_MAX_ROUTES];
 	/* Observability only: never consulted by the protocol state machine. */
 	uint32_t hellos_tx, hellos_rx, polls_tx, polls_rx, updates_tx, updates_rx;
-	uint32_t errors_tx, errors_rx, refuses_tx;
+	uint32_t errors_tx, errors_rx;
 	time_t last_hello_rx;
 };
 static struct neighbor peers[MAX_PEERS];
@@ -155,10 +155,6 @@ static bool transmit_message(struct neighbor *n, struct egp_message *m)
 	case EGP_ERROR:
 		n->errors_tx++;
 		break;
-	case EGP_ACQUIRE:
-		if (m->code == 2)
-			n->refuses_tx++;
-		break;
 	default:
 		break;
 	}
@@ -193,11 +189,6 @@ static bool transmit(struct neighbor *n, uint8_t type, uint8_t code, uint16_t se
                      bool unsolicited)
 {
 	return transmit_status(n, type, code, seq, unsolicited, -1);
-}
-/* RFC 904 A.1: a Refuse carries the cause in Status (3/4/6/7). */
-static bool send_refuse(struct neighbor *n, uint16_t seq, uint8_t status)
-{
-	return transmit_status(n, EGP_ACQUIRE, 2, seq, false, status);
 }
 /* RFC 904 A.5: an Error embeds the first 12 octets of the offending header. */
 static bool send_error(struct neighbor *n, uint16_t reason, const uint8_t *hdr,
@@ -277,20 +268,32 @@ static void indication(struct neighbor *n, time_t t)
 	}
 	reachability(n, t);
 }
-static bool header_known(const uint8_t *b)
+/* RFC 904 A.5: reason 1 covers a bad message length and invalid Type/Code/Status
+ * fields. What the header cannot already rule out is a data-field problem
+ * (reason 2) - the Update body length is variable, so only a header or a
+ * shorter-than-minimum Update counts as a length error there. */
+static int malformed_reason(const uint8_t *b, size_t len)
 {
-	switch (b[1]) {
-	case EGP_UPDATE:
-	case EGP_POLL:
-		return !b[2] && b[3] <= 2;
+	static const size_t acquire_len[] = {14, 14, 10, 10, 10};
+	uint8_t type = b[1], code = b[2], status = b[3];
+	switch (type) {
 	case EGP_ACQUIRE:
-		return b[2] <= 4 && b[3] <= 7;
+		if (code > 4 || status > 7 || len != acquire_len[code])
+			return EGP_ERR_HEADER;
+		return EGP_ERR_FIELD; /* e.g. a zero interval: bad data field */
 	case EGP_REACH:
-		return b[2] <= 1 && b[3] <= 2;
+		return code <= 1 && status <= 2 && len == 10 ? EGP_ERR_FIELD : EGP_ERR_HEADER;
+	case EGP_POLL:
+		return !code && status <= 2 && len == 16 ? EGP_ERR_FIELD : EGP_ERR_HEADER;
 	case EGP_ERROR:
-		return !b[2] && (b[3] & 0x7f) <= 2;
+		return !code && (status & 0x7f) <= 2 && len == 24 ? EGP_ERR_FIELD
+		                                                  : EGP_ERR_HEADER;
+	case EGP_UPDATE:
+		if (code || status > 2 || len < 16)
+			return EGP_ERR_HEADER;
+		return EGP_ERR_FIELD;
 	default:
-		return false;
+		return EGP_ERR_HEADER;
 	}
 }
 /* RFC 904 4.5 / A.5: report bad format, but never bad version/checksum and
@@ -301,7 +304,7 @@ static void report_malformed(struct neighbor *n, const uint8_t *b, size_t len)
 	if (len < 10 || b[0] != 2 || b[1] == EGP_ERROR || egp_checksum(b, len))
 		return;
 	seq = (uint16_t)((b[8] << 8) | b[9]);
-	send_error(n, header_known(b) ? EGP_ERR_FIELD : EGP_ERR_HEADER, b, len, seq);
+	send_error(n, malformed_reason(b, len), b, len, seq);
 }
 static void receive(struct event *event)
 {
@@ -339,12 +342,6 @@ static void receive(struct event *event)
 		return;
 	}
 	if (m.type == EGP_ACQUIRE) {
-		/* RFC 904 A.1: nonsense polling intervals earn a Refuse, not a Confirm. */
-		if (m.code == 0 &&
-		    (m.hello > EGP_MAX_INTERVAL || m.poll > EGP_MAX_INTERVAL)) {
-			send_refuse(n, m.seq, EGP_STATUS_PARAM);
-			return;
-		}
 		if (m.code == 3) {
 			send_msg(n, EGP_ACQUIRE, 4, m.seq);
 			idle(n);
@@ -704,8 +701,7 @@ static void peer_detail_text(struct vty *vty, const struct neighbor *n, time_t t
 	        (long long)(n->abort_at > t ? n->abort_at - t : 0));
 	vty_out(vty, "  counters tx/rx: hello %u/%u, poll %u/%u, update %u/%u\n", n->hellos_tx,
 	        n->hellos_rx, n->polls_tx, n->polls_rx, n->updates_tx, n->updates_rx);
-	vty_out(vty, "  errors tx/rx: %u/%u, refuse tx: %u\n", n->errors_tx, n->errors_rx,
-	        n->refuses_tx);
+	vty_out(vty, "  errors tx/rx: %u/%u\n", n->errors_tx, n->errors_rx);
 	vty_out(vty, "  prefixes %zu, last update %llds ago\n", n->count,
 	        (long long)(n->last_update ? t - n->last_update : -1));
 	peer_prefixes_text(vty, n, t);
@@ -744,7 +740,6 @@ static struct json_object *peer_json(const struct neighbor *n, time_t t)
 	json_object_int_add(o, "updateRx", n->updates_rx);
 	json_object_int_add(o, "errorTx", n->errors_tx);
 	json_object_int_add(o, "errorRx", n->errors_rx);
-	json_object_int_add(o, "refuseTx", n->refuses_tx);
 	json_object_int_add(o, "lastUpdateAge",
 	                    n->last_update ? (int)(t - n->last_update) : -1);
 	json_object_object_add(o, "prefixes", arr);

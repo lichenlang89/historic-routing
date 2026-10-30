@@ -59,6 +59,21 @@ def egpd_pid(node):
     return lab.rsh(node, "cat", "/tmp/run/egpd.pid").strip()
 
 
+def restore(base, failure):
+    """任何退出路径都把运行配置还原；恢复自身失败时打印，且在没有原始异常时才抛出。"""
+    try:
+        if running_config(lab.R1) == base:
+            return
+        write_conf(lab.R1, base)
+        reload(lab.R1)
+        lab.wait("恢复原配置", lambda: running_config(lab.R1) == base, timeout=30)
+        print("PASS 失败路径已恢复原配置", flush=True)
+    except Exception as exc:  # noqa: BLE001 - 恢复失败不能掩盖最初的异常
+        print("FAIL 恢复原配置：%s" % exc, flush=True)
+        if failure is None:
+            raise
+
+
 def main():
     lab.wait("reload 前置：双方 Up 且双向路由齐备",
              lambda: lab.both_up() and lab.both_routes(), timeout=60)
@@ -66,7 +81,18 @@ def main():
     if not base:
         raise AssertionError("读不到 egpd 的运行配置")
     pid = egpd_pid(lab.R1)
+    failure = None
+    try:
+        steps(base, pid)
+    except BaseException as exc:
+        failure = exc
+        raise
+    finally:
+        restore(base, failure)
+    return 0
 
+
+def steps(base, pid):
     # 1) 追加一条 network 并重载
     write_conf(lab.R1, base + ["egp network " + EXTRA])
     out = reload(lab.R1)
@@ -103,7 +129,6 @@ def main():
     if "Up" not in lab.neighbors(lab.R1):
         raise AssertionError("恢复后邻居不是 Up")
     print("PASS 恢复原配置：只撤掉新增网络，原路由与邻居保持", flush=True)
-    return 0
 
 
 if __name__ == "__main__":

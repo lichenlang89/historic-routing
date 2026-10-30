@@ -518,12 +518,26 @@ S9.4（`doc/user/egp.rst` + man 页）**未执行**：现有构建镜像里没�
 
 - 编解码层支持 `type 8`：10 字节头 + Reason + 原始报文头的前 12 字节（RFC 904 A.5），
   单元测试覆盖往返、校验和覆盖范围、长度与 Code 非 0 的拒绝。
-- `Refuse`（Acquisition code 2）：Request 里的 Hello/Poll 超过 3600s 时回 status 6
-  （parameter problem），不改状态。
-- `Error`：坏头（reason 1）、坏数据域（reason 2）、Poll 指到未知网络（reason 3）、
+- `Error`：长度/头部错误（reason 1）、数据域问题（reason 2）、Poll 指到未知网络（reason 3）、
   Hello 间隔小于 `max(1, hello/2)` 秒（reason 4）；收到 Error 只计数，不改状态、不回复
   （RFC 904 §4.5）。**Poll 不做超频判定**——RFC 904 §4.4 的重复 Poll 是合法流程。
-- 计数器 `errors tx/rx`、`refuse tx` 进 `detail` 与 `json`。
+- `Refuse`（Acquisition code 2）只接收不生成：能解码并让邻居回 Idle，但不主动发（原因见下）。
+- 计数器 `errors tx/rx` 进 `detail` 与 `json`。
+
+### 评审后修正（PR #13 review，3 项）
+
+1. **撤回 3600s 上限**：原先在接收端拒绝 Hello/Poll > 3600s 的 Request，但 CLI 仍接受
+   `1-65535`，Confirm 也不检查，导致 `egp timers 30 3601` 这类原本合法的配置无法完成获取；
+   RFC 904 没有这个上限。现在完全去掉该上限与 Refuse 生成，FIDELITY/协议 README 同步写明
+   "Refuse 只接收不生成"的理由；计数器只保留 errors。
+2. **长度错误归 reason 1**：`report_malformed()` 改为 `malformed_reason()`，按每种 Type/Code
+   的应有长度判断——长度不符或 Type/Code/Status 非法都给 reason 1，只有头本身合法但数据域
+   不合法时才给 reason 2。lab 里新增两个字节样本：13 字节 Request（reason 1）、
+   零间隔的 14 字节 Request（reason 2）。
+3. **reload 回归补 `try/finally`**：任何退出路径都恢复原配置；恢复本身失败时打印，
+   且只在没有原始异常时才抛出，避免掩盖最初的失败。
+
+同时把 `./lab.sh reload` 加进 `.github/workflows/ci.yml`（评审指出 CI 没跑它）。
 
 ### S9.5 frr-reload 回归
 

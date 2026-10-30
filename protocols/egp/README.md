@@ -84,16 +84,17 @@ Dead neighbors and stale Updates also cause route withdrawal.
 Reconnect to zebra replays the current learned routes.
 
 Refuse and Error are generated, not only decoded (RFC 904 sections 4.5 and A.5).
-A Neighbor Acquisition Request whose Hello or Poll interval exceeds 3600 seconds
-is answered with Refuse (code 2) carrying status 6 (parameter problem); the
-neighbor state is left untouched. Error messages (type 8) report a bad header
-(reason 1), a bad data field (reason 2), a Poll naming a net this gateway does
-not serve (reason 3), and Hellos arriving closer than `max(1, hello/2)` seconds
-(reason 4). Polls are deliberately **not** rate-limited: RFC 904 section 4.4
-makes a repeated Poll a legal flow that spends the unsolicited Update budget.
-A received Error is advisory only - it is counted, does not change state, and is
-never answered with another Error. `show ip egp neighbors detail` prints the
-error and refuse counters.
+Error messages (type 8) report an unusable length or invalid Type/Code/Status
+(reason 1), a bad data field such as a zero interval or an unparsable Update
+body (reason 2), a Poll naming a net this gateway does not serve (reason 3), and
+Hellos arriving closer than `max(1, hello/2)` seconds (reason 4). Polls are
+deliberately **not** rate-limited: RFC 904 section 4.4 makes a repeated Poll a
+legal flow that spends the unsolicited Update budget. A received Error is
+advisory only - it is counted, does not change state, and is never answered with
+another Error. Refuse (Acquisition code 2) is decoded and honoured, but this
+implementation does not send one: the only trigger left would be an invented
+timer cap, and RFC 904 has none (a cap would refuse still-valid timer
+configurations). `show ip egp neighbors detail` prints the error counters.
 
 ## Ready-to-play Podman lab
 

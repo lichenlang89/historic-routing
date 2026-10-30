@@ -16,9 +16,9 @@
   输出每邻居的定时器剩余、tx/rx 计数器，以及每条学到的网络（前缀 / distance /
   gateway / 遗漏次数 / age）。
 - `clear ip egp neighbor *`：一次重启所有邻居的获取。
-- Refuse（Acquisition code 2，status 6）与 Error 报文（type 8，reason 1/2/3/4）：
-  Request 定时器无意义时回 Refuse；坏头、坏数据域、Poll 指到未知网络、Hello 过快时回 Error；
-  收到 Error 只计数、不改状态、不回复。`detail`/`json` 增加 errors/refuse 计数。
+- Error 报文（type 8）：长度/头部错误（reason 1）、数据域错误（reason 2）、Poll 指到未知网络
+  （reason 3）、Hello 过快（reason 4）；收到 Error 只计数、不改状态、不回复。
+  Refuse 只接收不生成（RFC 904 没有定时器上限，加了会拒绝仍然合法的配置）。
 - `lab.sh reload`：frr-reload 重载 egpd 配置的回归（不重启、不抖邻居、可幂等）。
 
 ## [0.1.1] - 2026-10-25

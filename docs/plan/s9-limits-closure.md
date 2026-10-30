@@ -59,6 +59,19 @@ cd lab/egp && ./lab.sh up && ./lab.sh test-updates && ./lab.sh test-protocol \
   修掉后通过。
 - Error/Refuse 属于新增能力，没有"修复前失败"的对照可做，这一点在 PR 里也写明了。
 
+## 评审后修正（PR #13 review）
+
+评审（基于 head `d166e17`）提了 3 项 P2，全部照改：
+
+1. **3600s 上限撤回**：新增的接收端上限与 CLI 的 `1-65535`、Confirm 路径不一致，
+   会让 `egp timers 30 3601` 这类原本合法的配置拿不到邻居。现在去掉上限与 Refuse 生成，
+   `FIDELITY.md` / 协议 README 写明"Refuse 只接收不生成"的理由。
+2. **长度错误归 reason 1**：`malformed_reason()` 按每种 Type/Code 的应有长度判断；
+   lab 增加 13 字节 Request（reason 1）与零间隔 14 字节 Request（reason 2）两个样本。
+3. **reload 回归加 `try/finally`**：任何退出路径恢复原配置，恢复失败只在无原始异常时抛出。
+
+另外按评审提示，把 `./lab.sh reload` 加进 `.github/workflows/ci.yml`。
+
 ## 未解决 / 下一步
 
 - S9.4 需要 sphinx 环境（`dnf install python3-sphinx`）才能验证，未做。

@@ -6,9 +6,6 @@
 #include <stdint.h>
 #define EGP_MAX_PKT 1500
 #define EGP_MAX_ROUTES 255
-/* RFC 904 A.1: Hello/Poll are 16-bit seconds; an interval beyond an hour is
- * not usable, so it is treated as nonsense when a Request proposes it. */
-#define EGP_MAX_INTERVAL 3600
 #define EGP_UPDATE 1
 #define EGP_POLL 2
 #define EGP_ACQUIRE 3
@@ -20,14 +17,11 @@
 #define EGP_ERR_NOINFO 3
 #define EGP_ERR_RATE 4
 #define EGP_ERR_NO_RESPONSE 5
-/* RFC 904 A.1 acquisition status codes used by Refuse. */
+/* RFC 904 A.1 acquisition status codes (mode and going-down only; this
+ * implementation does not generate Refuse, see docs/FIDELITY.md). */
 #define EGP_STATUS_ACTIVE 1
 #define EGP_STATUS_PASSIVE 2
-#define EGP_STATUS_RESOURCES 3
-#define EGP_STATUS_ADMIN 4
 #define EGP_STATUS_GOING_DOWN 5
-#define EGP_STATUS_PARAM 6
-#define EGP_STATUS_VIOLATION 7
 struct egp_route {
 	struct in_addr net, gateway;
 	uint8_t distance;

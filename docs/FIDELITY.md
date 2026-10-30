@@ -17,9 +17,9 @@ EGP 在 IETF 的状态是 **Historic**；这里的实现是实验性的 **stub g
 | --- | --- | --- | --- | --- |
 | Update | 1 | 是 | 是 | 携带 `(网络, 网关, distance)`；255 立即撤路，连续三次遗漏后老化 |
 | Poll | 2 | 是 | 是 | 双方在 Up 时按 `poll` 间隔询问；收到 Poll 用 Update 回答 |
-| Acquisition | 3 | 是（code 0/1/2/3/4） | 是 | 邻居获取：Request/Confirm/Refuse/Cease/Cease-ack；Request 的 Hello/Poll 超过 3600s 时回 Refuse(status 6) |
+| Acquisition | 3 | 是（code 0/1/3/4） | 是 | 邻居获取：Request/Confirm/Cease/Cease-ack；**code 2 = Refuse 能解码并处理，但本实现不主动发送**（原因见 §4） |
 | Reachability | 5 | 是（code 0/1） | 是 | 本实现用作邻居存活探询（code 0）与确认（code 1） |
-| Error | 8 | 是（reason 1–4） | 是 | 坏头/坏数据域/未知网络/超频轮询；reason 5（no response）不主动生成；收到 Error 只计数、不改状态、不回复 |
+| Error | 8 | 是（reason 1–4） | 是 | 长度/头部错误（1）、数据域错误（2）、Poll 指到未知网络（3）、Hello 间隔过小（4）；reason 5 不生成；收到 Error 只计数、不改状态、不回复 |
 
 ### 报文级简化
 
@@ -105,11 +105,15 @@ Hello/Poll 最小间隔独立验证、协商，不要求 Poll 大于等于 Hello
   `clear ip egp neighbor <ip>|*`；配置持久化（`write memory` 到集成 `frr.conf`）
 - `show ip route egp` 与 `redistribute egp`（`lib/log.c` 的 `proto_redistnum` 映射随 `0001` 应用，
   默认构建即生效）
-- Refuse（`Acquisition` code 2）与 Error（`type 8`，reason 1/2/3/4）：Request 的定时器无意义时回
-  Refuse(status 6)；坏头/坏数据域、Poll 指到未知网络、Hello 间隔小于 `max(1, hello/2)` 秒时回 Error。
+- Error（`type 8`，reason 1/2/3/4）：严重程度按 RFC 904 A.5 区分——**长度错误与非法
+  Type/Code/Status 归 reason 1**，数据域问题（如零间隔、无法解析的 Update 体）归 reason 2，
+  Poll 指到本网关不服务的网络归 reason 3，Hello 间隔小于 `max(1, hello/2)` 秒归 reason 4。
   Poll **不**做超频判定：RFC 904 §4.4 的"重复 Poll"是合法流程（第二次回复消耗主动更新预算），
-  把它当超频会打断已定义的行为。
-  收到的 Error 只计数，不改状态也不回复（RFC 904 §4.5）。
+  把它当超频会打断已定义的行为。收到的 Error 只计数，不改状态也不回复（RFC 904 §4.5）。
+- Refuse（`Acquisition` code 2）**只接收不生成**：能解码并让邻居回 Idle，但本实现不主动发。
+  原因是"资源不足"在 CLI 层就被 16 邻居上限挡住，未配置来源的 Request 又根本收不到；
+  剩下的唯一可发场景是给定时器加一个上限，而 RFC 904 没有这个上限，加了会让
+  `egp timers 30 3601` 这类仍然合法的配置无法完成获取（评审指出后已回退）。
 - vtysh 集成（`VTYSH_EGPD = 0x400000`）
 
 **实验性简化（有意为之，改动需单独提交）**

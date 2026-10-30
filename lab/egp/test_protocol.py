@@ -342,8 +342,9 @@ def timer_negotiation():
 
 
 def error_messages():
-    """RFC 904 4.5 / A.5: Refuse for nonsense timers, Error for bad format and
-    excessive polling, and never an Error in reply to another Error."""
+    """RFC 904 4.5 / A.5: a bad length is reason 1, a bad data field is reason 2,
+    a Poll for an unknown net is reason 3, a Hello that arrives too soon is
+    reason 4, and an Error is never answered with another Error."""
     lab.wait('initial error routes', lambda: lab.both_up() and lab.both_routes())
     shared = lab.IP1.rsplit('.', 1)[0] + '.0'
     shared_hex = ''.join('%02x' % int(o) for o in shared.split('.'))
@@ -352,36 +353,40 @@ def error_messages():
     try:
         with Peer(lab.R2, lab.IP2, lab.IP1, lab.AS2) as p:
             p.command(plan={'hello': True, 'updates': False})
-            # Nonsense Hello interval in a Request -> Refuse with status 6.
-            p.command(send=[3, 0, 0, 900, 'ffff0001'])
-            ev = p.wait(lambda e: e.get('recv', [])[:2] == [3, 2], timeout=5)['recv']
-            assert ev[2] == 6, ev
-            assert ev[3] == 900, ev
-            assert 'Up' in lab.neighbors(lab.R1), 'Refuse must not change state'
-            print('PASS Refuse(status 6) for nonsense polling intervals', flush=True)
+            # 13-octet Request (RFC 904 A.1 wants 14): bad length -> reason 1.
+            p.command(send=[3, 0, 0, 900, '001e00'])
+            ev = p.wait(lambda e: e.get('recv', [])[:2] == [8, 0], timeout=5)
+            assert ev['body'][:4] == '0001', ev
+            print('PASS Error(reason 1) for a truncated Request', flush=True)
+
+            # Same length, zero Hello interval: bad data field -> reason 2.
+            p.command(send=[3, 0, 0, 901, '00000078'])
+            ev = p.wait(lambda e: e.get('recv', [])[:2] == [8, 0], timeout=5)
+            assert ev['body'][:4] == '0002', ev
+            print('PASS Error(reason 2) for a nonsense Request interval', flush=True)
 
             # Poll for a net this gateway does not serve -> reason 3.
-            p.command(send=[2, 0, 1, 901, '0000' + other_hex])
+            p.command(send=[2, 0, 1, 902, '0000' + other_hex])
             ev = p.wait(lambda e: e.get('recv', [])[:2] == [8, 0], timeout=5)
             assert ev['body'][:4] == '0003', ev
             print('PASS Error(reason 3) for a Poll about an unknown net', flush=True)
 
             # Two Hellos inside half the minimum interval -> reason 4.
-            p.command(send=[5, 0, 1, 902, ''])
             p.command(send=[5, 0, 1, 903, ''])
+            p.command(send=[5, 0, 1, 904, ''])
             ev = p.wait(lambda e: e.get('recv', [])[:2] == [8, 0], timeout=5)
             assert ev['body'][:4] == '0004', ev
             assert len(ev['body']) == 28, 'Error body must be reason + 12 header octets'
             print('PASS Error(reason 4) for excessive polling rate', flush=True)
 
             # Malformed Update body (counts that cannot be parsed) -> reason 2.
-            p.command(send=[1, 0, 1, 904, '0101' + shared_hex])
+            p.command(send=[1, 0, 1, 905, '0101' + shared_hex])
             ev = p.wait(lambda e: e.get('recv', [])[:2] == [8, 0], timeout=5)
             assert ev['body'][:4] == '0002', ev
             print('PASS Error(reason 2) for a malformed Update', flush=True)
 
             # An Error message must never be answered by another Error.
-            p.command(send=[8, 0, 1, 905, '0002' + '00' * 12])
+            p.command(send=[8, 0, 1, 906, '0002' + '00' * 12])
             try:
                 p.wait(lambda e: e.get('recv', [])[:2] == [8, 0], timeout=2)
             except TimeoutError:
