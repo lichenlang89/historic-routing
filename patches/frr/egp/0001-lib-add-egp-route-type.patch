@@ -1,13 +1,18 @@
 From df10a318a1ceabe52c1fb721ad97fffe6a5f2d62 Mon Sep 17 00:00:00 2001
 From: Chenlang Li <Cc1580155hsg@163.com>
 Date: Sat, 24 Oct 2026 19:54:17 +0800
-Subject: [PATCH 1/5] lib: add egp route type
+Subject: [PATCH 1/4] lib: add egp route type
+
+The route type and the name that selects it (proto_redistnum) belong to the
+same capability: `show ip route egp` and `redistribute egp` must work in the
+default build, not only with an optional patch.  Merged from the former 0005.
 
 ---
  lib/command.h       | 1 +
+ lib/log.c           | 2 ++
  lib/route_types.txt | 3 +++
  lib/subdir.am       | 3 +++
- 3 files changed, 7 insertions(+)
+ 4 files changed, 9 insertions(+)
 
 diff --git a/lib/command.h b/lib/command.h
 index fca6c5f66a..7524dc0a4d 100644
@@ -53,6 +58,19 @@ index f6f802d559..cbfebe4447 100644
  
  if BABELD
  rt_enabled += --enabled babeld
+diff --git a/lib/log.c b/lib/log.c
+index 6c35387e9c..4971381cbb 100644
+--- a/lib/log.c
++++ b/lib/log.c
+@@ -560,6 +560,8 @@ uint8_t proto_redistnum(int afi, const char *s)
+ 			return ZEBRA_ROUTE_STATIC;
+ 		else if (strmatch(s, "rip"))
+ 			return ZEBRA_ROUTE_RIP;
++		else if (strmatch(s, "egp"))
++			return ZEBRA_ROUTE_EGP;
+ 		else if (strmatch(s, "eigrp"))
+ 			return ZEBRA_ROUTE_EIGRP;
+ 		else if (strmatch(s, "ospf"))
 -- 
 2.53.0.windows.3
 

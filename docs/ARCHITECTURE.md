@@ -44,7 +44,7 @@ protocols/egp/tests/test_packet.c  →  $FRR/egpd/test_packet.c
 | zebra | RIB 管理距离 + 内核协议号映射 | 0002 |
 | vtysh | client 表项 + `VTYSH_*` 位 + 节点注册 | 0003 |
 | build | `--enable-<proto>`、`include <proto>/subdir.am`、daemons 文件、DAEMONS 顺序、测试注册 | 0004 |
-| 可选 | 让别的 daemon 能 `redistribute <proto>` | 0005 |
+| lib（可选） | 让别的 daemon 能 `redistribute <proto>` | 0005（EGP 已并入 0001） |
 
 ## 数据流（以 EGP 为例）
 
@@ -112,7 +112,7 @@ patches/frr/<name>/
 ├── 0002-zebra-<proto>.patch
 ├── 0003-vtysh-<proto>.patch
 ├── 0004-build-<proto>.patch
-└── 0005-lib-redistribute-<proto>.patch   （可选，默认不应用）
+└── 0005-lib-redistribute-<proto>.patch   （可选，默认不应用；EGP 无此文件，已并入 0001）
 ```
 
 `PROTOCOL.meta` 是**唯一登记处**：`DAEMON / CONFIGURE_ENABLE / CONDITIONAL /
@@ -168,7 +168,7 @@ VTYSH_SYMBOL / VTYSH_BIT / CLI_NODE / PATCH_DIR / SOURCES / EXTRAS / TEST_BINARY
 流程（与 S4 相同，只是把"egp"换成列表）：
 
 1. `fetch-frr.sh` 取固定基线；
-2. `apply-patches.sh` 按 **登记顺序** 逐个协议应用 `0001-0004`（可选 `0005`），
+2. `apply-patches.sh` 按 **登记顺序** 逐个协议应用 `0001-0004`（协议自带 `0005` 时按需应用），
    每个协议应用后立刻做"登记 ↔ 补丁"一致性断言；
 3. `integrate-sources.sh` 把每个协议的源码复制到 `$FRR/<daemon>/`（清空后复制 + SHA256 对照）；
 4. `configure --enable-<a> --enable-<b> …`，一次 `make` 出 `zebra`、`vtysh`、

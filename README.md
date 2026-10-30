@@ -60,9 +60,9 @@ show running-config
 未配置 EGP 时，本地 AS 为 0，邻居列表为空。配置示例见
 [EGP 配置说明](protocols/egp/README.md#configuration)。
 
-默认构建未启用可选补丁 `0005`，因此 `show ip route egp` 会返回
-`Unknown route type`；查看 EGP 路由请用 `show ip route` 中的 `G` 行，
-或 `show ip route json` 中的 `"protocol": "egp"`。
+`show ip route egp`、`show ip route json` 里的 `"protocol": "egp"` 和
+`redistribute egp` 在默认构建里都可用（`lib/log.c` 的 `proto_redistnum` 映射随
+`0001` 补丁一起应用）；文本 `show ip route` 里的 `G` 行仍然是最直观的查看方式。
 
 程序和配置文件使用独立路径，但 Zebra 会修改所在网络命名空间的内核路由。
 请在实验机上运行，避免与系统 FRR 的 Zebra 同时管理同一张路由表；
@@ -109,8 +109,9 @@ export LAB_PREFIX=/opt/historic-routing/27f287be9
 ```
 
 默认构建目录为 `build/`，安装产物在 `build/prefix/`，日志和构建指纹也保存在构建目录中。
-可用 `--prefix /absolute/path` 指定安装位置，
-用 `--with-optional` 启用 `0005` 补丁，使 EGP 协议名选择器可用。
+可用 `--prefix /absolute/path` 指定安装位置。
+`--with-optional` 仍保留给未来的协议（各协议可自带 `0005` 可选补丁）；EGP 的
+`redistribute egp` 支持已并入必需补丁 `0001`，不需要该开关。
 
 构建、测试和双路由器实验的统一验证入口：
 

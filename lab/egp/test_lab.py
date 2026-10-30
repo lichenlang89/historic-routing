@@ -9,8 +9,8 @@
   * 参数全部来自环境变量（由 lab.sh 从 lab.env 注入），脚本内无个人路径。
 
 关于查询方式：RIB 一律用 `show ip route json` 解析（protocol=="egp"、distance==140），
-**不用** `show ip route egp`——那个选择器依赖可选补丁 0005（lib/log.c 的
-proto_redistnum 认识 "egp"），本项目默认不启用它。文本里再确认显示码 'G'。
+文本里再确认显示码 'G'。`show ip route egp` 自 S9 起在默认构建里可用，可作为
+独立的第二证据（它走 `proto_redistnum` 的名字解析，和 JSON 不是同一条代码路径）。
 
 由 lab.sh test 调用；也可手动：
   LAB_R1=egp-lab-r1 LAB_R2=egp-lab-r2 ... python3 test_lab.py

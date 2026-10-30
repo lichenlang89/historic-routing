@@ -100,10 +100,9 @@ cd lab/egp
 
 ## 已知限制
 
-1. **不能用 `show ip route egp`**：那个选择器依赖可选补丁 `0005`
-   （`lib/log.c` 的 `proto_redistnum` 认识 `"egp"`），本项目默认不启用它。
-   测试与 `status` 一律用 `show ip route json` 或 `show ip route` 文本里的 `G` 行。
-   若要让该命令可用，构建时加 `scripts/build.sh --with-optional`。
+1. `show ip route egp` 自 S9 起在默认构建里可用（`proto_redistnum` 的 `"egp"` 映射随
+   补丁 `0001` 应用）。测试仍以 `show ip route json` 解析为准（`protocol=="egp"`、
+   `distance==140`），文本里再确认显示码 `G`——两种方式互为独立证据。
 2. **只在当前开发机（RHEL 10.1 + podman 5.6）验证过**。
    已在不改变镜像/前缀的前提下换目录、换容器名、换网段跑通，
    但尚未在"全新机器"上验证（见 `docs/HISTORY.md` 的 S5 记录）。

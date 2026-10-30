@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+
+- `redistribute egp` 与 `show ip route egp` 在默认构建里可用：`lib/log.c` 的
+  `proto_redistnum` 映射由原可选补丁 `0005` 并入必需补丁 `0001`。EGP 补丁集由
+  5 个变成 4 个，`--with-optional` 只为未来协议保留。
+- 因此 `patches/frr/SHA256SUMS` 与 `0001-0004` 的哈希全部更新；`0001` 现在改
+  4 个文件（新增 `lib/log.c`）。
+
 ## [0.1.1] - 2026-10-25
 
 首个带安装包的发布版（实验性，非生产用途）。

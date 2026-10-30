@@ -102,6 +102,8 @@ Hello/Poll 最小间隔独立验证、协商，不要求 Poll 大于等于 Hello
 - ZAPI 下发（类型 `ZEBRA_ROUTE_EGP`=32、显示码 `G`、管理距离 **140**），由 zebra 装内核
 - zebra 重连后重放路由；egpd 重启后邻居与路由重建
 - `show ip egp neighbors`；配置持久化（`write memory` 到集成 `frr.conf`）
+- `show ip route egp` 与 `redistribute egp`（`lib/log.c` 的 `proto_redistnum` 映射随 `0001` 应用，
+  默认构建即生效）
 - vtysh 集成（`VTYSH_EGPD = 0x400000`）
 
 **实验性简化（有意为之，改动需单独提交）**
@@ -109,7 +111,7 @@ Hello/Poll 最小间隔独立验证、协商，不要求 Poll 大于等于 Hello
 - 只支持**默认 VRF**、IPv4、**有类网络**；无 IPv6、无 CIDR、无 VRF 感知
 - 每进程最多 **16 个邻居**（`MAX_PEERS`），每邻居最多 255 条网络
 - 同前缀多邻居时不做 metric 比较，取第一个仍存活邻居的宣告
-- 无认证、无 route-map、无 `redistribute egp`（那是可选补丁 0005，默认不启用）
+- 无认证、无 route-map（`redistribute egp` 自 S9 起默认可用，不再依赖可选补丁）
 - Request/Cease 有重传及 abort timer；Poll 丢失后等待下一个周期，未实现可选的 T1 快速重试
 - 日志走文件/stdout，未接 FRR 的结构化日志与 YANG northbound
 
