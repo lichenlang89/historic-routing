@@ -1,0 +1,55 @@
+historic-routing-runtime-0.1.1-0.1.dev00dcc4f.el10.aarch64
+historic-routing-egp-0.1.1-0.1.dev00dcc4f.el10.aarch64
+OLD_PAIRED_VERSION=0.1.1-0.1.dev00dcc4f.el10
+MISMATCH_PROBE rc=1
+error: Failed dependencies:
+	historic-routing-abi = bb070e0-27f287be9 is needed by historic-routing-egp-0.1.1-0.2.devbb070e0.el10.aarch64
+	historic-routing-runtime(aarch-64) = 0.1.1-0.2.devbb070e0.el10 is needed by historic-routing-egp-0.1.1-0.2.devbb070e0.el10.aarch64
+
+MISMATCH_PROBE rc=1
+error: Failed dependencies:
+	historic-routing-abi = 00dcc4f-27f287be9 is needed by (installed) historic-routing-egp-0.1.1-0.1.dev00dcc4f.el10.aarch64
+	historic-routing-runtime(aarch-64) = 0.1.1-0.1.dev00dcc4f.el10 is needed by (installed) historic-routing-egp-0.1.1-0.1.dev00dcc4f.el10.aarch64
+
+Updating Subscription Management repositories.
+Dependencies resolved.
+================================================================================
+ Package                  Arch    Version                    Repository    Size
+================================================================================
+Upgrading:
+ historic-routing-egp     aarch64 0.1.1-0.2.devbb070e0.el10  @commandline  58 k
+ historic-routing-runtime aarch64 0.1.1-0.2.devbb070e0.el10  @commandline 1.7 M
+
+Transaction Summary
+================================================================================
+Upgrade  2 Packages
+
+Total size: 1.8 M
+Downloading Packages:
+Running transaction check
+Transaction check succeeded.
+Running transaction test
+Transaction test succeeded.
+Running transaction
+  Preparing        :                                                        1/1
+  Upgrading        : historic-routing-runtime-0.1.1-0.2.devbb070e0.el10.a   1/4
+  Running scriptlet: historic-routing-runtime-0.1.1-0.2.devbb070e0.el10.a   1/4
+  Upgrading        : historic-routing-egp-0.1.1-0.2.devbb070e0.el10.aarch   2/4
+warning: /opt/historic-routing/27f287be9/etc/frr/egpd.conf created as /opt/historic-routing/27f287be9/etc/frr/egpd.conf.rpmnew
+
+  Cleanup          : historic-routing-egp-0.1.1-0.1.dev00dcc4f.el10.aarch   3/4
+  Running scriptlet: historic-routing-runtime-0.1.1-0.1.dev00dcc4f.el10.a   4/4
+  Cleanup          : historic-routing-runtime-0.1.1-0.1.dev00dcc4f.el10.a   4/4
+  Running scriptlet: historic-routing-runtime-0.1.1-0.1.dev00dcc4f.el10.a   4/4
+Installed products updated.
+
+Upgraded:
+  historic-routing-egp-0.1.1-0.2.devbb070e0.el10.aarch64
+  historic-routing-runtime-0.1.1-0.2.devbb070e0.el10.aarch64
+
+Complete!
+
+Terminated
+Failed to reset failed state of unit historic-routing-egpd.service: Unit historic-routing-egpd.service not loaded.
+Failed to reset failed state of unit historic-routing-zebra.service: Unit historic-routing-zebra.service not loaded.
+NATIVE_SERVICE_RC=143

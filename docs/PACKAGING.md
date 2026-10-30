@@ -98,7 +98,7 @@ ldconfig 缓存），而是在打包时用 `patchelf --set-rpath '$ORIGIN/../lib
 | `historic-routing-egpd.service`（或 `egpd.service`） | 协议包 | `Requires=zebra.service`、`After=zebra.service` |
 | `/etc/.../daemons` | runtime 提供骨架，协议包用 `%config(noreplace)` 追加 `egpd=yes` | 追加而不是覆盖，否则多协议装在一起会互相清掉 |
 | `/etc/.../frr.conf` | 用户维护，`%config(noreplace)` | 协议包**不**写配置，只在文档里给示例 |
-| SELinux/AppArmor | runtime | 协议包不带策略；若需要 `frr_t` 域，统一在 runtime 里放（未验证） |
+| SELinux/AppArmor | runtime | 协议包不带策略；已有[手动 frr_t 实验配置](../packaging/selinux/README.md)，尚未集成安装包 |
 | systemd 的 `watchfrr` | runtime（可选） | 本项目目前不依赖它，daemon 崩溃恢复靠自己（见 FIDELITY 的"未实现"） |
 
 ## 6. 卸载与共存
@@ -133,7 +133,7 @@ rpmbuild / dpkg-buildpackage：改 --prefix 为 /opt/historic-routing/<commit>
    包括 `vtysh -c 'show daemons'` 同时看到 zebra/egpd。
 3. ~~**多协议 `daemons` 文件的合并**~~ → 目前只用 systemd unit（不读 `daemons` 文件），
    多协议合并问题暂时不存在；等真的要在一个包里装多个协议时再处理。
-4. **SELinux 策略**：`frr_t` 域下 zebra 需要的能力与容器实验不同，未验证。
+4. **SELinux 策略**：RHEL 10.2/aarch64 的 frr_t 手动配置已实测；默认包不是自动受限部署，发行版覆盖和策略安装/卸载集成仍是正式发布门禁。
 5. 包签名与仓库托管：未规划（不属于 S7）。
 
 ## 9. DEB 实现状态（S8-B，已在 Debian 13 实测）
@@ -249,3 +249,10 @@ tar xJf historic-routing-<short>-src.tar.xz && cd historic-routing-<short>
     --work /tmp/build  # 加 HR_FRR_MIRROR_TARBALL=... 或直接用包内 vendor/
 ./scripts/package-rpm.sh --git-sha <完整提交> --frr-repo file:///path/to/unpacked/mirror
 ```
+
+## 合并后安装包验收（2026-10-31）
+
+实际安装 unit 的 reload、匹配包升级/回退、配置保留及 SELinux 范围见
+[验收证据](evidence/package-service-20261031/README.md)；复测见
+[packaging/TESTING.md](../packaging/TESTING.md)。本轮为 RHEL aarch64 与 Debian arm64
+容器用户态，不扩大为 x86 或完整 Debian 宿主验收，保持实验性/预发布。

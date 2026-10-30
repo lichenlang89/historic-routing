@@ -1,0 +1,242 @@
+test_configuration_bytes_after_failure (__main__.DriverRegression.test_configuration_bytes_after_failure) ...
+  test_configuration_bytes_after_failure (__main__.DriverRegression.test_configuration_bytes_after_failure) (driver='test_installed_reload') ... FAIL
+  test_configuration_bytes_after_failure (__main__.DriverRegression.test_configuration_bytes_after_failure) (driver='test_package_lifecycle') ... FAIL
+test_configuration_bytes_on_success (__main__.DriverRegression.test_configuration_bytes_on_success) ...
+  test_configuration_bytes_on_success (__main__.DriverRegression.test_configuration_bytes_on_success) (driver='test_installed_reload', data=b'hostname original\r\n! comment  \r\n') ... FAIL
+  test_configuration_bytes_on_success (__main__.DriverRegression.test_configuration_bytes_on_success) (driver='test_installed_reload', data=b'hostname original\r\n! no final newline  ') ... FAIL
+  test_configuration_bytes_on_success (__main__.DriverRegression.test_configuration_bytes_on_success) (driver='test_package_lifecycle', data=b'hostname original\r\n! comment  \r\n') ... FAIL
+  test_configuration_bytes_on_success (__main__.DriverRegression.test_configuration_bytes_on_success) (driver='test_package_lifecycle', data=b'hostname original\r\n! no final newline  ') ... FAIL
+test_each_unit_is_rejected_after_each_transaction (__main__.DriverRegression.test_each_unit_is_rejected_after_each_transaction) ...
+  test_each_unit_is_rejected_after_each_transaction (__main__.DriverRegression.test_each_unit_is_rejected_after_each_transaction) (service='egpd', state='active', pid='999', transaction=1) ... FAIL
+  test_each_unit_is_rejected_after_each_transaction (__main__.DriverRegression.test_each_unit_is_rejected_after_each_transaction) (service='egpd', state='active', pid='999', transaction=2) ... FAIL
+  test_each_unit_is_rejected_after_each_transaction (__main__.DriverRegression.test_each_unit_is_rejected_after_each_transaction) (service='egpd', state='active', pid='999', transaction=3) ... FAIL
+  test_each_unit_is_rejected_after_each_transaction (__main__.DriverRegression.test_each_unit_is_rejected_after_each_transaction) (service='egpd', state='activating', pid='0', transaction=1) ... FAIL
+  test_each_unit_is_rejected_after_each_transaction (__main__.DriverRegression.test_each_unit_is_rejected_after_each_transaction) (service='egpd', state='activating', pid='0', transaction=2) ... FAIL
+  test_each_unit_is_rejected_after_each_transaction (__main__.DriverRegression.test_each_unit_is_rejected_after_each_transaction) (service='egpd', state='activating', pid='0', transaction=3) ... FAIL
+  test_each_unit_is_rejected_after_each_transaction (__main__.DriverRegression.test_each_unit_is_rejected_after_each_transaction) (service='egpd', state='inactive', pid='999', transaction=1) ... FAIL
+  test_each_unit_is_rejected_after_each_transaction (__main__.DriverRegression.test_each_unit_is_rejected_after_each_transaction) (service='egpd', state='inactive', pid='999', transaction=2) ... FAIL
+  test_each_unit_is_rejected_after_each_transaction (__main__.DriverRegression.test_each_unit_is_rejected_after_each_transaction) (service='egpd', state='inactive', pid='999', transaction=3) ... FAIL
+  test_each_unit_is_rejected_after_each_transaction (__main__.DriverRegression.test_each_unit_is_rejected_after_each_transaction) (service='zebra', state='active', pid='999', transaction=1) ... FAIL
+  test_each_unit_is_rejected_after_each_transaction (__main__.DriverRegression.test_each_unit_is_rejected_after_each_transaction) (service='zebra', state='active', pid='999', transaction=2) ... FAIL
+  test_each_unit_is_rejected_after_each_transaction (__main__.DriverRegression.test_each_unit_is_rejected_after_each_transaction) (service='zebra', state='active', pid='999', transaction=3) ... FAIL
+  test_each_unit_is_rejected_after_each_transaction (__main__.DriverRegression.test_each_unit_is_rejected_after_each_transaction) (service='zebra', state='activating', pid='0', transaction=1) ... FAIL
+  test_each_unit_is_rejected_after_each_transaction (__main__.DriverRegression.test_each_unit_is_rejected_after_each_transaction) (service='zebra', state='activating', pid='0', transaction=2) ... FAIL
+  test_each_unit_is_rejected_after_each_transaction (__main__.DriverRegression.test_each_unit_is_rejected_after_each_transaction) (service='zebra', state='activating', pid='0', transaction=3) ... FAIL
+  test_each_unit_is_rejected_after_each_transaction (__main__.DriverRegression.test_each_unit_is_rejected_after_each_transaction) (service='zebra', state='inactive', pid='999', transaction=1) ... FAIL
+  test_each_unit_is_rejected_after_each_transaction (__main__.DriverRegression.test_each_unit_is_rejected_after_each_transaction) (service='zebra', state='inactive', pid='999', transaction=2) ... FAIL
+  test_each_unit_is_rejected_after_each_transaction (__main__.DriverRegression.test_each_unit_is_rejected_after_each_transaction) (service='zebra', state='inactive', pid='999', transaction=3) ... FAIL
+
+======================================================================
+FAIL: test_configuration_bytes_after_failure (__main__.DriverRegression.test_configuration_bytes_after_failure) (driver='test_installed_reload')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<work>", line 149, in test_configuration_bytes_after_failure
+    error, _ = self.exercise(driver, b'hostname original\r\n! comment  \r\n', fault)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<work>", line 134, in exercise
+    self.assertEqual(path.read_bytes(), original, path.name)
+AssertionError: b'hostname original\n! comment  \n' != b'hostname original\r\n! comment  \r\n' : egpd.conf
+
+======================================================================
+FAIL: test_configuration_bytes_after_failure (__main__.DriverRegression.test_configuration_bytes_after_failure) (driver='test_package_lifecycle')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<work>", line 149, in test_configuration_bytes_after_failure
+    error, _ = self.exercise(driver, b'hostname original\r\n! comment  \r\n', fault)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<work>", line 134, in exercise
+    self.assertEqual(path.read_bytes(), original, path.name)
+AssertionError: b'hostname original\n! comment  \n' != b'hostname original\r\n! comment  \r\n' : frr.conf
+
+======================================================================
+FAIL: test_configuration_bytes_on_success (__main__.DriverRegression.test_configuration_bytes_on_success) (driver='test_installed_reload', data=b'hostname original\r\n! comment  \r\n')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<work>", line 143, in test_configuration_bytes_on_success
+    error, _ = self.exercise(driver, data)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<work>", line 134, in exercise
+    self.assertEqual(path.read_bytes(), original, path.name)
+AssertionError: b'hostname original\n! comment  \n' != b'hostname original\r\n! comment  \r\n' : egpd.conf
+
+======================================================================
+FAIL: test_configuration_bytes_on_success (__main__.DriverRegression.test_configuration_bytes_on_success) (driver='test_installed_reload', data=b'hostname original\r\n! no final newline  ')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<work>", line 143, in test_configuration_bytes_on_success
+    error, _ = self.exercise(driver, data)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<work>", line 134, in exercise
+    self.assertEqual(path.read_bytes(), original, path.name)
+AssertionError: b'hostname original\n! no final newline  ' != b'hostname original\r\n! no final newline  ' : egpd.conf
+
+======================================================================
+FAIL: test_configuration_bytes_on_success (__main__.DriverRegression.test_configuration_bytes_on_success) (driver='test_package_lifecycle', data=b'hostname original\r\n! comment  \r\n')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<work>", line 143, in test_configuration_bytes_on_success
+    error, _ = self.exercise(driver, data)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<work>", line 134, in exercise
+    self.assertEqual(path.read_bytes(), original, path.name)
+AssertionError: b'hostname original\n! comment  \n' != b'hostname original\r\n! comment  \r\n' : frr.conf
+
+======================================================================
+FAIL: test_configuration_bytes_on_success (__main__.DriverRegression.test_configuration_bytes_on_success) (driver='test_package_lifecycle', data=b'hostname original\r\n! no final newline  ')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<work>", line 143, in test_configuration_bytes_on_success
+    error, _ = self.exercise(driver, data)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<work>", line 134, in exercise
+    self.assertEqual(path.read_bytes(), original, path.name)
+AssertionError: b'hostname original\n! no final newline  ' != b'hostname original\r\n! no final newline  ' : frr.conf
+
+======================================================================
+FAIL: test_each_unit_is_rejected_after_each_transaction (__main__.DriverRegression.test_each_unit_is_rejected_after_each_transaction) (service='egpd', state='active', pid='999', transaction=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<work>", line 162, in test_each_unit_is_rejected_after_each_transaction
+    self.assertIn('historic-routing-' + service + '.service', str(error))
+AssertionError: 'historic-routing-egpd.service' not found in 'Package scripts unexpectedly started egpd'
+
+======================================================================
+FAIL: test_each_unit_is_rejected_after_each_transaction (__main__.DriverRegression.test_each_unit_is_rejected_after_each_transaction) (service='egpd', state='active', pid='999', transaction=2)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<work>", line 162, in test_each_unit_is_rejected_after_each_transaction
+    self.assertIn('historic-routing-' + service + '.service', str(error))
+AssertionError: 'historic-routing-egpd.service' not found in 'Package scripts unexpectedly started egpd'
+
+======================================================================
+FAIL: test_each_unit_is_rejected_after_each_transaction (__main__.DriverRegression.test_each_unit_is_rejected_after_each_transaction) (service='egpd', state='active', pid='999', transaction=3)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<work>", line 162, in test_each_unit_is_rejected_after_each_transaction
+    self.assertIn('historic-routing-' + service + '.service', str(error))
+AssertionError: 'historic-routing-egpd.service' not found in 'Package scripts unexpectedly started egpd'
+
+======================================================================
+FAIL: test_each_unit_is_rejected_after_each_transaction (__main__.DriverRegression.test_each_unit_is_rejected_after_each_transaction) (service='egpd', state='activating', pid='0', transaction=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<work>", line 160, in test_each_unit_is_rejected_after_each_transaction
+    self.assertIsInstance(error, AssertionError)
+AssertionError: None is not an instance of <class 'AssertionError'>
+
+======================================================================
+FAIL: test_each_unit_is_rejected_after_each_transaction (__main__.DriverRegression.test_each_unit_is_rejected_after_each_transaction) (service='egpd', state='activating', pid='0', transaction=2)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<work>", line 160, in test_each_unit_is_rejected_after_each_transaction
+    self.assertIsInstance(error, AssertionError)
+AssertionError: None is not an instance of <class 'AssertionError'>
+
+======================================================================
+FAIL: test_each_unit_is_rejected_after_each_transaction (__main__.DriverRegression.test_each_unit_is_rejected_after_each_transaction) (service='egpd', state='activating', pid='0', transaction=3)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<work>", line 160, in test_each_unit_is_rejected_after_each_transaction
+    self.assertIsInstance(error, AssertionError)
+AssertionError: None is not an instance of <class 'AssertionError'>
+
+======================================================================
+FAIL: test_each_unit_is_rejected_after_each_transaction (__main__.DriverRegression.test_each_unit_is_rejected_after_each_transaction) (service='egpd', state='inactive', pid='999', transaction=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<work>", line 162, in test_each_unit_is_rejected_after_each_transaction
+    self.assertIn('historic-routing-' + service + '.service', str(error))
+AssertionError: 'historic-routing-egpd.service' not found in 'Package scripts unexpectedly started egpd'
+
+======================================================================
+FAIL: test_each_unit_is_rejected_after_each_transaction (__main__.DriverRegression.test_each_unit_is_rejected_after_each_transaction) (service='egpd', state='inactive', pid='999', transaction=2)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<work>", line 162, in test_each_unit_is_rejected_after_each_transaction
+    self.assertIn('historic-routing-' + service + '.service', str(error))
+AssertionError: 'historic-routing-egpd.service' not found in 'Package scripts unexpectedly started egpd'
+
+======================================================================
+FAIL: test_each_unit_is_rejected_after_each_transaction (__main__.DriverRegression.test_each_unit_is_rejected_after_each_transaction) (service='egpd', state='inactive', pid='999', transaction=3)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<work>", line 162, in test_each_unit_is_rejected_after_each_transaction
+    self.assertIn('historic-routing-' + service + '.service', str(error))
+AssertionError: 'historic-routing-egpd.service' not found in 'Package scripts unexpectedly started egpd'
+
+======================================================================
+FAIL: test_each_unit_is_rejected_after_each_transaction (__main__.DriverRegression.test_each_unit_is_rejected_after_each_transaction) (service='zebra', state='active', pid='999', transaction=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<work>", line 160, in test_each_unit_is_rejected_after_each_transaction
+    self.assertIsInstance(error, AssertionError)
+AssertionError: None is not an instance of <class 'AssertionError'>
+
+======================================================================
+FAIL: test_each_unit_is_rejected_after_each_transaction (__main__.DriverRegression.test_each_unit_is_rejected_after_each_transaction) (service='zebra', state='active', pid='999', transaction=2)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<work>", line 160, in test_each_unit_is_rejected_after_each_transaction
+    self.assertIsInstance(error, AssertionError)
+AssertionError: None is not an instance of <class 'AssertionError'>
+
+======================================================================
+FAIL: test_each_unit_is_rejected_after_each_transaction (__main__.DriverRegression.test_each_unit_is_rejected_after_each_transaction) (service='zebra', state='active', pid='999', transaction=3)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<work>", line 160, in test_each_unit_is_rejected_after_each_transaction
+    self.assertIsInstance(error, AssertionError)
+AssertionError: None is not an instance of <class 'AssertionError'>
+
+======================================================================
+FAIL: test_each_unit_is_rejected_after_each_transaction (__main__.DriverRegression.test_each_unit_is_rejected_after_each_transaction) (service='zebra', state='activating', pid='0', transaction=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<work>", line 160, in test_each_unit_is_rejected_after_each_transaction
+    self.assertIsInstance(error, AssertionError)
+AssertionError: None is not an instance of <class 'AssertionError'>
+
+======================================================================
+FAIL: test_each_unit_is_rejected_after_each_transaction (__main__.DriverRegression.test_each_unit_is_rejected_after_each_transaction) (service='zebra', state='activating', pid='0', transaction=2)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<work>", line 160, in test_each_unit_is_rejected_after_each_transaction
+    self.assertIsInstance(error, AssertionError)
+AssertionError: None is not an instance of <class 'AssertionError'>
+
+======================================================================
+FAIL: test_each_unit_is_rejected_after_each_transaction (__main__.DriverRegression.test_each_unit_is_rejected_after_each_transaction) (service='zebra', state='activating', pid='0', transaction=3)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<work>", line 160, in test_each_unit_is_rejected_after_each_transaction
+    self.assertIsInstance(error, AssertionError)
+AssertionError: None is not an instance of <class 'AssertionError'>
+
+======================================================================
+FAIL: test_each_unit_is_rejected_after_each_transaction (__main__.DriverRegression.test_each_unit_is_rejected_after_each_transaction) (service='zebra', state='inactive', pid='999', transaction=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<work>", line 160, in test_each_unit_is_rejected_after_each_transaction
+    self.assertIsInstance(error, AssertionError)
+AssertionError: None is not an instance of <class 'AssertionError'>
+
+======================================================================
+FAIL: test_each_unit_is_rejected_after_each_transaction (__main__.DriverRegression.test_each_unit_is_rejected_after_each_transaction) (service='zebra', state='inactive', pid='999', transaction=2)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<work>", line 160, in test_each_unit_is_rejected_after_each_transaction
+    self.assertIsInstance(error, AssertionError)
+AssertionError: None is not an instance of <class 'AssertionError'>
+
+======================================================================
+FAIL: test_each_unit_is_rejected_after_each_transaction (__main__.DriverRegression.test_each_unit_is_rejected_after_each_transaction) (service='zebra', state='inactive', pid='999', transaction=3)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<work>", line 160, in test_each_unit_is_rejected_after_each_transaction
+    self.assertIsInstance(error, AssertionError)
+AssertionError: None is not an instance of <class 'AssertionError'>
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.177s
+
+FAILED (failures=24)

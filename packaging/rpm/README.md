@@ -1,4 +1,4 @@
-# RPM 打包（RHEL 10.1 x86_64）
+# RPM 打包（原生架构的开发包）
 
 > 状态：**开发验证构建**。`Version: 0.1.1`、`Release: 0.1.dev<源码短提交>`，
 > 文件名里带 `dev` 与提交号，Summary 明确写 "development build, NOT released"。
@@ -9,7 +9,7 @@
 | 包 | 内容 | 依赖 |
 | --- | --- | --- |
 | `historic-routing-runtime` | `libfrr.so*`、`zebra`、`vtysh`、`etc/frr/{daemons,frr.conf}` 骨架、zebra unit | `Provides: historic-routing-abi = <源码短提交>-<FRR短提交>` |
-| `historic-routing-egp` | `egpd`、`etc/frr/egpd.conf` 示例、egpd unit | `Requires: historic-routing-runtime(x86-64) = %{version}-%{release}` 且 `Requires: historic-routing-abi = <同一个 ABI>` |
+| `historic-routing-egp` | `egpd`、`etc/frr/egpd.conf` 示例、egpd unit | `Requires: historic-routing-runtime%{?_isa} = %{version}-%{release}` 且 `Requires: historic-routing-abi = <同一个 ABI>` |
 
 **为什么这样切**：`libfrr`/`zebra`/`vtysh` 是所有协议共享的框架；每个协议只是多一个 daemon。
 协议 daemon 与 `libfrr`/`zebra` 之间是编译期约定（ZAPI 枚举、路由类型编号、vtysh 位图），
@@ -30,7 +30,6 @@
 ├── sbin/{zebra,egpd}
 ├── lib/libfrr.so.0*                      ← 只给本前缀的服务用
 ├── etc/frr/{daemons,frr.conf,egpd.conf}  ← %config(noreplace)
-├── run/                                  ← pid/socket 目录（本前缀内）
 └── RPM-BUILD-INFO.txt                    ← 版本/源码提交/FRR 提交/ABI/指纹
 /usr/lib/systemd/system/historic-routing-{zebra,egpd}.service
 /usr/share/doc/historic-routing-*/        ← README/CHANGELOG/ARCHITECTURE/FIDELITY/PACKAGING
@@ -80,7 +79,7 @@ S8 要求"不要未经验证就声明 `Conflicts: frr`"。实测结论：
 | 运行用户 | root（configure 用 `--enable-user=root`；本包不创建 `frr` 用户，避免与系统 FRR 争用 `/etc/frr` 属主） |
 | 权限 | 二进制 0755、配置 0644（`%config(noreplace)`）、`/opt/.../run` 0755 root:root |
 | 网络能力 | zebra 需要 CAP_NET_ADMIN/CAP_NET_RAW（root 直接具备）；未使用 `AmbientCapabilities`，因为还要 `CAP_SYS_ADMIN`（见 `docs/LAB_SAFETY.md` 的 A/B 证据） |
-| SELinux | 未做策略；RHEL 10 默认 Enforcing 下 root 运行 `/opt` 下的未标注二进制会被 `init_t` 约束——**本轮未验证**（见"未验证平台"） |
+| SELinux | RHEL 10.2/aarch64 已验证默认启动实际为 unconfined_service_t；frr_t 实验需[可选策略与标签](../selinux/README.md)，尚未自动集成到 RPM |
 
 ## 6. 构建
 
@@ -156,7 +155,7 @@ cd lab/egp && LAB_PREFIX=/opt/historic-routing/27f287be9 ./lab.sh up && ./lab.sh
 
 ## 9. 已知限制
 
-1. 只在 RHEL 10.1 x86_64 验证；未验证其它发行版、aarch64、SELinux Enforcing 下的服务启动。
+1. S8 历史验证为 RHEL 10.1 x86_64；新增 RHEL 10.2 aarch64 的安装 unit reload、升级/回退及 SELinux 证据见[本轮报告](../../docs/evidence/package-service-20261031/README.md)。不能把 aarch64 结果当作新版 x86_64 验收。
 2. ~~`%build` 需要访问 GitHub 取固定 FRR 提交~~ → 已支持离线输入：`--frr-repo` /
    `HR_FRR_REPO` 指向本地镜像，发布源码包里带的 `vendor/frr-<short>.git.tar.xz`
    由 `scripts/release-source.sh` 生成并校验（sha256 + commit + tree）。
@@ -164,3 +163,6 @@ cd lab/egp && LAB_PREFIX=/opt/historic-routing/27f287be9 ./lab.sh up && ./lab.sh
 4. 未生成 SRPM 发布物（`rpmbuild -bs` 可用，但本轮不产出）。
 5. 二进制经 `brp-strip` 处理，与 `RPM-BUILD-INFO.txt` 里 fingerprint 记录的
    **构建期** SHA256 不同（指纹记录的是 install 后、strip 前；功能不受影响）。
+
+安装服务、升级/回退的复测入口见[packaging/TESTING.md](../TESTING.md)。
+默认日志使用 stdout/journal；升级保留旧配置时请复核 `.rpmnew`，旧的 prefix/run 日志路径不会自动改写。

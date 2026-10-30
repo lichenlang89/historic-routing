@@ -1,0 +1,5 @@
+2287228 system_u:system_r:frr_t:s0      egpd            /opt/historic-routing/27f287be9/sbin/egpd -f /opt/historic-routing/27f287be9/etc/frr/egpd.conf -i /run/historic-routing/frr/egpd.pid -z /run/historic-routing/frr/zserv.api --vty_socket /run/historic-routing/frr -u root -g root
+2289350 system_u:system_r:frr_t:s0      egpd            /opt/historic-routing/27f287be9/sbin/egpd -f /opt/historic-routing/27f287be9/etc/frr/egpd.conf -i /run/historic-routing/frr/egpd.pid -z /run/historic-routing/frr/zserv.api --vty_socket /run/historic-routing/frr -u root -g root
+libsemanage.semanage_direct_remove_key: Removing last historic_routing_egp_probe module (no other historic_routing_egp_probe module exists at another priority).
+Enforcing
+REFINED_SELINUX_RC=0

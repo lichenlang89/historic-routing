@@ -1,0 +1,49 @@
+== 构建环境: Debian 13.7 / arm64 / dpkg 1.22.22
+== 源码提交: b3a13c7f3d411cac4bec6c52217617fd2b3416d8
+== Debian 版本: 0.1.1~devb3a13c7-1（上游 0.1.1~devb3a13c7，revision 1）
+== 安装前缀: /opt/historic-routing/27f287be9   runstatedir: /run/historic-routing   ABI: 0.b3a13c7-27f287be9（原始 b3a13c7-27f287be9）
+== FRR 基线: 27f287be9210d4024a140486b7b8ddd5eb41fe04
+== 工作目录: <work>
+== 开始 dpkg-buildpackage -b（%build 会从固定 FRR 基线完整构建，约数分钟）
+---- 构建日志尾部 ----
+dh: error: Unknown sequence debian/hroptions.mk (choose from: binary binary-arch binary-indep build build-arch build-indep clean install install-arch install-indep)
+dh binary
+   dh_update_autotools_config
+   dh_autoreconf
+   debian/rules override_dh_auto_configure
+make[1]: Entering directory '<work>'
+dh debian/hroptions.mk
+dh: error: Unknown sequence debian/hroptions.mk (choose from: binary binary-arch binary-indep build build-arch build-indep clean install install-arch install-indep)
+== configure 由 scripts/build.sh 执行（含固定 FRR 基线与补丁校验）
+make[1]: Leaving directory '<work>'
+   debian/rules override_dh_auto_build
+make[1]: Entering directory '<work>'
+dh debian/hroptions.mk
+dh: error: Unknown sequence debian/hroptions.mk (choose from: binary binary-arch binary-indep build build-arch build-indep clean install install-arch install-indep)
+# Debian 的硬化编译参数带 -ffile-prefix-map=<work> FRR 的 xref 记录
+# 相对路径，python/xref2vtysh.py 于是匹配不上 daemon 位表，会生成 VTYSH_LIB 这类
+# 不存在的符号（编译直接失败，实测见 S8-B 报告）。只去掉这一个参数，
+# 其余加固参数（-fstack-protector-strong、-D_FORTIFY_SOURCE、relro）全部保留。
+CFLAGS="$(printf '%s' "$CFLAGS" | sed -e 's/-ffile-prefix-map=[^ ]*//g')" \
+CXXFLAGS="$(printf '%s' "$CXXFLAGS" | sed -e 's/-ffile-prefix-map=[^ ]*//g')" \
+./scripts/build.sh \
+	--jobs 2 \
+	--build-root <work> \
+	--prefix /opt/historic-routing/27f287be9 \
+	--destdir <work> \
+	--configure-args "--runstatedir=/run/historic-routing"
+[17:53:36Z] build.sh               ===== 日志文件: <work> =====
+[17:53:36Z] build.sh               构建根目录 : <work>
+[17:53:36Z] build.sh               源码目录   : <work>
+[17:53:36Z] build.sh               构建目录   : <work>
+[17:53:36Z] build.sh               安装前缀   : /opt/historic-routing/27f287be9
+[17:53:36Z] build.sh               暂存根     : <work> <work>
+[17:53:36Z] build.sh               并行度     : 2
+[17:53:36Z] build.sh               协议       : egp
+[17:53:36Z] build.sh               ========== [0/9] 前置检查
+[17:53:36Z] build.sh               FAIL 缺少命令: libtool
+make[1]: *** [debian/rules:41: override_dh_auto_build] Error 1
+make[1]: Leaving directory '<work>'
+make: *** [debian/rules:28: binary] Error 2
+dpkg-buildpackage: error: debian/rules binary subprocess returned exit status 2
+FAIL dpkg-buildpackage 失败（rc=2），完整日志: <work>

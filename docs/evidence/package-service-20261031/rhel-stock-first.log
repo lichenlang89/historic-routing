@@ -1,0 +1,26 @@
+active
+! egpd 独立运行时的最小配置（由 egp 包提供）
+! 用 systemd 的 historic-routing-egpd.service 时读这个文件；
+! 与 zebra 共用 frr.conf 的集成模式请改用 vtysh 配置。
+hostname egp-r1
+log file /opt/historic-routing/27f287be9/run/egpd.log
+egp local-as 65001
+egp timers 30 120
+Oct 31 02:02:34 <host> frr-reload.py[2181441]: Waiting for children to finish applying config...
+Oct 31 02:02:34 <host> frr-reload.py[2181441]: [2181488|egpd] sending configuration
+Oct 31 02:02:34 <host> frr-reload.py[2181441]: [2181475|zebra] done
+Oct 31 02:02:34 <host> frr-reload.py[2181441]: [2181488|egpd] done
+Oct 31 02:02:34 <host> systemd[1]: Reloaded historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+Oct 31 02:02:38 <host> systemd[1]: Reloading historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production)...
+Oct 31 02:02:38 <host> frr-reload.py[2181512]: [2181521|zebra] sending configuration
+Oct 31 02:02:38 <host> frr-reload.py[2181512]: Waiting for children to finish applying config...
+Oct 31 02:02:38 <host> frr-reload.py[2181512]: [2181534|egpd] sending configuration
+Oct 31 02:02:38 <host> frr-reload.py[2181512]: [2181521|zebra] done
+Oct 31 02:02:38 <host> frr-reload.py[2181512]: [2181534|egpd] done
+Oct 31 02:02:38 <host> systemd[1]: Reloaded historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+Oct 31 02:02:38 <host> systemd[1]: Stopping historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production)...
+Oct 31 02:02:39 <host> systemd[1]: historic-routing-egpd.service: Deactivated successfully.
+Oct 31 02:02:39 <host> systemd[1]: Stopped historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+Oct 31 02:02:39 <host> systemd[1]: historic-routing-egpd.service: Consumed 1.096s CPU time, 34.7M memory peak.
+Oct 31 02:16:16 <host> systemd[1]: Started historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+Oct 31 02:16:16 <host> egpd[2203727]: % Can't open log file /opt/historic-routing/27f287be9/run/egpd.log

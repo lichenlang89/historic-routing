@@ -56,7 +56,7 @@ URL:            https://github.com/lichenlang89/historic-routing
 Source0:        historic-routing-%{hr_version}.tar.gz
 Source1:        historic-routing-zebra.service
 Source2:        historic-routing-egpd.service
-BuildArch:      x86_64
+# Build for the native RPM architecture; both daemon and runtime share it.
 
 # 只用同一棵 FRR 树构建：runtime 与 egp 共用这个 ABI 标识
 Provides:       historic-routing-abi = %{hr_abi}
@@ -217,7 +217,7 @@ cat > %{buildroot}%{hr_prefix}/etc/frr/egpd.conf <<'CONF'
 ! 用 systemd 的 historic-routing-egpd.service 时读这个文件；
 ! 与 zebra 共用 frr.conf 的集成模式请改用 vtysh 配置。
 hostname egp-r1
-log file %{hr_prefix}/run/egpd.log
+log stdout
 egp local-as 65001
 egp timers 30 120
 CONF

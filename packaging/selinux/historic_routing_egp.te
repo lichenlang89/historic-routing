@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+module historic_routing_egp 1.0;
+require {
+    type frr_t;
+    type node_t;
+    class rawip_socket node_bind;
+}
+# EGP binds protocol 8 sockets to the configured local IPv4 address.
+# The RHEL 10 frr-selinux policy already grants the other raw socket operations.
+allow frr_t node_t:rawip_socket node_bind;

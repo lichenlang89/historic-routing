@@ -38,6 +38,12 @@ jobs:
           sudo podman run --rm --security-opt label=disable \
             -v "$PWD:/workspace" -w /workspace localhost/hr-ci-builder \
             ./scripts/test-egp.sh 2>&1 | tee build/codec.log
+      - name: Installed-service driver fault regressions
+        run: |
+          set -o pipefail
+          sudo podman run --rm --security-opt label=disable \
+            -v "$PWD:/workspace" -w /workspace localhost/hr-ci-builder \
+            python3 -B packaging/test_driver_regressions.py 2>&1 | tee build/package-driver.log
       - name: Full build and strict known-failure attribution
         run: |
           mkdir -p build/prefix
@@ -76,6 +82,7 @@ jobs:
           name: egp-${{ matrix.runner }}
           path: |
             build/codec.log
+            build/package-driver.log
             build/verify.json
             build/native/logs/
             /var/tmp/egp-lab/logs/

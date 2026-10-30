@@ -1,0 +1,6 @@
+Trying to pull localhost/hrpr17-deb-runtime:3dd0c63...
+time="2026-10-31T05:01:18+08:00" level=warning msg="Failed, retrying in 1s ... (1/3). Error: initializing source docker://localhost/hrpr17-deb-runtime:3dd0c63: pinging container registry localhost: Get \"https://localhost/v2/\": dial tcp [::1]:443: connect: connection refused"
+time="2026-10-31T05:01:19+08:00" level=warning msg="Failed, retrying in 1s ... (2/3). Error: initializing source docker://localhost/hrpr17-deb-runtime:3dd0c63: pinging container registry localhost: Get \"https://localhost/v2/\": dial tcp [::1]:443: connect: connection refused"
+time="2026-10-31T05:01:20+08:00" level=warning msg="Failed, retrying in 1s ... (3/3). Error: initializing source docker://localhost/hrpr17-deb-runtime:3dd0c63: pinging container registry localhost: Get \"https://localhost/v2/\": dial tcp [::1]:443: connect: connection refused"
+Error: unable to copy from source docker://localhost/hrpr17-deb-runtime:3dd0c63: initializing source docker://localhost/hrpr17-deb-runtime:3dd0c63: pinging container registry localhost: Get "https://localhost/v2/": dial tcp [::1]:443: connect: connection refused
+DEBIAN_REVIEW_REGRESSION_RC=125

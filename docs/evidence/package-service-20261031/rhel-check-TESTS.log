@@ -1,0 +1,187 @@
+<work>: line 87: g++-14: command not found
+=================================================================
+frr-format: build for gcc 14.3.1-64db50cecde0ced1 failed
+
+Somewhere on earth, a panda is sad now.
+Please make it happy by installing GCC plugin development files.
+
+Debian/Ubuntu: sudo apt install gcc-14-plugin-dev
+Fedora: part of main GCC package, is your GCC install broken?
+=================================================================
+  CC       tests/bgpd/test_aspath-test_aspath.o
+  CCLD     tests/bgpd/test_aspath
+  CC       tests/bgpd/test_bgp_table-test_bgp_table.o
+  CCLD     tests/bgpd/test_bgp_table
+  CC       tests/bgpd/test_capability-test_capability.o
+  CCLD     tests/bgpd/test_capability
+  CC       tests/bgpd/test_community-test_community.o
+  CCLD     tests/bgpd/test_community
+  CC       tests/bgpd/test_ecommunity-test_ecommunity.o
+  CCLD     tests/bgpd/test_ecommunity
+  CC       tests/bgpd/test_mp_attr-test_mp_attr.o
+  CCLD     tests/bgpd/test_mp_attr
+  CC       tests/bgpd/test_orf_defer-test_orf_defer.o
+  CCLD     tests/bgpd/test_orf_defer
+  CC       tests/bgpd/test_orf_instance-test_orf_instance.o
+  CCLD     tests/bgpd/test_orf_instance
+  CC       tests/bgpd/tests_bgpd_test_packet-test_packet.o
+  CCLD     tests/bgpd/test_packet
+  CC       tests/bgpd/test_peer_attr-test_peer_attr.o
+  CCLD     tests/bgpd/test_peer_attr
+  CC       tests/bgpd/test_attr_parse-test_attr_parse.o
+  CCLD     tests/bgpd/test_attr_parse
+  CC       tests/bgpd/test_allowas_rmap-test_allowas_rmap.o
+  CCLD     tests/bgpd/test_allowas_rmap
+  CC       tests/bgpd/test_unencodable_withdraw-test_unencodable_withdraw.o
+  CCLD     tests/bgpd/test_unencodable_withdraw
+  CC       tests/ospfd/test_ospf_spf-test_ospf_spf.o
+  CC       tests/ospfd/test_ospf_spf-common.o
+  CC       tests/ospfd/test_ospf_spf-topologies.o
+  CCLD     tests/ospfd/test_ospf_spf
+  CC       tests/ospfd/test_ospf_asbr_summary-test_ospf_asbr_summary.o
+  CCLD     tests/ospfd/test_ospf_asbr_summary
+  CLIPPY   tests/ospf6d/test_lsdb_clippy.c
+  CC       tests/ospf6d/test_lsdb-test_lsdb.o
+  CC       tests/lib/cli/ospf6d_test_lsdb-common_cli.o
+  CCLD     tests/ospf6d/test_lsdb
+  CC       tests/zebra/test_lm_plugin-test_lm_plugin.o
+  CCLD     tests/zebra/test_lm_plugin
+  CC       tests/lib/test_resolver-test_resolver.o
+  CC       tests/lib/cli/test_resolver-common_cli.o
+  CCLD     tests/lib/test_resolver
+  CC       tests/lib/cxxcompat-cxxcompat.o
+  CCLD     tests/lib/cxxcompat
+  CC       tests/lib/fuzz_zlog-fuzz_zlog.o
+  CCLD     tests/lib/fuzz_zlog
+  CLIPPY   tests/lib/cli/test_cli_clippy.c
+  CC       tests/lib/cli/test_cli-test_cli.o
+  CC       tests/lib/cli/test_cli-common_cli.o
+  CCLD     tests/lib/cli/test_cli
+  CC       tests/lib/cli/test_commands-test_commands.o
+  CC       tests/helpers/c/lib_cli_test_commands-prng.o
+  GEN      tests/lib/cli/test_commands_defun.c
+  CC       tests/lib/cli/test_commands-test_commands_defun.o
+  CC       vtysh/tests_lib_cli_test_commands-vtysh_cmd.1.o
+  CC       vtysh/tests_lib_cli_test_commands-vtysh_cmd.2.o
+  CC       vtysh/tests_lib_cli_test_commands-vtysh_cmd.3.o
+  CC       vtysh/tests_lib_cli_test_commands-vtysh_cmd.4.o
+  CC       vtysh/tests_lib_cli_test_commands-vtysh_cmd.5.o
+  CC       vtysh/tests_lib_cli_test_commands-vtysh_cmd.6.o
+  CC       vtysh/tests_lib_cli_test_commands-vtysh_cmd.7.o
+  CC       vtysh/tests_lib_cli_test_commands-vtysh_cmd.8.o
+  CCLD     tests/lib/cli/test_commands
+  CC       tests/lib/northbound/test_oper_data-test_oper_data.o
+  GEN      yang/frr-test-module.yang.c
+  CC       yang/tests_lib_northbound_test_oper_data-frr-test-module.yang.o
+  CCLD     tests/lib/northbound/test_oper_data
+  CC       tests/lib/northbound/test_oper_exists-test_oper_exists.o
+  CC       yang/tests_lib_northbound_test_oper_exists-frr-test-module.yang.o
+  CCLD     tests/lib/northbound/test_oper_exists
+  CC       tests/lib/test_assert-test_assert.o
+  CCLD     tests/lib/test_assert
+  CC       tests/lib/test_atomlist-test_atomlist.o
+  CCLD     tests/lib/test_atomlist
+  CC       tests/lib/test_atomhash_fast-test_atomhash.o
+  CC       tests/helpers/c/lib_test_atomhash_fast-prng.o
+  CCLD     tests/lib/test_atomhash_fast
+  CC       tests/lib/test_atomhash_slow-test_atomhash.o
+  CC       tests/helpers/c/lib_test_atomhash_slow-prng.o
+  CCLD     tests/lib/test_atomhash_slow
+  CC       tests/lib/test_buffer-test_buffer.o
+  CCLD     tests/lib/test_buffer
+  CC       tests/lib/test_checksum-test_checksum.o
+  CC       tests/helpers/c/lib_test_checksum-prng.o
+  CCLD     tests/lib/test_checksum
+  CC       tests/lib/test_darr-test_darr.o
+  CCLD     tests/lib/test_darr
+  CC       tests/lib/test_graph-test_graph.o
+  CCLD     tests/lib/test_graph
+  CC       tests/lib/test_link_state-test_link_state.o
+  CCLD     tests/lib/test_link_state
+  CC       tests/lib/test_heavy-test_heavy.o
+  CC       tests/helpers/c/lib_test_heavy-main.o
+  CCLD     tests/lib/test_heavy
+  CC       tests/lib/test_heavy_thread-test_heavy_thread.o
+  CC       tests/helpers/c/lib_test_heavy_thread-main.o
+  CCLD     tests/lib/test_heavy_thread
+  CC       tests/lib/test_heavy_wq-test_heavy_wq.o
+  CC       tests/helpers/c/lib_test_heavy_wq-main.o
+  CCLD     tests/lib/test_heavy_wq
+  CC       tests/lib/test_idalloc-test_idalloc.o
+  CCLD     tests/lib/test_idalloc
+  CC       tests/lib/test_mgmt_msg-test_mgmt_msg.o
+  CCLD     tests/lib/test_mgmt_msg
+  CC       tests/lib/test_memory-test_memory.o
+  CCLD     tests/lib/test_memory
+  CC       tests/lib/test_network_address-test_network_address.o
+  CCLD     tests/lib/test_network_address
+  CC       tests/lib/test_nexthop_iter-test_nexthop_iter.o
+  CC       tests/helpers/c/lib_test_nexthop_iter-prng.o
+  CCLD     tests/lib/test_nexthop_iter
+  CC       tests/lib/test_nexthop-test_nexthop.o
+  CCLD     tests/lib/test_nexthop
+  CC       tests/lib/test_ntop-test_ntop.o
+  CC       tests/helpers/c/lib_test_ntop-prng.o
+  CCLD     tests/lib/test_ntop
+  CC       tests/lib/test_plist-test_plist.o
+  CC       tests/lib/cli/test_plist-common_cli.o
+  CCLD     tests/lib/test_plist
+  CC       tests/lib/test_prefix2str-test_prefix2str.o
+  CC       tests/helpers/c/lib_test_prefix2str-prng.o
+  CCLD     tests/lib/test_prefix2str
+  CC       tests/lib/test_printfrr-test_printfrr.o
+  CCLD     tests/lib/test_printfrr
+  CC       tests/lib/test_privs-test_privs.o
+  CCLD     tests/lib/test_privs
+  CC       tests/lib/test_ringbuf-test_ringbuf.o
+  CCLD     tests/lib/test_ringbuf
+  CC       tests/lib/test_segv-test_segv.o
+  CCLD     tests/lib/test_segv
+  CC       tests/lib/test_seqlock-test_seqlock.o
+  CCLD     tests/lib/test_seqlock
+  CC       tests/lib/test_rcu-test_rcu.o
+  CCLD     tests/lib/test_rcu
+  CC       tests/lib/test_sig-test_sig.o
+  CCLD     tests/lib/test_sig
+  CC       tests/lib/test_skiplist-test_skiplist.o
+  CCLD     tests/lib/test_skiplist
+  CC       tests/lib/test_srcdest_table-test_srcdest_table.o
+  CC       tests/helpers/c/lib_test_srcdest_table-prng.o
+  CCLD     tests/lib/test_srcdest_table
+  CC       tests/lib/test_stream-test_stream.o
+  CCLD     tests/lib/test_stream
+  CC       tests/lib/test_stream_expand-test_stream_expand.o
+  CCLD     tests/lib/test_stream_expand
+  CC       tests/lib/test_table-test_table.o
+  CCLD     tests/lib/test_table
+  CC       tests/lib/test_timer_correctness-test_timer_correctness.o
+  CC       tests/helpers/c/lib_test_timer_correctness-prng.o
+  CCLD     tests/lib/test_timer_correctness
+  CC       tests/lib/test_timer_performance-test_timer_performance.o
+  CC       tests/helpers/c/lib_test_timer_performance-prng.o
+  CCLD     tests/lib/test_timer_performance
+  CC       tests/lib/test_ttable-test_ttable.o
+  CCLD     tests/lib/test_ttable
+  CC       tests/lib/test_typelist-test_typelist.o
+  CC       tests/helpers/c/lib_test_typelist-prng.o
+  CCLD     tests/lib/test_typelist
+  CC       tests/lib/test_versioncmp-test_versioncmp.o
+  CCLD     tests/lib/test_versioncmp
+  CC       tests/lib/test_xref-test_xref.o
+  CCLD     tests/lib/test_xref
+  CC       tests/lib/test_zlog-test_zlog.o
+  CCLD     tests/lib/test_zlog
+make[1]: Entering directory '<work>'
+PASS: egpd/test_packet
+============================================================================
+Testsuite summary for frr 10.9.0-dev
+============================================================================
+# TOTAL: 1
+# PASS:  1
+# SKIP:  0
+# XFAIL: 0
+# FAIL:  0
+# XPASS: 0
+# ERROR: 0
+============================================================================
+make[1]: Leaving directory '<work>'
