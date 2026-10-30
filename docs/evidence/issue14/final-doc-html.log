@@ -1,0 +1,19 @@
+/work/build/final-doc/user/bgp.rst:3510: WARNING: duplicate clicmd description of set extended-comm-list delete <EXTCOMMUNITY_LIST_NAME>, other instance in bgp
+/work/build/final-doc/user/bgp-linkstate.rst:86: WARNING: duplicate clicmd description of distribute bgp-fabric-link-state [instance-id WORD], other instance in bgp
+/work/build/final-doc/user/bgp-linkstate.rst:127: WARNING: duplicate clicmd description of neighbor <A.B.C.D|X:X::X:X|WORD> local-link-id (1-4294967295), other instance in bgp
+/work/build/final-doc/user/bgp-linkstate.rst:133: WARNING: duplicate clicmd description of neighbor <A.B.C.D|X:X::X:X|WORD> remote-link-id (1-4294967295), other instance in bgp
+/work/build/final-doc/user/bgp-linkstate.rst:144: WARNING: duplicate clicmd description of show bgp link-state link-state [json], other instance in bgp
+/work/build/final-doc/user/bgp-linkstate.rst:173: WARNING: duplicate clicmd description of show bgp link-state link-state NLRI [json], other instance in bgp
+/work/build/final-doc/user/bgp-linkstate.rst:210: WARNING: duplicate clicmd description of debug bgp linkstate, other instance in bgp
+/work/build/final-doc/user/bgp-linkstate.rst:4: WARNING: duplicate label bgp-link-state, other instance in /work/build/final-doc/user/bgp.rst
+/work/build/final-doc/user/ospf6d.rst:116: WARNING: duplicate clicmd description of shutdown, other instance in bfd
+/work/build/final-doc/user/ospfd.rst:354: WARNING: duplicate clicmd description of shutdown, other instance in ospf6d
+/work/build/final-doc/user/pim.rst:321: WARNING: duplicate clicmd description of shutdown, other instance in ospfd
+/work/build/final-doc/user/pimv6.rst:162: WARNING: duplicate clicmd description of ip pim assert-interval (1000-86400000), other instance in pim
+/work/build/final-doc/user/pimv6.rst:167: WARNING: duplicate clicmd description of ip pim assert-override-interval (1000-86400000), other instance in pim
+/work/build/final-doc/user/pimv6.rst:207: WARNING: duplicate clicmd description of join-filter route-map RMAP_NAME, other instance in pim
+/work/build/final-doc/user/pimv6.rst:231: WARNING: duplicate clicmd description of shutdown, other instance in pim
+/work/build/final-doc/user/routemap.rst:362: WARNING: duplicate clicmd description of set extended-comm-list delete <EXTCOMMUNITY_LIST_NAME>, other instance in bgp
+/work/build/final-doc/user/unreachability.rst:139: WARNING: duplicate clicmd description of show bgp [ipv4|ipv6] unreachability [PREFIX] [detail] [json], other instance in bgp
+/work/build/final-doc/user/unreachability.rst:205: WARNING: duplicate clicmd description of show bgp [ipv4|ipv6] unreachability summary [json], other instance in bgp
+/work/build/final-doc/user/unreachability.rst:227: WARNING: duplicate clicmd description of show bgp [ipv4|ipv6] unreachability statistics, other instance in bgp

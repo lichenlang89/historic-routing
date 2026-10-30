@@ -38,7 +38,7 @@ Description: FRRouting-based framework for historic routing protocols
 
 Package: historic-routing-egp
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends},
+Depends: ${shlibs:Depends}, ${misc:Depends}, python3,
          historic-routing-runtime (= ${binary:Version}),
          historic-routing-abi (= @ABI@)
 Description: experimental EGP (RFC 904) daemon for historic-routing

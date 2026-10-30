@@ -1,0 +1,19 @@
+[16:13:59Z] lab   实验镜像: localhost/hr-rfc904-lab:20261026
+[16:13:59Z] lab   安装前缀: <work> 均存在，var/run 挂载点已就绪）
+[16:13:59Z] lab   资源名无冲突: egp-i14t-r1 / egp-i14t-r2 / egp-i14t-net
+[16:13:59Z] lab   探针通过: libfrr 来自挂载前缀；具备 NET_ADMIN + NET_RAW
+[16:13:59Z] lab   创建实验网络 egp-i14t-net（198.18.247.0/24）
+[16:13:59Z] lab   创建容器 egp-i14t-r1（198.18.247.1）
+[16:14:00Z] lab   创建容器 egp-i14t-r2（198.18.247.2）
+[16:14:00Z] lab   [egp-i14t-r1] stub0=10.0.0.1/8 宣告 10.0.0.0 邻居 198.18.247.2 AS 65002 本地 AS 65001
+[16:14:02Z] lab   [egp-i14t-r2] stub0=172.16.0.1/16 宣告 172.16.0.0 邻居 198.18.247.1 AS 65001 本地 AS 65002
+[16:14:08Z] lab   两端 EGP 邻居均已 Up（约 3s）
+[16:14:08Z] lab   实验就绪：./lab.sh status / ./lab.sh test / ./lab.sh vty 1
+PASS rpm ExecReload: exact rendered paths, network/idempotence/clear/error, PID unchanged
+PASS rpm ExecReload original configuration restored
+PASS deb ExecReload: exact rendered paths, network/idempotence/clear/error, PID unchanged
+PASS deb ExecReload original configuration restored
+[16:14:25Z] lab   删除容器 egp-i14t-r1
+[16:14:25Z] lab   删除容器 egp-i14t-r2
+[16:14:25Z] lab   删除网络 egp-i14t-net
+[16:14:25Z] lab   清理完成（本实验资源已全部移除）

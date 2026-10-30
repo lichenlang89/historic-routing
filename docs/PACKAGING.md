@@ -1,6 +1,7 @@
 # 打包设计（RPM / DEB）
 
-> 状态：**RPM 已实现并实测**（S8-A，RHEL 10.1 x86_64）；DEB 仍未实现。
+> 状态：RPM 与 DEB 均已实现；既有发行验证见根 README。
+> Issue #14 修正独立 egpd unit 的 reload 路径，当前验证边界见 [交接记录](plan/issue-14-handoff.md)。
 > 实现细节与验收命令见 `packaging/rpm/README.md`。
 > 本文件保留"为什么这样划分"的设计推理，并把 S8-A 实测推翻的两条原始假设标注出来
 > （见 §3、§6 的"已证伪"段落）。

@@ -12,14 +12,18 @@ static inline int egp_age_update(const struct egp_route *old, size_t old_count,
 	size_t i, j, count = 0;
 	if (old_count > EGP_MAX_ROUTES || m->count > EGP_MAX_ROUTES)
 		return -1;
-	/* Ambiguous duplicate network claims must not age or overwrite the RIB. */
+	/* Each gateway has its own candidate and omission history. Distances from
+	 * different ASes are not comparable (RFC 888 section 5). Preserve stable
+	 * candidate order; reject ambiguous claims from the same gateway. */
 	for (i = 0; i < m->count; i++)
 		for (j = 0; j < i; j++)
-			if (m->routes[i].net.s_addr == m->routes[j].net.s_addr)
+			if (m->routes[i].net.s_addr == m->routes[j].net.s_addr &&
+			    m->routes[i].gateway.s_addr == m->routes[j].gateway.s_addr)
 				return -1;
 	for (i = 0; i < old_count; i++) {
 		for (j = 0; j < m->count; j++)
-			if (old[i].net.s_addr == m->routes[j].net.s_addr)
+			if (old[i].net.s_addr == m->routes[j].net.s_addr &&
+			    old[i].gateway.s_addr == m->routes[j].gateway.s_addr)
 				break;
 		if (j < m->count) {
 			if (m->routes[j].distance == 255)
@@ -35,7 +39,8 @@ static inline int egp_age_update(const struct egp_route *old, size_t old_count,
 		if (m->routes[i].distance == 255)
 			continue;
 		for (j = 0; j < old_count; j++)
-			if (m->routes[i].net.s_addr == old[j].net.s_addr)
+			if (m->routes[i].net.s_addr == old[j].net.s_addr &&
+			    m->routes[i].gateway.s_addr == old[j].gateway.s_addr)
 				break;
 		if (j < old_count)
 			continue;

@@ -31,11 +31,15 @@ patches/frr/
 | --- | --- | --- | --- |
 | `0001-lib-add-egp-route-type.patch` | lib | `lib/route_types.txt`、`lib/subdir.am`、`lib/command.h`、`lib/log.c` | **必需** |
 | `0002-zebra-install-egp-routes-with-distance-140.patch` | zebra | `zebra/zebra_rib.c`、`zebra/rt_netlink.c` | **必需** |
-| `0003-vtysh-add-egpd-client-and-node.patch` | vtysh | `vtysh/vtysh.c`、`vtysh/vtysh.h` | **必需** |
-| `0004-build-enable-egpd-and-keep-existing-tests.patch` | build | `configure.ac`、`Makefile.am`、`tests/subdir.am`、`tools/etc/frr/daemons`、`tools/frrcommon.sh.in` | **必需** |
+| `0003-vtysh-add-egpd-client-and-node.patch` | vtysh | `vtysh/vtysh.c`、`vtysh/vtysh.h`、`tools/frr-reload.py` | **必需** |
+| `0004-build-enable-egpd-and-keep-existing-tests.patch` | build | `configure.ac`、`Makefile.am`、`tests/subdir.am`、`tools/etc/frr/daemons`、`tools/frrcommon.sh.in`、用户/man 文档注册 | **必需** |
 
 `lib/log.c` 的 `proto_redistnum` 映射自 S9 起并入 `0001`：路由类型和它的名字选择器是同一项能力，
 `show ip route egp` 与 `redistribute egp` 在默认构建里就必须可用，不再作为可选补丁。
+
+Issue #14 中，`0003` 同时登记 `--daemon egpd` 并按 Cease 完成状态排列 reload；
+`0004` 注册 EGP 用户/man 文档。文档维护源位于 `protocols/egp/doc/`，
+由 `integrate-sources.sh` 复制到 FRR 文档树；`--disable-doc` 构建也将 RST 放入 `make dist`。
 
 ### 依赖关系
 

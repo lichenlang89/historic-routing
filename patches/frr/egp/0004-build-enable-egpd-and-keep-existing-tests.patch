@@ -44,7 +44,7 @@ index 6f8084f436..f141bc293b 100644
 @@ -1887,6 +1888,8 @@ AS_IF([test "$enable_pbrd" != "no"], [
    AC_DEFINE([HAVE_PBRD], [1], [pbrd])
  ])
- 
+
 +AS_IF([test "$enable_egpd" = "yes"], [AC_DEFINE([HAVE_EGPD], [1], [egpd])])
 +
  AS_IF([test "$enable_sharpd" = "yes"], [
@@ -94,8 +94,42 @@ index ace31daab2..9b8199e17b 100755
 -DAEMONS="mgmtd zebra bfdd bgpd ripd ripngd ospfd ospf6d isisd babeld pimd pim6d ldpd nhrpd eigrpd sharpd pbrd staticd fabricd vrrpd pathd"
 +DAEMONS="mgmtd zebra bfdd bgpd ripd ripngd ospfd ospf6d isisd babeld pimd pim6d ldpd nhrpd eigrpd sharpd egpd pbrd staticd fabricd vrrpd pathd"
  RELOAD_SCRIPT="$D_PATH/frr-reload.py"
- 
- #
--- 
-2.53.0.windows.3
 
+ #
+diff --git a/doc/user/protocols.rst b/doc/user/protocols.rst
+--- a/doc/user/protocols.rst
++++ b/doc/user/protocols.rst
+@@ -17,2 +17,3 @@
+    eigrpd
++   egp
+    evpn
+diff --git a/doc/user/subdir.am b/doc/user/subdir.am
+--- a/doc/user/subdir.am
++++ b/doc/user/subdir.am
+@@ -60,2 +60,3 @@
+
++user_RSTFILES += doc/user/egp.rst
+ EXTRA_DIST += \
+diff --git a/doc/manpages/subdir.am b/doc/manpages/subdir.am
+--- a/doc/manpages/subdir.am
++++ b/doc/manpages/subdir.am
+@@ -35,2 +35,3 @@
+
++man_RSTFILES += doc/manpages/frr-egpd.rst
+ EXTRA_DIST += $(man_RSTFILES)
+diff --git a/doc/manpages/index.rst b/doc/manpages/index.rst
+--- a/doc/manpages/index.rst
++++ b/doc/manpages/index.rst
+@@ -12,2 +12,3 @@
+    frr-eigrpd
++   frr-egpd
+    frr-isisd
+diff --git a/doc/manpages/conf.py b/doc/manpages/conf.py
+--- a/doc/manpages/conf.py
++++ b/doc/manpages/conf.py
+@@ -312,2 +312,3 @@
+     ("frr-bgpd", "frr-bgpd", fwfrr.format("a BGPv4, BGPv4+, BGPv4-"), [], 8),
++    ("frr-egpd", "frr-egpd", "experimental historic-routing EGP stub gateway", [], 8),
+     ("frr-eigrpd", "frr-eigrpd", fwfrr.format("an EIGRP"), [], 8),
+--
+2.53.0

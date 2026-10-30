@@ -25,6 +25,8 @@
 struct egp_route {
 	struct in_addr net, gateway;
 	uint8_t distance;
+	/* RFC 904 A.4: gateway is in the exterior (rather than interior) list. */
+	uint8_t exterior;
 };
 struct egp_message {
 	uint8_t type, code, status;
@@ -38,6 +40,7 @@ struct egp_message {
 };
 int egp_classlen(struct in_addr addr);
 int egp_network(struct in_addr addr);
+int egp_gateway(struct in_addr shared, struct in_addr gateway);
 uint16_t egp_checksum(const uint8_t *buf, size_t len);
 int egp_decode(const uint8_t *buf, size_t len, struct egp_message *msg);
 int egp_encode(uint8_t *buf, size_t cap, const struct egp_message *msg, struct in_addr local);

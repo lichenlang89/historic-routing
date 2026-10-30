@@ -77,3 +77,9 @@ cd lab/egp && ./lab.sh up && ./lab.sh test-updates && ./lab.sh test-protocol \
 - S9.4 需要 sphinx 环境（`dnf install python3-sphinx`）才能验证，未做。
 - `make check` 的 14 项 isisd/pimd 已知失败未修（与 S6 相同）。
 - S10（`router egp` 节点化）未开始；它是唯一的配置语法破坏性变更。
+
+## Issue #14 后续收口（2026-10-31）
+
+S9.4 的手册和 man 源、Sphinx/automake 注册及实际构建已在 Issue #14 修复中补齐。
+当前代码、执行结果与仍待完成的安装包/systemd/SELinux 验收见
+[Issue #14 交接](issue-14-handoff.md)。上文保持 S9 当时的历史状态。

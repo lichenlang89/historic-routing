@@ -4,6 +4,7 @@
 import json
 import os
 import queue
+import socket
 import subprocess
 import threading
 import time
@@ -412,12 +413,85 @@ def error_messages():
         lab.wait('error recovery', lambda: lab.both_up() and lab.both_routes(), timeout=70)
 
 
+def multiple_gateways():
+    """RFC 904 A.4 / RFC 888 5,8; independently encode gateway lists."""
+    shared = socket.inet_aton(lab.IP1)[:3] + b'\0'
+    third = lab.IP1.rsplit('.', 1)[0] + '.3'
+    own_net, indirect_net = '172.18.0.0/16', '172.19.0.0/16'
+
+    def state():
+        return json.loads(lab.vty(lab.R1, 'egpd', 'show ip egp neighbors json'))['peers'][0]
+
+    def installed(prefix, gateway):
+        return lab.egp_route(lab.R1, prefix) and lab.has_kernel(lab.R1, prefix, gw=gateway)
+
+    try:
+        with Peer(lab.R2, lab.IP2, lab.IP1, lab.AS2) as p:
+            p.command(plan={'hello': True, 'updates': False})
+
+            def update(blocks, invalid=False):
+                # blocks = (gateway, exterior, [(network, distance), ...]).
+                blocks = sorted(blocks, key=lambda b: b[1])
+                body = bytes([sum(not b[1] for b in blocks), sum(b[1] for b in blocks)]) + shared
+                for gateway, exterior, routes in blocks:
+                    body += socket.inet_aton(gateway)[3:] + bytes([len(routes)])
+                    for net, distance in routes:
+                        ip = socket.inet_aton(net)
+                        n = 1 if ip[0] < 128 else 2 if ip[0] < 192 else 3
+                        body += bytes([distance, 1]) + ip[:n]
+                p.saved.clear()
+                while not p.events.empty():
+                    p.events.get_nowait()
+                poll = p.wait(lambda e: e.get('recv', [])[:2] == [2, 0])['recv'][3]
+                before = state()
+                p.command(send=[1, 0, 1, poll, body.hex()])
+                if invalid:
+                    error = p.wait(lambda e: e.get('recv', [])[:2] == [8, 0]
+                                   and e['recv'][3] == poll)
+                    assert error['body'][:4] == '0002', error
+                    assert state()['prefixes'] == before['prefixes']
+                else:
+                    time.sleep(.2)
+
+            blocks = [(lab.IP2, False, [('172.18.0.0', 99)]),
+                      (third, True, [('172.19.0.0', 1), ('172.18.0.0', 1)])]
+            update(blocks)
+            assert installed(own_net, lab.IP2) and installed(indirect_net, third)
+            candidates = state()['prefixes']
+            assert any(r['gateway'] == third and r['exterior'] for r in candidates)
+            assert (lab.egp_route(lab.R1, own_net) or {})['metric'] == 99
+            print('PASS mixed interior/exterior gateways installed; distances across ASes not compared', flush=True)
+
+            for invalid in (lab.IP1, lab.IP1.rsplit('.', 1)[0] + '.0',
+                            lab.IP1.rsplit('.', 1)[0] + '.255'):
+                update([(lab.IP2, False, [('172.20.0.0', 7)]),
+                        (invalid, True, [('172.21.0.0', 7)])], invalid=True)
+                assert not lab.has_kernel(lab.R1, '172.20.0.0/16')
+            print('PASS local/network/broadcast next hops reject the whole Update without aging', flush=True)
+
+            update([(lab.IP2, False, [('172.18.0.0', 255)]),
+                    (third, True, [('172.19.0.0', 1), ('172.18.0.0', 1)])])
+            assert installed(own_net, third) and installed(indirect_net, third)
+            print('PASS one gateway withdrawal selects the remaining candidate in RIB and kernel', flush=True)
+            # Each third-party candidate has independent omission history.
+            update([])
+            assert installed(own_net, third) and installed(indirect_net, third)
+            update([])
+            assert installed(own_net, third) and installed(indirect_net, third)
+            update([])
+            assert not lab.has_kernel(lab.R1, own_net) and not lab.has_kernel(lab.R1, indirect_net)
+            print('PASS third-party candidates age out on the third accepted omission', flush=True)
+    finally:
+        lab.wait('multi-gateway recovery', lambda: lab.both_up() and lab.both_routes(), timeout=70)
+
+
 def main():
     if os.environ.get('LAB_TIMERS') != '1 1':
         raise SystemExit('test-protocol requires LAB_TIMERS="1 1" in lab.env')
     reachability()
     control_states()
     omission_aging()
+    multiple_gateways()
     unsolicited_updates()
     timer_negotiation()
     error_messages()

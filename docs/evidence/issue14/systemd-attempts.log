@@ -1,0 +1,54 @@
+service-first.log (unsuccessful service harness; NOT a product validation PASS)
+FileNotFoundError: [Errno 2] No such file or directory: '<work>'
+service-second.log (unsuccessful service harness; NOT a product validation PASS)
+Oct 31 00:04:00 <host> (egpd)[1843101]: hr14-rpm-egpd.service: Failed at step NAMESPACE spawning <work>: No such file or directory
+Oct 31 00:04:00 <host> systemd[1]: hr14-rpm-egpd.service: Main process exited, code=exited, status=226/NAMESPACE
+service-third.log (unsuccessful service harness; NOT a product validation PASS)
+Oct 31 00:04:00 <host> (egpd)[1843101]: hr14-rpm-egpd.service: Failed at step NAMESPACE spawning <work>: No such file or directory
+Oct 31 00:04:00 <host> systemd[1]: hr14-rpm-egpd.service: Main process exited, code=exited, status=226/NAMESPACE
+Oct 31 00:05:36 <host> (egpd)[1848924]: hr14-rpm-egpd.service: Failed at step NAMESPACE spawning <work>: No such file or directory
+Oct 31 00:05:36 <host> systemd[1]: hr14-rpm-egpd.service: Main process exited, code=exited, status=226/NAMESPACE
+service-rootfs.log (unsuccessful service harness; NOT a product validation PASS)
+Oct 31 00:07:13 <host> (egpd)[1857107]: hr14-rpm-egpd.service: Unable to locate executable '<work>': Permission denied
+Oct 31 00:07:13 <host> (egpd)[1857107]: hr14-rpm-egpd.service: Failed at step EXEC spawning <work>: Permission denied
+Oct 31 00:07:15 <host> (egpd)[1857216]: hr14-rpm-egpd.service: Unable to locate executable '<work>': Permission denied
+Oct 31 00:07:15 <host> (egpd)[1857216]: hr14-rpm-egpd.service: Failed at step EXEC spawning <work>: Permission denied
+Oct 31 00:07:17 <host> (egpd)[1857264]: hr14-rpm-egpd.service: Unable to locate executable '<work>': Permission denied
+Oct 31 00:07:17 <host> (egpd)[1857264]: hr14-rpm-egpd.service: Failed at step EXEC spawning <work>: Permission denied
+Oct 31 00:07:19 <host> (egpd)[1857312]: hr14-rpm-egpd.service: Unable to locate executable '<work>': Permission denied
+Oct 31 00:07:19 <host> (egpd)[1857312]: hr14-rpm-egpd.service: Failed at step EXEC spawning <work>: Permission denied
+Oct 31 00:07:22 <host> (egpd)[1857362]: hr14-rpm-egpd.service: Unable to locate executable '<work>': Permission denied
+Oct 31 00:07:22 <host> (egpd)[1857362]: hr14-rpm-egpd.service: Failed at step EXEC spawning <work>: Permission denied
+Oct 31 00:07:24 <host> (egpd)[1857444]: hr14-rpm-egpd.service: Unable to locate executable '<work>': Permission denied
+Oct 31 00:07:24 <host> (egpd)[1857444]: hr14-rpm-egpd.service: Failed at step EXEC spawning <work>: Permission denied
+Oct 31 00:07:26 <host> (egpd)[1857491]: hr14-rpm-egpd.service: Unable to locate executable '<work>': Permission denied
+Oct 31 00:07:26 <host> (egpd)[1857491]: hr14-rpm-egpd.service: Failed at step EXEC spawning <work>: Permission denied
+Oct 31 00:07:28 <host> (egpd)[1857540]: hr14-rpm-egpd.service: Unable to locate executable '<work>': Permission denied
+Oct 31 00:07:28 <host> (egpd)[1857540]: hr14-rpm-egpd.service: Failed at step EXEC spawning <work>: Permission denied
+Oct 31 00:07:31 <host> (egpd)[1857588]: hr14-rpm-egpd.service: Unable to locate executable '<work>': Permission denied
+Oct 31 00:07:31 <host> (egpd)[1857588]: hr14-rpm-egpd.service: Failed at step EXEC spawning <work>: Permission denied
+Oct 31 00:07:33 <host> (egpd)[1857640]: hr14-rpm-egpd.service: Unable to locate executable '<work>': Permission denied
+Oct 31 00:07:33 <host> (egpd)[1857640]: hr14-rpm-egpd.service: Failed at step EXEC spawning <work>: Permission denied
+AssertionError: systemd daemon routes: 60s 内未满足（最后错误: 命令失败: podman exec egp-i14s-r1 /build/prefix/bin/vtysh --vty_socket /tmp/run -d egpd -c show ip egp neighbors (rc=1)
+service-unconfined.log (unsuccessful service harness; NOT a product validation PASS)
+Oct 31 00:09:56 <host> (egpd)[1894699]: hr14-rpm-egpd.service: Unable to locate executable '<work>': Permission denied
+Oct 31 00:09:56 <host> (egpd)[1894699]: hr14-rpm-egpd.service: Failed at step EXEC spawning <work>: Permission denied
+Oct 31 00:09:58 <host> (egpd)[1894748]: hr14-rpm-egpd.service: Unable to locate executable '<work>': Permission denied
+Oct 31 00:09:58 <host> (egpd)[1894748]: hr14-rpm-egpd.service: Failed at step EXEC spawning <work>: Permission denied
+Oct 31 00:10:00 <host> (egpd)[1894795]: hr14-rpm-egpd.service: Unable to locate executable '<work>': Permission denied
+Oct 31 00:10:00 <host> (egpd)[1894795]: hr14-rpm-egpd.service: Failed at step EXEC spawning <work>: Permission denied
+Oct 31 00:10:03 <host> (egpd)[1894846]: hr14-rpm-egpd.service: Unable to locate executable '<work>': Permission denied
+Oct 31 00:10:03 <host> (egpd)[1894846]: hr14-rpm-egpd.service: Failed at step EXEC spawning <work>: Permission denied
+Oct 31 00:10:05 <host> (egpd)[1894895]: hr14-rpm-egpd.service: Unable to locate executable '<work>': Permission denied
+Oct 31 00:10:05 <host> (egpd)[1894895]: hr14-rpm-egpd.service: Failed at step EXEC spawning <work>: Permission denied
+Oct 31 00:10:07 <host> (egpd)[1894944]: hr14-rpm-egpd.service: Unable to locate executable '<work>': Permission denied
+Oct 31 00:10:07 <host> (egpd)[1894944]: hr14-rpm-egpd.service: Failed at step EXEC spawning <work>: Permission denied
+Oct 31 00:10:09 <host> (egpd)[1894993]: hr14-rpm-egpd.service: Unable to locate executable '<work>': Permission denied
+Oct 31 00:10:09 <host> (egpd)[1894993]: hr14-rpm-egpd.service: Failed at step EXEC spawning <work>: Permission denied
+Oct 31 00:10:12 <host> (egpd)[1895042]: hr14-rpm-egpd.service: Unable to locate executable '<work>': Permission denied
+Oct 31 00:10:12 <host> (egpd)[1895042]: hr14-rpm-egpd.service: Failed at step EXEC spawning <work>: Permission denied
+Oct 31 00:10:14 <host> (egpd)[1895831]: hr14-rpm-egpd.service: Unable to locate executable '<work>': Permission denied
+Oct 31 00:10:14 <host> (egpd)[1895831]: hr14-rpm-egpd.service: Failed at step EXEC spawning <work>: Permission denied
+Oct 31 00:10:16 <host> (egpd)[1895925]: hr14-rpm-egpd.service: Unable to locate executable '<work>': Permission denied
+Oct 31 00:10:16 <host> (egpd)[1895925]: hr14-rpm-egpd.service: Failed at step EXEC spawning <work>: Permission denied
+AssertionError: systemd daemon routes: 60s 内未满足（最后错误: 命令失败: podman exec egp-i14s-r1 /build/prefix/bin/vtysh --vty_socket /tmp/run -d egpd -c show ip egp neighbors (rc=1)

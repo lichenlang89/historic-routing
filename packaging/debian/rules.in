@@ -58,6 +58,7 @@ override_dh_auto_install:
 	install -m 0755 $(STAGE_ROOT)$(PREFIX)/sbin/zebra  $(TMP)$(PREFIX)/sbin/zebra
 	install -m 0755 $(STAGE_ROOT)$(PREFIX)/bin/vtysh   $(TMP)$(PREFIX)/bin/vtysh
 	install -m 0755 $(STAGE_ROOT)$(PREFIX)/sbin/egpd   $(TMP)$(PREFIX)/sbin/egpd
+	install -m 0755 $(STAGE_ROOT)$(PREFIX)/sbin/frr-reload.py $(TMP)$(PREFIX)/sbin/frr-reload.py
 	cp -a $(STAGE_ROOT)$(PREFIX)/lib/libfrr.so.0*      $(TMP)$(PREFIX)/lib/
 	# RUNPATH 必须是 $ORIGIN/../lib（与 RPM 一致：只用自己前缀里的 libfrr）
 	patchelf --set-rpath '$$ORIGIN/../lib' \

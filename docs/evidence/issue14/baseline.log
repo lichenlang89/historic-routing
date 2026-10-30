@@ -1,0 +1,93 @@
+[15:50:46Z] lab   实验镜像: localhost/hr-rfc904-lab:20261026
+[15:50:46Z] lab   安装前缀: <previous-build> 均存在，var/run 挂载点已就绪）
+[15:50:46Z] lab   资源名无冲突: egp-i14b-r1 / egp-i14b-r2 / egp-i14b-net
+[15:50:46Z] lab   探针通过: libfrr 来自挂载前缀；具备 NET_ADMIN + NET_RAW
+[15:50:46Z] lab   创建实验网络 egp-i14b-net（198.18.244.0/24）
+[15:50:47Z] lab   创建容器 egp-i14b-r1（198.18.244.1）
+[15:50:47Z] lab   创建容器 egp-i14b-r2（198.18.244.2）
+[15:50:47Z] lab   [egp-i14b-r1] stub0=10.0.0.1/8 宣告 10.0.0.0 邻居 198.18.244.2 AS 65002 本地 AS 65001
+[15:50:49Z] lab   [egp-i14b-r2] stub0=172.16.0.1/16 宣告 172.16.0.0 邻居 198.18.244.1 AS 65001 本地 AS 65002
+[15:50:54Z] lab   两端 EGP 邻居均已 Up（约 3s）
+[15:50:54Z] lab   实验就绪：./lab.sh status / ./lab.sh test / ./lab.sh vty 1
+CONFIRMED_LIMIT third-party gateway rejects entire mixed Update; own-gateway route also discarded
+PASS live receive and kernel installation at 255-route capacity
+PASS 256-route overflow rejected atomically with Error reason 2
+BEFORE_SIGHUP pid=17 neighbors={"address": "198.18.244.2", "as": 65002, "state": "Up", "mode": "active", "hello": 1, "poll": 1, "prefixCount": 1, "helloTx": 11, "helloRx": 0, "pollTx": 8, "pollRx": 3, "updateTx": 4, "updateRx": 7, "errorTx": 1, "errorRx": 4, "lastUpdateAge": 0, "prefixes": [{"prefix": "172.16.0.0/16", "distance": 1, "gateway": "198.18.244.2", "misses": 0}]}
+AFTER_SIGHUP alive_pids=[]
+CONFIRMED_BUG package ExecReload SIGHUP terminates egpd
+EXTRA_AUDIT_RC=0
+REMOVE_ALL_EGP_RELOAD_RC=1
+Failed to execute no egp local-as 65001
+vtysh returned status 1 for command "['configure', 'no egp local-as 65001']"
+% Unknown command: no egp local-as 65001
+% Can't open configuration file /tmp/run/vtysh.conf due to 'No such file or directory'.
+Configuration file[/tmp/run/frr.conf] processing failure: 11
+
+Failed to execute no egp local-as
+vtysh returned status 1 for command "['configure', 'no egp local-as']"
+% Unknown command: no egp local-as
+% Can't open configuration file /tmp/run/vtysh.conf due to 'No such file or directory'.
+Configuration file[/tmp/run/frr.conf] processing failure: 11
+
+Failed to execute no egp
+vtysh returned status 1 for command "['configure', 'no egp']"
+% Command incomplete: no egp
+% Can't open configuration file /tmp/run/vtysh.conf due to 'No such file or directory'.
+Configuration file[/tmp/run/frr.conf] processing failure: 11
+
+"no egp local-as 65001" we failed to remove this command
+Failed to execute no egp timers 1 1
+vtysh returned status 1 for command "['configure', 'no egp timers 1 1']"
+% Unknown command: no egp timers 1 1
+% Can't open configuration file /tmp/run/vtysh.conf due to 'No such file or directory'.
+Configuration file[/tmp/run/frr.conf] processing failure: 11
+
+Failed to execute no egp timers 1
+vtysh returned status 1 for command "['configure', 'no egp timers 1']"
+% Unknown command: no egp timers 1
+% Can't open configuration file /tmp/run/vtysh.conf due to 'No such file or directory'.
+Configuration file[/tmp/run/frr.conf] processing failure: 11
+
+Failed to execute no egp timers
+vtysh returned status 1 for command "['configure', 'no egp timers']"
+% Unknown command: no egp timers
+% Can't open configuration file /tmp/run/vtysh.conf due to 'No such file or directory'.
+Configuration file[/tmp/run/frr.conf] processing failure: 11
+
+Failed to execute no egp
+vtysh returned status 1 for command "['configure', 'no egp']"
+% Command incomplete: no egp
+% Can't open configuration file /tmp/run/vtysh.conf due to 'No such file or directory'.
+Configuration file[/tmp/run/frr.conf] processing failure: 11
+
+"no egp timers 1 1" we failed to remove this command
+Failed to execute no egp neighbor 198.18.244.2 local-address 198.18.244.1 remote-as 65002
+vtysh returned status 1 for command "['configure', 'no egp neighbor 198.18.244.2 local-address 198.18.244.1 remote-as 65002']"
+% Unknown command: no egp neighbor 198.18.244.2 local-address 198.18.244.1 remote-as 65002
+% Can't open configuration file /tmp/run/vtysh.conf due to 'No such file or directory'.
+Configuration file[/tmp/run/frr.conf] processing failure: 11
+
+Failed to execute no egp neighbor 198.18.244.2 local-address 198.18.244.1 remote-as
+vtysh returned status 1 for command "['configure', 'no egp neighbor 198.18.244.2 local-address 198.18.244.1 remote-as']"
+% Unknown command: no egp neighbor 198.18.244.2 local-address 198.18.244.1 remote-as
+% Can't open configuration file /tmp/run/vtysh.conf due to 'No such file or directory'.
+Configuration file[/tmp/run/frr.conf] processing failure: 11
+
+Failed to execute no egp neighbor 198.18.244.2 local-address 198.18.244.1
+vtysh returned status 1 for command "['configure', 'no egp neighbor 198.18.244.2 local-address 198.18.244.1']"
+% Unknown command: no egp neighbor 198.18.244.2 local-address 198.18.244.1
+% Can't open configuration file /tmp/run/vtysh.conf due to 'No such file or directory'.
+Configuration file[/tmp/run/frr.conf] processing failure: 11
+
+Failed to execute no egp neighbor 198.18.244.2 local-address
+vtysh returned status 1 for command "['configure', 'no egp neighbor 198.18.244.2 local-address']"
+% Unknown command: no egp neighbor 198.18.244.2 local-address
+% Can't open configuration file /tmp/run/vtysh.conf due to 'No such file or directory'.
+Configuration file[/tmp/run/frr.conf] processing failure: 11
+
+REMAINING_EGP_CONFIG=['egp local-as 65001', 'egp timers 1 1']
+CONFIRMED_LIMIT complete EGP configuration removal via frr-reload is unsupported
+[15:51:08Z] lab   删除容器 egp-i14b-r1
+[15:51:09Z] lab   删除容器 egp-i14b-r2
+[15:51:09Z] lab   删除网络 egp-i14b-net
+[15:51:09Z] lab   清理完成（本实验资源已全部移除）

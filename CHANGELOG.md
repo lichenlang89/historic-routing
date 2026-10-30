@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Fixed (Issue #14)
+
+- Replace egpd package SIGHUP reload with the matching daemon-scoped frr-reload
+  and explicit configuration, runtime and socket paths; ship the Python entry.
+- Add AS/timer reset commands and ordered, asynchronous neighbor teardown for
+  global reload changes, with syntax preflight and actionable failure output.
+- Receive interior/exterior gateway candidates, reject invalid next hops
+  atomically and retain per-gateway withdrawal/omission history.
+- Expand raw-peer/reload regressions and integrate EGP user/man sources.
+
 ### Changed
 
 - `redistribute egp` 与 `show ip route egp` 在默认构建里可用：`lib/log.c` 的

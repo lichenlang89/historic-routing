@@ -1,0 +1,74 @@
+[15:56:04Z] lab   实验镜像: localhost/hr-rfc904-lab:20261026
+[15:56:04Z] lab   安装前缀: <work> 均存在，var/run 挂载点已就绪）
+[15:56:04Z] lab   资源名无冲突: egp-i14-r1 / egp-i14-r2 / egp-i14-net
+[15:56:04Z] lab   探针通过: libfrr 来自挂载前缀；具备 NET_ADMIN + NET_RAW
+[15:56:04Z] lab   创建实验网络 egp-i14-net（198.18.245.0/24）
+[15:56:04Z] lab   创建容器 egp-i14-r1（198.18.245.1）
+[15:56:04Z] lab   创建容器 egp-i14-r2（198.18.245.2）
+[15:56:04Z] lab   [egp-i14-r1] stub0=10.0.0.1/8 宣告 10.0.0.0 邻居 198.18.245.2 AS 65002 本地 AS 65001
+[15:56:07Z] lab   [egp-i14-r2] stub0=172.16.0.1/16 宣告 172.16.0.0 邻居 198.18.245.1 AS 65001 本地 AS 65002
+[15:56:13Z] lab   两端 EGP 邻居均已 Up（约 4s）
+[15:56:13Z] lab   实验就绪：./lab.sh status / ./lab.sh test / ./lab.sh vty 1
+PASS learn non-default distance 9
+PASS withdraw one net while learning another
+PASS all-unreachable Update removes last route
+PASS distance zero remains reachable
+PASS three empty Updates age out an omitted route
+PASS original daemons restored
+PASS active stays Up using Update responses only
+PASS stale responses do not renew reachability
+PASS passive stays Up using Poll Up commands only
+PASS passive four-T1 expiry
+PASS Refuse stops acquisition
+PASS repeated Cease is acknowledged in Idle
+PASS wrong Cease-ack leaves teardown pending
+PASS Cease retransmits with the same sequence after P3
+PASS matching Cease-ack releases resources
+PASS first two omissions retain the route
+PASS reappearance resets omission history
+PASS third consecutive omission withdraws from RIB and kernel
+PASS explicit 255 still withdraws on the first Update
+PASS mixed interior/exterior gateways installed; distances across ASes not compared
+PASS local/network/broadcast next hops reject the whole Update without aging
+PASS one gateway withdrawal selects the remaining candidate in RIB and kernel
+PASS third-party candidates age out on the third accepted omission
+PASS unsolicited wrong sequence rejected
+PASS second unsolicited Update in one Poll window rejected
+PASS unsolicited does not consume the solicited response
+PASS new Poll renews unsolicited receive budget
+PASS duplicate Poll reply consumes the unsolicited transmit budget
+PASS network change emits unsolicited Update using last command sequence
+PASS unsolicited Update blocks extra duplicate Poll replies
+PASS new Poll renews unsolicited transmit budget
+PASS independent Hello=3/Poll=1 minima establish reachability
+PASS Error(reason 1) for a truncated Request
+PASS Error(reason 2) for a nonsense Request interval
+PASS Error(reason 1) for an illegal Request Status
+PASS Error(reason 3) for a Poll about an unknown net
+PASS Error(reason 4) for excessive polling rate
+PASS Error(reason 2) for a malformed Update
+PASS no Error in response to an Error message
+PASS protocol regressions and original daemon recovery
+PASS 重载新增一条 network：egpd pid 不变、邻居不抖、原有路由保留
+PASS 同配置二次重载幂等（frr-reload 报无变化，pid 不变）
+PASS 恢复原配置：只撤掉新增网络，原路由与邻居保持
+PASS 语法错误返回非零与诊断，运行配置和原路由保持
+PASS 有邻居时直接删除 AS/timers 被拒绝
+PASS 全量清空及重复应用：AS=0、默认 timers、无残留配置或路由
+PASS timers 变更按序重建邻接，egpd PID 保持
+PASS AS 变更按序应用，egpd PID 保持
+PASS 失败路径已恢复原配置
+Traceback (most recent call last):
+  File "<repo>/lab/egp/test_reload.py", line 239, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "<repo>/lab/egp/test_reload.py", line 102, in main
+    steps(base, pid)
+  File "<repo>/lab/egp/test_reload.py", line 229, in steps
+    assert rc != 0 and "distinct ASes" in out, (rc, out)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: (1, '[830|zebra] sending configuration\nWaiting for children to finish applying config...\n[843|egpd] sending configuration')
+[15:59:07Z] lab   删除容器 egp-i14-r1
+[15:59:08Z] lab   删除容器 egp-i14-r2
+[15:59:08Z] lab   删除网络 egp-i14-net
+[15:59:08Z] lab   清理完成（本实验资源已全部移除）

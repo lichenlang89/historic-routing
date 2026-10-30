@@ -18,7 +18,12 @@ ExecStart=@PREFIX@/sbin/egpd \
 	-z @RUNSTATEDIR@/frr/zserv.api \
 	--vty_socket @RUNSTATEDIR@/frr \
 	-u root -g root
-ExecReload=/bin/kill -HUP $MAINPID
+ExecReload=@PREFIX@/sbin/frr-reload.py --reload --daemon egpd \
+	--bindir @PREFIX@/bin --confdir @PREFIX@/etc/frr \
+	--logfile @RUNSTATEDIR@/frr/egpd-reload.log \
+	--rundir @RUNSTATEDIR@/frr --vty_socket @RUNSTATEDIR@/frr \
+	@PREFIX@/etc/frr/egpd.conf
+TimeoutStartSec=150
 KillMode=mixed
 Restart=on-failure
 RestartSec=2

@@ -1,6 +1,7 @@
 if EGPD
 sbin_PROGRAMS += egpd/egpd
 vtysh_daemons += egpd
+man8 += $(MANBUILD)/frr-egpd.8
 endif
 egpd_egpd_SOURCES = egpd/egpd.c egpd/egp_packet.c
 egpd_egpd_LDADD = lib/libfrr.la $(LIBCAP)

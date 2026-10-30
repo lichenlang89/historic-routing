@@ -84,6 +84,7 @@ historic-routing 是一个独立项目：以 FRRouting 为底层框架，复活�
 Summary:        Experimental EGP (RFC 904) daemon for historic-routing
 Requires:       historic-routing-runtime%{?_isa} = %{version}-%{release}
 Requires:       historic-routing-abi = %{hr_abi}
+Requires:       python3
 
 %description -n historic-routing-egp
 historic-routing 的 EGP（RFC 904）守护进程 egpd。这是实验性的 stub gateway 实现，
@@ -198,6 +199,7 @@ chmod 0644 %{buildroot}%{_unitdir}/historic-routing-zebra.service
 # ---- egp 子包的文件 ----
 install -d %{buildroot}%{hr_prefix}/sbin
 install -m 0755 $DEST/sbin/egpd %{buildroot}%{hr_prefix}/sbin/egpd
+install -m 0755 $DEST/sbin/frr-reload.py %{buildroot}%{hr_prefix}/sbin/frr-reload.py
 patchelf --set-rpath '$ORIGIN/../lib' %{buildroot}%{hr_prefix}/sbin/egpd
 
 # 显式 strip：rpmbuild 的 brp-strip 只去 .debug_*，仍留 .symtab（rpmlint 视为未 strip）。
@@ -263,6 +265,7 @@ systemctl daemon-reload >/dev/null 2>&1 || :
 %dir %{hr_prefix}/etc
 %dir %{hr_prefix}/etc/frr
 %{hr_prefix}/sbin/egpd
+%{hr_prefix}/sbin/frr-reload.py
 %config(noreplace) %{hr_prefix}/etc/frr/egpd.conf
 %{_unitdir}/historic-routing-egpd.service
 

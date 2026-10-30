@@ -30,12 +30,13 @@ EGP 在 IETF 的状态是 **Historic**；这里的实现是实验性的 **stub g
   一份报文可以同时撤销 distance 255 的网络并学习其它可达网络；0–254 均视为可达。
 - 按 RFC 888 §5，连续遗漏需要多次确认；本实现选择三次有效 Update（RFC 未指定次数）。
   第一次、第二次遗漏保留路由，第三次移除；网络重新出现会清零其遗漏次数。
-  空 Update 同样计入遗漏，显式 255 不等待老化。重复网络或超过 255 条保留容量的
+  空 Update 同样计入遗漏，显式 255 不等待老化。相同网络/网关的重复声明或超过 255 条候选容量的
   更新被原子拒绝，不改变现有路由和遗漏次数。
 - 单包上限 `EGP_MAX_PKT = 1500`，单包路由上限 `EGP_MAX_ROUTES = 255`。
-- 只接受 `gateway == 邻居地址` 的路由；任一第三方下一跳会导致整份 Update 被拒绝，
-  包括其中由对端自身宣告的路由。RFC 888 第 5/8 节中的 stub 也需要接收 core 的
-  多网关通告以学习间接邻居；这是本实现的互通限制，不是 stub/core 的定义分界。
+- 接收公共有类网络上的内部和外部网关列表，逐候选保留列表来源；拒绝本网关自身、
+  网络地址和广播地址作为下一跳。RFC 904 §4.4/A.4、RFC 888 §5/§8 的多网关接收
+  不等于 core 中继。每个 `(network, gateway)` 独立撤路/老化，同前缀取第一个存活候选，
+  不跨 AS 比较距离；任一无效网关或容量溢出均不部分更新路由、遗漏次数及接收额度。
 
 ## 2. 邻居状态机
 
@@ -81,7 +82,7 @@ CLI 里可见的五个状态（`show ip egp neighbors`）：
 - 接收端检查当前发送序列号 S、共享网络、报文格式、网关与容量；每个发出的 Poll
   区间最多接收一次主动更新。主动更新不消费仍未收到的普通 Poll 响应。
 - Hello 复用当前 S，发送新 Poll 时递增 S（包括 16 位回绕），与 RFC 建议一致。
-- Down 状态不处理主动 Update（RFC 允许此项可选）；无认证、第三方网关的限制仍在。
+- Down 状态不处理主动 Update（RFC 允许此项可选）；无认证的限制仍在。
 
 ## 3. 定时器
 
@@ -98,13 +99,18 @@ Hello/Poll 最小间隔独立验证、协商，不要求 Poll 大于等于 Hello
 **已支持**
 
 - `egp local-as`、`egp timers`、`egp network`、`egp neighbor <ip> local-address <ip> remote-as <as>`
+- `no egp local-as [AS]` 复位到 0，`no egp timers [HELLO POLL]` 复位到 30/120。
+  直接修改须无邻居（包括待完成的 Cease）；相同值幂等。frr-reload 在全局变化时先清理邻居，
+  等待握手/120 秒 abort，再应用全局参数和目标邻居；纯 network 修改保持邻接。
+  服务 reload 使用显式路径的同树脚本，不使用 HUP。语法失败先拒绝，运行期语义失败可部分应用，
+  需修正文件或重载备份配置；不会隐式重启。
 - 路由学习与撤销（空 Update、distance=255、删除 network、删除邻居、进程退出）
 - ZAPI 下发（类型 `ZEBRA_ROUTE_EGP`=32、显示码 `G`、管理距离 **140**），由 zebra 装内核
 - zebra 重连后重放路由；egpd 重启后邻居与路由重建
 - `show ip egp neighbors`（含 `detail` / `json` / 单邻居查询，见 `protocols/egp/README.md`）、
   `clear ip egp neighbor <ip>|*`；配置持久化（`write memory` 到集成 `frr.conf`）
 - `show ip route egp` 与 `redistribute egp`（`lib/log.c` 的 `proto_redistnum` 映射随 `0001` 应用，
-  默认构建即生效）
+  默认构建即生效；该映射不代表 egpd 能从本地 RIB 导入其它协议）
 - Error（`type 8`，reason 1/2/3/4）：严重程度按 RFC 904 A.5 区分——**长度错误与非法
   Type/Code/Status 归 reason 1**，数据域问题（如零间隔、无法解析的 Update 体）归 reason 2，
   Poll 指到本网关不服务的网络归 reason 3，Hello 间隔小于 `max(1, hello/2)` 秒归 reason 4。
@@ -119,8 +125,8 @@ Hello/Poll 最小间隔独立验证、协商，不要求 Poll 大于等于 Hello
 **实验性简化（有意为之，改动需单独提交）**
 
 - 只支持**默认 VRF**、IPv4、**有类网络**；无 IPv6、无 CIDR、无 VRF 感知
-- 每进程最多 **16 个邻居**（`MAX_PEERS`），每邻居最多 255 条网络
-- 同前缀多邻居时不做 metric 比较，取第一个仍存活邻居的宣告
+- 每进程最多 **16 个邻居**（`MAX_PEERS`），每邻居最多 255 条网络/网关候选
+- 同前缀不做跨 AS metric 比较，按稳定邻居/候选顺序取第一个仍存活的宣告
 - 无认证、无 route-map（`redistribute egp` 自 S9 起默认可用，不再依赖可选补丁）
 - Request/Cease 有重传及 abort timer；Poll 丢失后等待下一个周期，未实现可选的 T1 快速重试
 - 日志走文件/stdout，未接 FRR 的结构化日志与 YANG northbound
@@ -130,10 +136,12 @@ Hello/Poll 最小间隔独立验证、协商，不要求 Poll 大于等于 Hello
 - core gateway 行为：第三方路由的中继、EGP 邻居之间的路由再分发、距离/度量比较
 - Error reason 5（no response）：本实现不主动生成，靠 Poll 超时与遗漏老化处理
 - 与系统 FRR 服务（`frrinit`/systemd/`watchfrr`）的集成：`daemons` 文件里有条目，
-  但本项目**不启动系统服务**，实验一律显式跑二进制
+  本项目提供独立的 historic-routing systemd unit，不接管系统 frr.service
 - SELinux `frr_t` 域下运行
 
-## 5. 验证状态（截至 S6）
+## 5. 验证状态
+
+下表保留原有阶段证据；本轮执行结果与未验证项见 [Issue #14 交接](plan/issue-14-handoff.md)。
 
 | 项目 | 状态 | 证据 |
 | --- | --- | --- |
@@ -159,7 +167,7 @@ finally 恢复原 daemon 并确认双向路由恢复。显式撤路断言在两�
 获取状态、最终双端 Up 与路由交换，以及原定时器恢复；该项约需 5 分钟。
 使用快速实验 timers（默认 `2 6`），结束后执行 `./lab.sh down`。
 
-含第三方网关的 Update 仍整包拒绝，
+`test-protocol` 同时检查混合内部/外部网关、无效下一跳原子拒绝、备用候选切换及老化。
 普通响应须匹配未决 Poll，主动更新须匹配当前 S 并满足上述次数限制。
 
 ## 6. 已占用的不可再生资源

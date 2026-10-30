@@ -114,6 +114,13 @@ for proto in ${PROTOCOLS//,/ }; do
 	expect_n=$(printf '%s\n' "$expect" | wc -l)
 	log "  文件集合校验通过（$expect_n 个）"
 	record "TARGET $target files=$expect_n"
+
+	# Protocol manuals are maintained beside the implementation. The build
+	# patch registers their destinations in Sphinx and automake EXTRA_DIST.
+	if [ -d "$src/doc" ]; then
+		copy_verify "$src/doc/user.rst" "$FRR/doc/user/$proto.rst"
+		copy_verify "$src/doc/man.rst" "$FRR/doc/manpages/frr-$daemon_dir.rst"
+	fi
 done
 
 log "源码集成完成"
