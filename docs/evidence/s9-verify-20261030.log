@@ -1,0 +1,58 @@
+[09:11:18Z] verify.sh              ===== 日志文件: /work/build/logs/verify.log =====
+[09:11:18Z] verify.sh              模式       : build
+[09:11:18Z] verify.sh              构建根目录 : /work/build
+[09:11:18Z] verify.sh              安装前缀   : /build/prefix
+[09:11:18Z] verify.sh              并行度     : 2
+[09:11:18Z] verify.sh              协议       : egp
+[09:11:18Z] verify.sh              ========== [A] 仓库完整性
+[PASS      ] A1 BASELINE                        FRR_COMMIT=27f287be9210… (10.9.0-dev)
+[PASS      ] A2 补丁 SHA256                   4 个补丁文件全部匹配 patches/frr/SHA256SUMS
+[PASS      ] A3 协议源码 SHA256             8 个文件与迁移基线一致
+[PASS      ] A6 多协议资源分配           架构检查通过（1 个协议，0 个冲突）
+[PASS      ] A5 敏感信息扫描              无私钥块/令牌/口令赋值命中（.sh .py .md .c .h .am .patch .example .yml）
+[09:11:18Z] verify.sh              ========== [B] 构建与产物
+[09:11:18Z] verify.sh              执行 scripts/build.sh（真实构建）
+[PASS      ] B1 构建                          build.sh 全流程成功（fetch→patch→integrate→configure→make→单测→check→dist→install→指纹）
+[PASS      ] B2 产物与依赖                 egp daemon + zebra + vtysh + libfrr 均在，ldd 全部可解析
+[PASS      ] B3 产物与指纹一致           每个二进制 SHA256 都与 fingerprint.txt 相符（egp daemon/zebra/vtysh）
+[PASS      ] B4 路由类型                    ZEBRA_ROUTE_EGP=32, ZEBRA_ROUTE_ALL=33, MAX=34（登记顺序编号）
+[PASS      ] B5 单元测试                    egp 的 test_packet 现场执行通过（1 个测试程序）
+[PASS      ] B6 make check-TESTS                PASS: egpd/test_packet（TOTAL=1 PASS=1 FAIL=0）
+14 项失败：KNOWN=14 UNCLASSIFIED=0（14 failed / 514 passed / 5 skipped in 8.21s）
+  [KNOWN] tests/isisd/test_fuzz_isis_tlv.py::TestFuzzIsisTLV::test_exit_cleanly :: FileNotFoundError: [Errno 2] No such file or directory: 'isisd/test_fuzz_isis_tlv'
+  [KNOWN] tests/isisd/test_isis_lspdb.py::TestIsisLSPDB::test_exit_cleanly :: FileNotFoundError: [Errno 2] No such file or directory: 'isisd/test_isis_lspdb'
+  [KNOWN] tests/isisd/test_isis_remove_excess_adjs.py::TestIsisRemoveExcessAdjs::test_exit_cleanly :: FileNotFoundError: [Errno 2] No such file or directory: 'isisd/test_isis_remove_excess_adjs'
+  [KNOWN] tests/isisd/test_isis_spf.py::TestIsisSPF::test_refout :: FileNotFoundError: [Errno 2] No such file or directory: 'isisd/test_isis_spf'
+  [KNOWN] tests/isisd/test_isis_tlv_ext_reach.py::TestIsisTlvExtReach::test_exit_cleanly :: FileNotFoundError: [Errno 2] No such file or directory: 'isisd/test_isis_tlv_ext_reach'
+  [KNOWN] tests/isisd/test_isis_vertex_queue.py::TestIsisVertexQueue::test_exit_cleanly :: FileNotFoundError: [Errno 2] No such file or directory: 'isisd/test_isis_vertex_queue'
+  [KNOWN] tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_exit_cleanly :: FileNotFoundError: [Errno 2] No such file or directory: 'pimd/test_pim_jp_encode'
+  [KNOWN] tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_sgrpt_prune_with_sg_join_OK :: AttributeError: 'TestPimJpEncode' object has no attribute 'testresults'
+  [KNOWN] tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_sgrpt_prune_with_sg_join_and_prune_OK :: AttributeError: 'TestPimJpEncode' object has no attribute 'testresults'
+  [KNOWN] tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_sgrpt_prune_split_records_OK :: AttributeError: 'TestPimJpEncode' object has no attribute 'testresults'
+  [KNOWN] tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_sgrpt_prune_split_after_joins_OK :: AttributeError: 'TestPimJpEncode' object has no attribute 'testresults'
+  [KNOWN] tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_sgrpt_prune_same_record_as_starg_join_OK :: AttributeError: 'TestPimJpEncode' object has no attribute 'testresults'
+  [KNOWN] tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_sgrpt_prune_overflow_OK :: AttributeError: 'TestPimJpEncode' object has no attribute 'testresults'
+  [KNOWN] tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_exit_cleanly_2 :: AttributeError: 'TestPimJpEncode' object has no attribute 'testresults'
+[KNOWN-FAIL] B7 完整 make check               原始 rc=2 保留；14 项失败的直接证据都是「被 --disable 的模块缺少可执行文件」，逐条见 docs/known-failures.md（14 failed, 514 passed, 5 skipped in 8.21s）
+[PASS      ] B8 make dist                       frr-10.9.0-dev.tar.gz 8.1M，egp 的源码与 automake 片段齐全
+[PASS      ] A4 补丁顺序应用              4 个补丁在 27f287be9210 上顺序 apply 成功，改动 13 个文件
+
+================ 汇总 ================
+PASS  13   KNOWN-FAIL   1   SKIP   0   FAIL   0
+[PASS      ] A1 BASELINE                        FRR_COMMIT=27f287be9210… (10.9.0-dev)
+[PASS      ] A2 补丁 SHA256                   4 个补丁文件全部匹配 patches/frr/SHA256SUMS
+[PASS      ] A3 协议源码 SHA256             8 个文件与迁移基线一致
+[PASS      ] A6 多协议资源分配           架构检查通过（1 个协议，0 个冲突）
+[PASS      ] A5 敏感信息扫描              无私钥块/令牌/口令赋值命中（.sh .py .md .c .h .am .patch .example .yml）
+[PASS      ] B1 构建                          build.sh 全流程成功（fetch→patch→integrate→configure→make→单测→check→dist→install→指纹）
+[PASS      ] B2 产物与依赖                 egp daemon + zebra + vtysh + libfrr 均在，ldd 全部可解析
+[PASS      ] B3 产物与指纹一致           每个二进制 SHA256 都与 fingerprint.txt 相符（egp daemon/zebra/vtysh）
+[PASS      ] B4 路由类型                    ZEBRA_ROUTE_EGP=32, ZEBRA_ROUTE_ALL=33, MAX=34（登记顺序编号）
+[PASS      ] B5 单元测试                    egp 的 test_packet 现场执行通过（1 个测试程序）
+[PASS      ] B6 make check-TESTS                PASS: egpd/test_packet（TOTAL=1 PASS=1 FAIL=0）
+[KNOWN-FAIL] B7 完整 make check               原始 rc=2 保留；14 项失败的直接证据都是「被 --disable 的模块缺少可执行文件」，逐条见 docs/known-failures.md（14 failed, 514 passed, 5 skipped in 8.21s）
+[PASS      ] B8 make dist                       frr-10.9.0-dev.tar.gz 8.1M，egp 的源码与 automake 片段齐全
+[PASS      ] A4 补丁顺序应用              4 个补丁在 27f287be9210 上顺序 apply 成功，改动 13 个文件
+[09:13:16Z] verify.sh              完整日志: /work/build/logs/verify.log
+[09:13:16Z] verify.sh              结果: PASS（13 项通过，1 项 KNOWN-FAIL）
+EXIT=0

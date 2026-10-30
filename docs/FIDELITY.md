@@ -17,9 +17,9 @@ EGP 在 IETF 的状态是 **Historic**；这里的实现是实验性的 **stub g
 | --- | --- | --- | --- | --- |
 | Update | 1 | 是 | 是 | 携带 `(网络, 网关, distance)`；255 立即撤路，连续三次遗漏后老化 |
 | Poll | 2 | 是 | 是 | 双方在 Up 时按 `poll` 间隔询问；收到 Poll 用 Update 回答 |
-| Acquisition | 3 | 是（code 0/1/3/4） | 是 | 邻居获取：Request/Confirm/Cease/Cease-ack；**code 2 = Refuse 能解码但从不发送** |
+| Acquisition | 3 | 是（code 0/1/3/4） | 是 | 邻居获取：Request/Confirm/Cease/Cease-ack；**code 2 = Refuse 能解码并处理，但本实现不主动发送**（原因见 §4） |
 | Reachability | 5 | 是（code 0/1） | 是 | 本实现用作邻居存活探询（code 0）与确认（code 1） |
-| Error | 8 | **否** | 是 | 只解码并拒绝，不生成；EGP 的 Error 语义未实现 |
+| Error | 8 | 是（reason 1–4） | 是 | 长度/头部错误（1）、数据域错误（2）、Poll 指到未知网络（3）、Hello 间隔过小（4）；reason 5 不生成；收到 Error 只计数、不改状态、不回复 |
 
 ### 报文级简化
 
@@ -81,7 +81,7 @@ CLI 里可见的五个状态（`show ip egp neighbors`）：
 - 接收端检查当前发送序列号 S、共享网络、报文格式、网关与容量；每个发出的 Poll
   区间最多接收一次主动更新。主动更新不消费仍未收到的普通 Poll 响应。
 - Hello 复用当前 S，发送新 Poll 时递增 S（包括 16 位回绕），与 RFC 建议一致。
-- Down 状态不处理主动 Update（RFC 允许此项可选）；无认证、第三方网关和 Error 生成的限制仍在。
+- Down 状态不处理主动 Update（RFC 允许此项可选）；无认证、第三方网关的限制仍在。
 
 ## 3. 定时器
 
@@ -101,7 +101,19 @@ Hello/Poll 最小间隔独立验证、协商，不要求 Poll 大于等于 Hello
 - 路由学习与撤销（空 Update、distance=255、删除 network、删除邻居、进程退出）
 - ZAPI 下发（类型 `ZEBRA_ROUTE_EGP`=32、显示码 `G`、管理距离 **140**），由 zebra 装内核
 - zebra 重连后重放路由；egpd 重启后邻居与路由重建
-- `show ip egp neighbors`；配置持久化（`write memory` 到集成 `frr.conf`）
+- `show ip egp neighbors`（含 `detail` / `json` / 单邻居查询，见 `protocols/egp/README.md`）、
+  `clear ip egp neighbor <ip>|*`；配置持久化（`write memory` 到集成 `frr.conf`）
+- `show ip route egp` 与 `redistribute egp`（`lib/log.c` 的 `proto_redistnum` 映射随 `0001` 应用，
+  默认构建即生效）
+- Error（`type 8`，reason 1/2/3/4）：严重程度按 RFC 904 A.5 区分——**长度错误与非法
+  Type/Code/Status 归 reason 1**，数据域问题（如零间隔、无法解析的 Update 体）归 reason 2，
+  Poll 指到本网关不服务的网络归 reason 3，Hello 间隔小于 `max(1, hello/2)` 秒归 reason 4。
+  Poll **不**做超频判定：RFC 904 §4.4 的"重复 Poll"是合法流程（第二次回复消耗主动更新预算），
+  把它当超频会打断已定义的行为。收到的 Error 只计数，不改状态也不回复（RFC 904 §4.5）。
+- Refuse（`Acquisition` code 2）**只接收不生成**：能解码并让邻居回 Idle，但本实现不主动发。
+  原因是"资源不足"在 CLI 层就被 16 邻居上限挡住，未配置来源的 Request 又根本收不到；
+  剩下的唯一可发场景是给定时器加一个上限，而 RFC 904 没有这个上限，加了会让
+  `egp timers 30 3601` 这类仍然合法的配置无法完成获取（评审指出后已回退）。
 - vtysh 集成（`VTYSH_EGPD = 0x400000`）
 
 **实验性简化（有意为之，改动需单独提交）**
@@ -109,14 +121,14 @@ Hello/Poll 最小间隔独立验证、协商，不要求 Poll 大于等于 Hello
 - 只支持**默认 VRF**、IPv4、**有类网络**；无 IPv6、无 CIDR、无 VRF 感知
 - 每进程最多 **16 个邻居**（`MAX_PEERS`），每邻居最多 255 条网络
 - 同前缀多邻居时不做 metric 比较，取第一个仍存活邻居的宣告
-- 无认证、无 route-map、无 `redistribute egp`（那是可选补丁 0005，默认不启用）
+- 无认证、无 route-map（`redistribute egp` 自 S9 起默认可用，不再依赖可选补丁）
 - Request/Cease 有重传及 abort timer；Poll 丢失后等待下一个周期，未实现可选的 T1 快速重试
 - 日志走文件/stdout，未接 FRR 的结构化日志与 YANG northbound
 
 **未实现**
 
 - core gateway 行为：第三方路由的中继、EGP 邻居之间的路由再分发、距离/度量比较
-- Error 报文生成；正式的错误码语义
+- Error reason 5（no response）：本实现不主动生成，靠 Poll 超时与遗漏老化处理
 - 与系统 FRR 服务（`frrinit`/systemd/`watchfrr`）的集成：`daemons` 文件里有条目，
   但本项目**不启动系统服务**，实验一律显式跑二进制
 - SELinux `frr_t` 域下运行

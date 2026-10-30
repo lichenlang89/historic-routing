@@ -57,12 +57,20 @@ Peer configuration uses AS 65002, local address 198.18.123.2, neighbor
 
 ```text
 show ip egp neighbors
+show ip egp neighbors detail
+show ip egp neighbors json
+show ip egp neighbors 198.18.123.2
 show ip route egp
 show running-config
+clear ip egp neighbor 198.18.123.2
+clear ip egp neighbor *
 configure terminal
 no egp network 10.0.0.0
 no egp neighbor 198.18.123.2
 ```
+
+`detail` 每行一条学到的网络（前缀 / distance / gateway / 遗漏次数 / age），
+`json` 输出 `localAs`、`zebraConnected`、每个邻居的定时器剩余与 tx/rx 计数器。
 
 Default timers are 30/120 seconds. The 2/6 setting is for quick lab feedback.
 Hello and Poll minima are independent; Poll may be shorter than Hello.
@@ -74,6 +82,19 @@ reachability, plus a Poll interval for routes. Explicit distance 255 withdraws
 immediately; an omitted network is removed after three accepted Updates.
 Dead neighbors and stale Updates also cause route withdrawal.
 Reconnect to zebra replays the current learned routes.
+
+Refuse and Error are generated, not only decoded (RFC 904 sections 4.5 and A.5).
+Error messages (type 8) report an unusable length or invalid Type/Code/Status
+(reason 1), a bad data field such as a zero interval or an unparsable Update
+body (reason 2), a Poll naming a net this gateway does not serve (reason 3), and
+Hellos arriving closer than `max(1, hello/2)` seconds (reason 4). Polls are
+deliberately **not** rate-limited: RFC 904 section 4.4 makes a repeated Poll a
+legal flow that spends the unsolicited Update budget. A received Error is
+advisory only - it is counted, does not change state, and is never answered with
+another Error. Refuse (Acquisition code 2) is decoded and honoured, but this
+implementation does not send one: the only trigger left would be an invented
+timer cap, and RFC 904 has none (a cap would refuse still-valid timer
+configurations). `show ip egp neighbors detail` prints the error counters.
 
 ## Ready-to-play Podman lab
 

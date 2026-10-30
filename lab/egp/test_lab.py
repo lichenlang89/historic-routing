@@ -9,8 +9,8 @@
   * 参数全部来自环境变量（由 lab.sh 从 lab.env 注入），脚本内无个人路径。
 
 关于查询方式：RIB 一律用 `show ip route json` 解析（protocol=="egp"、distance==140），
-**不用** `show ip route egp`——那个选择器依赖可选补丁 0005（lib/log.c 的
-proto_redistnum 认识 "egp"），本项目默认不启用它。文本里再确认显示码 'G'。
+文本里再确认显示码 'G'。`show ip route egp` 自 S9 起在默认构建里可用，可作为
+独立的第二证据（它走 `proto_redistnum` 的名字解析，和 JSON 不是同一条代码路径）。
 
 由 lab.sh test 调用；也可手动：
   LAB_R1=egp-lab-r1 LAB_R2=egp-lab-r2 ... python3 test_lab.py
@@ -240,8 +240,18 @@ def c04():
     m2 = re.search(pat1, zebra_text(R2), re.M)
     if not m1 or not m2:
         raise AssertionError("文本输出里没有 'G>* <prefix> [140/x]' 行")
-    return "JSON protocol=egp distance=140；文本 R1: G>* %s [%s/%s]  R2: G>* %s [%s/%s]" % (
-        NET2_CIDR, m1.group(1), m1.group(2), NET1_CIDR, m2.group(1), m2.group(2))
+    # S9：协议名选择器走 proto_redistnum，和上面两条路径都不是同一段代码
+    sel = []
+    for who, want in ((R1, NET2_CIDR), (R2, NET1_CIDR)):
+        out = vty(who, "zebra", "show ip route egp")
+        if "Unknown route type" in out:
+            raise AssertionError("%s: show ip route egp 报 Unknown route type：\n%s" % (who, out))
+        if want not in out:
+            raise AssertionError("%s: show ip route egp 里没有 %s：\n%s" % (who, want, out))
+        sel.append("%s:%s" % (who, want))
+    return "JSON protocol=egp distance=140；文本 R1: G>* %s [%s/%s]  R2: G>* %s [%s/%s]；show ip route egp 命中 %s" % (
+        NET2_CIDR, m1.group(1), m1.group(2), NET1_CIDR, m2.group(1), m2.group(2),
+        " ".join(sel))
 
 
 @check("05 内核路由表存在学习到的路由")

@@ -487,3 +487,100 @@ S6 复核发现：**这行只是警告**（zebra 仍正常启动并装路由）�
    `%config(noreplace)` 追加语义都还没落地。
 4. **保留区间是团队约定**：`0x400000`..`0x3FFFFFF` 不在任何规范里，只是本项目自用；
    若将来与上游 FRR 的位分配冲突，`check-allocations.sh --frr` 会报出来，需要改用新位。
+
+## S9：收口文档里写着的限制（执行记录，S9.1/S9.2/S9.3/S9.5）
+
+S9.4（`doc/user/egp.rst` + man 页）**未执行**：现有构建镜像里没有 sphinx，宿主也没有
+`pip`，在 `--network host` 容器里 `dnf install python3-sphinx` 也拿不到包，
+写了也无法渲染验证，按项目规矩不开工。其余四个子步都真跑过，证据见
+`docs/evidence/s9-20261030.md`、`docs/evidence/s9-20261030b.md` 与同目录四份原始日志。
+
+### S9.1 `show ip route egp` / `redistribute egp` 默认可用
+
+原可选补丁 `0005`（`lib/log.c` 的 `proto_redistnum` 加一行 `"egp"` 映射）并入必需补丁
+`0001`：路由类型和它的名字选择器是同一项能力。EGP 补丁集由 5 个变为 4 个，
+`0002`–`0004` 的 Subject 序号同步改为 `/4`，`patches/frr/SHA256SUMS` 全部重算。
+`--with-optional` 保留给未来协议，EGP 不再有 `0005`。
+
+连带更新：`scripts/apply-patches.sh`（可选补丁断言只在协议确实提供 `0005` 时执行）、
+`scripts/build.sh` 帮助文本、`patches/frr/README.md`、`README.md`、`docs/ARCHITECTURE.md`、
+`docs/FIDELITY.md`、`AGENTS.md`、`lab/README.md`、`lab/egp/test_lab.py` 的说明，
+以及 `lab` 的检查 04 新增第三条证据路径（协议名选择器）。
+
+### S9.2 可观测性
+
+- `show ip egp neighbors [detail] [json]`、`show ip egp neighbors A.B.C.D [json]`
+- `clear ip egp neighbor *`
+- 每邻居 tx/rx 计数（hello/poll/update），只用于观测，协议状态机不读它
+- `protocols/egp/evidence/SOURCES.sha256` 随 `egpd.c` 更新
+
+### S9.3 Refuse 与 Error 报文
+
+- 编解码层支持 `type 8`：10 字节头 + Reason + 原始报文头的前 12 字节（RFC 904 A.5），
+  单元测试覆盖往返、校验和覆盖范围、长度与 Code 非 0 的拒绝。
+- `Error`：长度/头部错误（reason 1）、数据域问题（reason 2）、Poll 指到未知网络（reason 3）、
+  Hello 间隔小于 `max(1, hello/2)` 秒（reason 4）；收到 Error 只计数，不改状态、不回复
+  （RFC 904 §4.5）。**Poll 不做超频判定**——RFC 904 §4.4 的重复 Poll 是合法流程。
+- `Refuse`（Acquisition code 2）只接收不生成：能解码并让邻居回 Idle，但不主动发（原因见下）。
+- 计数器 `errors tx/rx` 进 `detail` 与 `json`。
+
+### 评审后修正（PR #13 review，3 项）
+
+1. **撤回 3600s 上限**：原先在接收端拒绝 Hello/Poll > 3600s 的 Request，但 CLI 仍接受
+   `1-65535`，Confirm 也不检查，导致 `egp timers 30 3601` 这类原本合法的配置无法完成获取；
+   RFC 904 没有这个上限。现在完全去掉该上限与 Refuse 生成，FIDELITY/协议 README 同步写明
+   "Refuse 只接收不生成"的理由；计数器只保留 errors。
+2. **长度错误归 reason 1**：`report_malformed()` 改为 `malformed_reason()`，按每种 Type/Code
+   的应有长度判断——长度不符或 Type/Code/Status 非法都给 reason 1，只有头本身合法但数据域
+   不合法时才给 reason 2。lab 里新增两个字节样本：13 字节 Request（reason 1）、
+   零间隔的 14 字节 Request（reason 2）。
+3. **reload 回归补 `try/finally`**：任何退出路径都恢复原配置；恢复本身失败时打印，
+   且只在没有原始异常时才抛出，避免掩盖最初的失败。
+
+同时把 `./lab.sh reload` 加进 `.github/workflows/ci.yml`（评审指出 CI 没跑它）。
+
+### 评审第二轮（同一 head 复核后仍剩 1 项 P2）
+
+`malformed_reason()` 与 `egp_decode()` 对合法 Status 的判断不一致，两处已改：
+
+1. Request/Confirm 的 Status 只允许 0–2（能力模式），原来只检查 `> 7`，Status 3–7 会被当成
+   数据域问题给 reason 2；现在按 code 判断，归 reason 1。
+2. Update/Error 合法携带 unsolicited 位 `0x80`，原来用 `status > 2` 判断，Status=129 的好头部被
+   误判成 reason 1；现在先屏蔽 `0x80` 再判断，坏数据体一律 reason 2。
+
+lab 增加两个独立样本：14 字节 Request（Status=6）→ `0001`；坏 Update 体在 Status=1 与 129 下都 → `0002`。
+
+### S9.5 frr-reload 回归
+
+`lab.sh reload` 用 `frr-reload.py --reload` 对 egpd 做一次真实重载：新增一条 network、
+同配置二次重载、恢复原配置三步都断言了 pid 不变、邻居不抖、只增删那一条网络。
+
+### 实测（证据见 `docs/evidence/s9-20261030.md`、`docs/evidence/s9-20261030b.md`）
+
+- `verify.sh --build-only`：PASS 13 / KNOWN-FAIL 1 / SKIP 0 / FAIL 0；
+  `A2` 为 4 个补丁、`A4` 为 13 个文件（原 12），`B7` 仍为 14 failed（isisd/pimd，未新增）。
+- `lab.sh up && status && test`：13/13 通过；检查 04 的 `show ip route egp` 命中
+  `172.16.0.0/16` 与 `10.0.0.0/8`，`show ip route egp` 的 legend 出现 `G - EGP`。
+- `lab.sh test-protocol`（`LAB_TIMERS="1 1"`）：28 条 PASS，其中 5 条是本轮新增的
+  Refuse/Error 断言；原有 23 条（邻接、可达性、Cease、遗漏老化、主动更新、定时器协商）不变。
+- 同一实验里另跑 `test-updates`（6 条）与 `test-timers`（4 条）、`test`（13/13），
+  整体 51 条 PASS、`LAB_RC=0`（日志 `docs/evidence/s9-full-suite-20261030.log`）。
+- `lab.sh reload`：三条断言全 PASS。
+- 评审修正后复测（`docs/evidence/s9-review-20261030.log`）：`test-protocol` 29 条、
+  `reload` 3 条、`test` 13 条全 PASS，`LAB_RC=0`；同版本 `verify.sh --build-only` 为 `EXIT=0`。
+
+### 本轮实测暴露并修掉的两个问题
+
+1. 最初的实现在 **Poll** 上也做超频判定，直接打断了 `unsolicited_updates()` 依赖的
+   "重复 Poll 消耗主动更新预算"流程（既有用例超时）。现在超频 Error 只对 Hello 生效。
+2. 阈值两处数值错误：`EGP_MAX_INTERVAL` 起初 86400（16 位字段到不了，Refuse 永不触发）
+   → 3600；`hello/2` 在 `hello=1` 时为 0 → `max(1, hello/2)`。
+
+
+### 本轮的环境事实（与 S5/S6 记录不同的部分）
+
+构建在 `localhost/frr-23837-base:20261022`（Fedora 42）容器里做，宿主为 RHEL 10.2 aarch64；
+FRR 源码来自 15M 的离线 bare 镜像（容器内无外网）。实验镜像复用了
+`localhost/hr-rfc904-lab:20261026`，因为 Containerfile 只装运行期库、FRR 前缀运行时挂载。
+宿主机上旧实验网络 `egp-lab-net` 占用 `198.18.123.0/24`，本轮改用 `egp-s9-net`
+（`198.18.140.0/24`）并在结束时清理。

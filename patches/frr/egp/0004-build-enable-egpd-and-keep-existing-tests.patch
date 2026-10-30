@@ -1,7 +1,7 @@
 From 2ffbe442afdd3aed25832ca7cd1fa710374c0bf3 Mon Sep 17 00:00:00 2001
 From: Chenlang Li <Cc1580155hsg@163.com>
 Date: Sat, 24 Oct 2026 20:59:49 +0800
-Subject: [PATCH 4/5] build: enable egpd and keep existing tests
+Subject: [PATCH 4/4] build: enable egpd and keep existing tests
 
 ---
  Makefile.am           | 7 +++++++

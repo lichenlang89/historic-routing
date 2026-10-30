@@ -9,8 +9,8 @@
 patches/frr/
 ├── BASELINE     钉死的 FRR 提交
 ├── SHA256SUMS   所有补丁的哈希基线（verify.sh 的 A2 检查读它）
-├── egp/         0001..0005（EGP）
-└── <下一个协议>/ 0001..0005
+├── egp/         0001..0004（EGP）
+└── <下一个协议>/ 0001..0004（另有 0005 时按需提供）
 ```
 
 **应用顺序 = `protocols/<name>/PROTOCOL.meta` 的登记顺序**，不是字母序：
@@ -21,7 +21,7 @@ patches/frr/
 
 - 基线：见同目录 `BASELINE`（`FRR_COMMIT=27f287be9…`）
 - 全部补丁由 `git format-patch` 生成，用 `git apply` 应用；**顺序固定**（文件名已编号）
-- 已在干净基线上按 0001→0005 顺序实测全部应用成功，结果与已验证树
+- 已在干净基线上按 0001→0004 顺序实测全部应用成功，结果与已验证树
   `3ab0ca7470` 逐文件一致，唯一差异是 `tests/subdir.am` 里刻意的
   `TESTS =` → `TESTS +=` 修正（见下）
 
@@ -29,17 +29,19 @@ patches/frr/
 
 | 补丁 | 层 | 触及文件 | 是否必需 |
 | --- | --- | --- | --- |
-| `0001-lib-add-egp-route-type.patch` | lib | `lib/route_types.txt`、`lib/subdir.am`、`lib/command.h` | **必需** |
+| `0001-lib-add-egp-route-type.patch` | lib | `lib/route_types.txt`、`lib/subdir.am`、`lib/command.h`、`lib/log.c` | **必需** |
 | `0002-zebra-install-egp-routes-with-distance-140.patch` | zebra | `zebra/zebra_rib.c`、`zebra/rt_netlink.c` | **必需** |
 | `0003-vtysh-add-egpd-client-and-node.patch` | vtysh | `vtysh/vtysh.c`、`vtysh/vtysh.h` | **必需** |
 | `0004-build-enable-egpd-and-keep-existing-tests.patch` | build | `configure.ac`、`Makefile.am`、`tests/subdir.am`、`tools/etc/frr/daemons`、`tools/frrcommon.sh.in` | **必需** |
-| `0005-lib-allow-redistribute-egp-optional.patch` | lib（可选能力） | `lib/log.c` | 可选，默认不启用 |
+
+`lib/log.c` 的 `proto_redistnum` 映射自 S9 起并入 `0001`：路由类型和它的名字选择器是同一项能力，
+`show ip route egp` 与 `redistribute egp` 在默认构建里就必须可用，不再作为可选补丁。
 
 ### 依赖关系
 
 - `0002`、`0003` 在语义上依赖 `0001`（需要 `ZEBRA_ROUTE_EGP` / `EGP_NODE` 枚举）。
 - `0004` 提供 `EGPD` 条件，`0001` 里的 `if EGPD` 只有配上它才有意义。
-- 文本层面五个补丁互不重叠，所以单独也能 `git apply --check` 通过；
+- 文本层面四个补丁互不重叠，所以单独也能 `git apply --check` 通过；
   **但只有当 0001–0004 全部应用后，代码才是可编译的**（S4 验证）。
 
 ### 0004 里的关键修正

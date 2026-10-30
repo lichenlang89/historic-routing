@@ -16,7 +16,7 @@ usage() {
   --build-root DIR   构建根目录（默认 <repo>/build）
   --prefix DIR       安装前缀（默认 <build-root>/prefix）
   --destdir DIR      暂存安装根（打包用）：文件落 DIR/PREFIX，前缀里的路径仍是 --prefix
-  --with-optional    启用可选补丁 0005（redistribute egp）
+  --with-optional    额外应用各协议的可选 0005（当前 EGP 没有 0005，属未来协议预留）
   --reuse-source     复用 <build-root>/frr-src（已存在且提交正确时）
   --skip-checks      跳过 make check（不推荐，会记录在指纹里）
   --skip-dist        跳过 make dist
@@ -25,7 +25,7 @@ usage() {
 
 固定部分（不可通过参数覆盖）:
   - FRR 提交来自 patches/frr/BASELINE 的 FRR_COMMIT
-  - 补丁 0001-0004 必用，0005 需显式 --with-optional
+  - 补丁 0001-0004 必用；各协议另行提供的 0005 才是可选项（EGP 无 0005）
   - sysconfdir/localstatedir/runstatedir 一律在前缀之内，不写系统路径
 EOF
 }

@@ -1,5 +1,26 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+
+- `redistribute egp` 与 `show ip route egp` 在默认构建里可用：`lib/log.c` 的
+  `proto_redistnum` 映射由原可选补丁 `0005` 并入必需补丁 `0001`。EGP 补丁集由
+  5 个变成 4 个，`--with-optional` 只为未来协议保留。
+- 因此 `patches/frr/SHA256SUMS` 与 `0001-0004` 的哈希全部更新；`0001` 现在改
+  4 个文件（新增 `lib/log.c`）。
+
+### Added
+
+- `show ip egp neighbors [detail] [json]`、`show ip egp neighbors A.B.C.D [json]`：
+  输出每邻居的定时器剩余、tx/rx 计数器，以及每条学到的网络（前缀 / distance /
+  gateway / 遗漏次数 / age）。
+- `clear ip egp neighbor *`：一次重启所有邻居的获取。
+- Error 报文（type 8）：长度/头部错误（reason 1）、数据域错误（reason 2）、Poll 指到未知网络
+  （reason 3）、Hello 过快（reason 4）；收到 Error 只计数、不改状态、不回复。
+  Refuse 只接收不生成（RFC 904 没有定时器上限，加了会拒绝仍然合法的配置）。
+- `lab.sh reload`：frr-reload 重载 egpd 配置的回归（不重启、不抖邻居、可幂等）。
+
 ## [0.1.1] - 2026-10-25
 
 首个带安装包的发布版（实验性，非生产用途）。

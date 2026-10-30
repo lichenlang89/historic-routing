@@ -1,7 +1,7 @@
 From 0ae778811547e6fabc29a649263ad717cdd3ec69 Mon Sep 17 00:00:00 2001
 From: Chenlang Li <Cc1580155hsg@163.com>
 Date: Sat, 24 Oct 2026 19:54:17 +0800
-Subject: [PATCH 2/5] zebra: install egp routes with distance 140
+Subject: [PATCH 2/4] zebra: install egp routes with distance 140
 
 ---
  zebra/rt_netlink.c | 3 +++

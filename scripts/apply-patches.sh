@@ -11,7 +11,7 @@ usage() {
 用法: apply-patches.sh --frr DIR [--with-optional] [--record FILE]
 
   --frr DIR          FRR 源码树（必须处于 BASELINE 提交且工作树干净）
-  --with-optional    额外应用 0005（redistribute egp，默认不启用）
+  --with-optional    额外应用各协议的可选 0005（若该协议提供；EGP 已无 0005）
   --record FILE      把应用结果写成文本记录
 EOF
 }
@@ -76,7 +76,7 @@ done
 # ---- 事后断言 ----
 log "校验补丁效果"
 # 期望被改动的文件集合直接由补丁本身推导（不写死数量：
-# 0001-0004 是 12 个文件，加上可选 0005 才是 13 个）
+# 0001-0004 现在合计 13 个文件，其中 lib/log.c 已并入 0001）
 EXPECTED="$(mktemp)"
 ACTUAL="$(mktemp)"
 for p in "${PATCHES[@]}"; do
@@ -148,10 +148,12 @@ awk '/^TESTS =$/{t=NR} /^include pceplib\/subdir.am/{p=NR} END{exit !(t && p && 
 if [ "$HR_WITH_OPTIONAL" = 1 ]; then
 	for proto in $(hr_proto_list); do
 		hr_proto_load "$proto"
+		# 只对确实提供 0005 的协议做断言（EGP 的 redistribute 已在 0001 里）
+		ls "$HR_REPO_ROOT/$P_PATCH_DIR"/0005-*.patch >/dev/null 2>&1 || continue
 		grep -q "strmatch(s, \"$P_ROUTE_TYPE_NAME\")" "$FRR/lib/log.c" \
 			|| die "可选补丁 0005（redistribute $P_ROUTE_TYPE_NAME）未生效"
+		log "协议 $proto 的可选补丁 0005 已启用（redistribute）"
 	done
-	log "可选补丁 0005 已启用（redistribute）"
 fi
 
 record "MODIFIED_FILES=$changed"

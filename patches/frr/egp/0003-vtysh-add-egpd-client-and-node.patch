@@ -1,7 +1,7 @@
 From e76627ae636360f6a84aee4534ee4e9cd6159c55 Mon Sep 17 00:00:00 2001
 From: Chenlang Li <Cc1580155hsg@163.com>
 Date: Sat, 24 Oct 2026 19:54:17 +0800
-Subject: [PATCH 3/5] vtysh: add egpd client and node
+Subject: [PATCH 3/4] vtysh: add egpd client and node
 
 ---
  vtysh/vtysh.c | 9 +++++++++

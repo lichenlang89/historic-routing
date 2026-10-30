@@ -1,0 +1,137 @@
++ cd <work>/repo/lab/egp
++ export LAB_PREFIX=<work>/prefix3/prefix
++ LAB_PREFIX=<work>/prefix3/prefix
++ export LAB_IMAGE=localhost/hr-rfc904-lab:20261026
++ LAB_IMAGE=localhost/hr-rfc904-lab:20261026
++ export LAB_RUNDIR=/var/tmp/hr-s9-lab
++ LAB_RUNDIR=/var/tmp/hr-s9-lab
++ export LAB_NAME_PREFIX=egp-s9-r
++ LAB_NAME_PREFIX=egp-s9-r
++ export LAB_NET=egp-s9-net
++ LAB_NET=egp-s9-net
++ export LAB_SUBNET=198.18.140.0/24
++ LAB_SUBNET=198.18.140.0/24
++ export LAB_IP1=198.18.140.1
++ LAB_IP1=198.18.140.1
++ export LAB_IP2=198.18.140.2
++ LAB_IP2=198.18.140.2
++ ./lab.sh up
+[09:17:16Z] lab   实验镜像: localhost/hr-rfc904-lab:20261026
+[09:17:16Z] lab   安装前缀: <work>/prefix3/prefix（egpd/zebra/vtysh/libfrr 均存在，var/run 挂载点已就绪）
+[09:17:16Z] lab   资源名无冲突: <lab-r> / <lab-r> / egp-s9-net
+[09:17:16Z] lab   探针通过: libfrr 来自挂载前缀；具备 NET_ADMIN + NET_RAW
+[09:17:16Z] lab   创建实验网络 egp-s9-net（198.18.140.0/24）
+[09:17:16Z] lab   创建容器 <lab-r>（198.18.140.1）
+[09:17:17Z] lab   创建容器 <lab-r>（198.18.140.2）
+[09:17:17Z] lab   [<lab-r>] stub0=10.0.0.1/8 宣告 10.0.0.0 邻居 198.18.140.2 AS 65002 本地 AS 65001
+[09:17:19Z] lab   [<lab-r>] stub0=172.16.0.1/16 宣告 172.16.0.0 邻居 198.18.140.1 AS 65001 本地 AS 65002
+[09:17:27Z] lab   两端 EGP 邻居均已 Up（约 5s）
+[09:17:27Z] lab   实验就绪：./lab.sh status / ./lab.sh test / ./lab.sh vty 1
++ ./lab.sh status
+=============== <lab-r>
+--- 进程
+     11 zebra
+     17 egpd
+--- egpd 邻居
+EGP local AS 65001, zebra connected, 1 network(s) configured
+Peer             AS     State        Mode     Prefixes
+198.18.140.2 65002 Up active 1
+--- egpd 邻居详情
+EGP local AS 65001, zebra connected, 1 network(s) configured
+Peer 198.18.140.2 AS 65002
+  local-address 198.18.140.1, state Up, mode active
+  timers hello 2 poll 6; next hello 2s, next poll 5s, abort in 3600s
+  counters tx/rx: hello 4/0, poll 1/1, update 2/1
+  prefixes 1, last update 1s ago
+  prefix 172.16.0.0/16 distance 1 gateway 198.18.140.2 misses 0 age 1s
+--- zebra 的 EGP 路由（协议名选择器）
+Codes: K - kernel route, C - connected, L - local, S - static,
+       R - RIP, O - OSPF, B - BGP, E - EIGRP, T - Table, v - VNC,
+       V - VNC-Direct, t - Table-Direct, G - EGP,
+       > - selected route, * - FIB route, q - queued, r - rejected, b - backup
+       t - trapped, o - offload failure
+
+IPv4 unicast VRF default:
+G>* 172.16.0.0/16 [140/1] via 198.18.140.2, eth0, weight 1, 00:00:01
+--- zebra 的 EGP 路由（文本视角，'G' 前缀即 EGP）
+G>* 172.16.0.0/16 [140/1] via 198.18.140.2, eth0, weight 1, 00:00:01
+--- 内核路由（stub / 实验网段）
+default via 198.18.140.1 dev eth0 proto static metric 100
+10.0.0.0/8 dev stub0 proto kernel scope link src 10.0.0.1
+172.16.0.0/16 nhid 13 via 198.18.140.2 dev eth0 proto zebra metric 20
+198.18.140.0/24 dev eth0 proto kernel scope link src 198.18.140.1
+=============== <lab-r>
+--- 进程
+     11 zebra
+     17 egpd
+--- egpd 邻居
+EGP local AS 65002, zebra connected, 1 network(s) configured
+Peer             AS     State        Mode     Prefixes
+198.18.140.1 65001 Up passive 1
+--- egpd 邻居详情
+EGP local AS 65002, zebra connected, 1 network(s) configured
+Peer 198.18.140.1 AS 65001
+  local-address 198.18.140.2, state Up, mode passive
+  timers hello 2 poll 6; next hello 1s, next poll 4s, abort in 3598s
+  counters tx/rx: hello 4/4, poll 1/1, update 1/2
+  prefixes 1, last update 2s ago
+  prefix 10.0.0.0/8 distance 1 gateway 198.18.140.1 misses 0 age 2s
+--- zebra 的 EGP 路由（协议名选择器）
+Codes: K - kernel route, C - connected, L - local, S - static,
+       R - RIP, O - OSPF, B - BGP, E - EIGRP, T - Table, v - VNC,
+       V - VNC-Direct, t - Table-Direct, G - EGP,
+       > - selected route, * - FIB route, q - queued, r - rejected, b - backup
+       t - trapped, o - offload failure
+
+IPv4 unicast VRF default:
+G>* 10.0.0.0/8 [140/1] via 198.18.140.1, eth0, weight 1, 00:00:02
+--- zebra 的 EGP 路由（文本视角，'G' 前缀即 EGP）
+G>* 10.0.0.0/8 [140/1] via 198.18.140.1, eth0, weight 1, 00:00:02
+--- 内核路由（stub / 实验网段）
+default via 198.18.140.1 dev eth0 proto static metric 100
+10.0.0.0/8 nhid 13 via 198.18.140.1 dev eth0 proto zebra metric 20
+172.16.0.0/16 dev stub0 proto kernel scope link src 172.16.0.1
+198.18.140.0/24 dev eth0 proto kernel scope link src 198.18.140.2
++ ./lab.sh test
+EGP 双路由器实验集成测试
+  参数: R1=<lab-r>(198.18.140.1,AS65001)  R2=<lab-r>(198.18.140.2,AS65002)  前缀=/build/prefix  UDP端口=9999
+  宣告: 10.0.0.0 @ 10.0.0.1/8 ; 172.16.0.0 @ 172.16.0.1/16
+
+PASS  01 两个 egpd 进程正常启动                            <lab-r>: egpd=17 zebra=11; <lab-r>: egpd=17 zebra=11
+PASS  02 双方邻居状态 Up                                 R1->198.18.140.2 Up(AS65002,active)  R2->198.18.140.1 Up(AS65001,passive)
+PASS  03 双向学习 EGP 路由                               <lab-r> 学到 172.16.0.0/16（protocol=egp）；<lab-r> 学到 10.0.0.0/8（protocol=egp）
+PASS  04 zebra 显示类型 G、管理距离 140                     JSON protocol=egp distance=140；文本 R1: G>* 172.16.0.0/16 [140/1]  R2: G>* 10.0.0.0/8 [140/1]；show ip route egp 命中 <lab-r>:172.16.0.0/16 <lab-r>:10.0.0.0/8
+PASS  05 内核路由表存在学习到的路由                             R1: 172.16.0.0/16 via 198.18.140.2 proto zebra；R2: 10.0.0.0/8 via 198.18.140.1 proto zebra
+PASS  06 两个 Stub 网络之间 UDP 双向通信                     10.0.0.1->172.16.0.1: OK ECHO:p1-to-p2 ; 172.16.0.1->10.0.0.1: OK ECHO:p2-to-p1
+PASS  07 取消 network 通告后对端撤路                        撤宣告后 9s：<lab-r> 的 RIB 与内核均无 10.0.0.0/8
+PASS  08 重新宣告后路由恢复                                 重宣告后 1s：<lab-r> 恢复 10.0.0.0/8 via 198.18.140.1
+PASS  09 egpd 异常退出后过期路由撤销                          SIGKILL egpd@<lab-r>(pid=17) 后 7s：<lab-r> 撤掉 172.16.0.0/16
+PASS  10 egpd 重启后邻居与路由重建                           重启 egpd@<lab-r> 后 5s：邻居 Up、双向路由恢复
+PASS  11 zebra 重启后 egpd 重新下发路由                     重启 zebra@<lab-r> 后 0s：172.16.0.0/16 重新出现在 zebra 与内核
+PASS  12 删除 EGP 邻居后路由撤销                            删邻居后 0s <lab-r> 撤路、0s <lab-r> 撤路；邻居已重新配置
+PASS  13 实验恢复（收尾校验）                                5s 内双方邻居 Up、双向路由齐备
+
+汇总: 13 通过 / 0 失败 / 共 13 项
+  [PASS] 01 两个 egpd 进程正常启动                              0.4s  <lab-r>: egpd=17 zebra=11; <lab-r>: egpd=17 zebra=11
+  [PASS] 02 双方邻居状态 Up                                   0.2s  R1->198.18.140.2 Up(AS65002,active)  R2->198.18.140.1 Up(AS65001,passive)
+  [PASS] 03 双向学习 EGP 路由                                 0.1s  <lab-r> 学到 172.16.0.0/16（protocol=egp）；<lab-r> 学到 10.0.0.0/8（protocol=egp）
+  [PASS] 04 zebra 显示类型 G、管理距离 140                       0.4s  JSON protocol=egp distance=140；文本 R1: G>* 172.16.0.0/16 [140/1]  R2: G>* 10.0.0.0/8 [140/1]；show ip route egp 命中 <lab-r>:172.16.0.0/16 <lab-r>:10.0.0.0/8
+  [PASS] 05 内核路由表存在学习到的路由                               0.2s  R1: 172.16.0.0/16 via 198.18.140.2 proto zebra；R2: 10.0.0.0/8 via 198.18.140.1 proto zebra
+  [PASS] 06 两个 Stub 网络之间 UDP 双向通信                       0.3s  10.0.0.1->172.16.0.1: OK ECHO:p1-to-p2 ; 172.16.0.1->10.0.0.1: OK ECHO:p2-to-p1
+  [PASS] 07 取消 network 通告后对端撤路                          9.5s  撤宣告后 9s：<lab-r> 的 RIB 与内核均无 10.0.0.0/8
+  [PASS] 08 重新宣告后路由恢复                                   1.5s  重宣告后 1s：<lab-r> 恢复 10.0.0.0/8 via 198.18.140.1
+  [PASS] 09 egpd 异常退出后过期路由撤销                            7.3s  SIGKILL egpd@<lab-r>(pid=17) 后 7s：<lab-r> 撤掉 172.16.0.0/16
+  [PASS] 10 egpd 重启后邻居与路由重建                             6.5s  重启 egpd@<lab-r> 后 5s：邻居 Up、双向路由恢复
+  [PASS] 11 zebra 重启后 egpd 重新下发路由                       4.6s  重启 zebra@<lab-r> 后 0s：172.16.0.0/16 重新出现在 zebra 与内核
+  [PASS] 12 删除 EGP 邻居后路由撤销                              0.5s  删邻居后 0s <lab-r> 撤路、0s <lab-r> 撤路；邻居已重新配置
+  [PASS] 13 实验恢复（收尾校验）                                  0.0s  5s 内双方邻居 Up、双向路由齐备
+
+日志: /var/tmp/hr-s9-lab/logs/test-20261030-171728.log
++ rc=0
++ echo LAB_RC=0
+LAB_RC=0
++ ./lab.sh down
+[09:18:05Z] lab   删除容器 <lab-r>
+[09:18:05Z] lab   删除容器 <lab-r>
+[09:18:05Z] lab   删除网络 egp-s9-net
+[09:18:05Z] lab   清理完成（本实验资源已全部移除）
