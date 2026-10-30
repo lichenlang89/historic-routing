@@ -142,7 +142,7 @@ log "rpmbuild 成功（日志: $LOG）"
 
 # ---- 4. 检查产物 ----
 mapfile -t RPMS < <(find "$TOPDIR/RPMS" -name '*.rpm' | sort)
-[ "${#RPMS[@]}" -ge 2 ] || die "只生成了 ${#RPMS[@]} 个 RPM（期望 runtime + egp）"
+[ "${#RPMS[@]}" -eq 3 ] || die "生成了 ${#RPMS[@]} 个 RPM（期望 runtime + egp + selinux；请使用独立 topdir）"
 hrr_check=0
 for r in "${RPMS[@]}"; do
 	echo

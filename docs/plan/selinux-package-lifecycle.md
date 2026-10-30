@@ -44,3 +44,14 @@ Fedora 42 Disabled 验证本地同源匹配 RPM 与离线策略 store 生命周�
 - EGP 单独卸载/重装后路由未恢复。独立复现：Zebra PID 保持 active，但停止 EGP 后
   zserv.api 消失，EGP 重启报告 zebra disconnected。原因是两个 unit 同时声明共享
   RuntimeDirectory；修正为仅 Zebra 管理（RPM/DEB 同步），不是延长超时或重启 Zebra 绕过。
+
+## V2 验证进展
+
+- fd0c3ed 在两台原生主机重建三包，rpmlint 均 0 errors/0 warnings；同源 DEB 构建完成。
+- RHEL 首次 V2 刚 start 就读取 domain 得到 init_t；同包在真实邻接/RIB/内核就绪后
+  两进程为 frr_t。测试等待真实就绪再查 domain，保留原始失败，不改变 frr_t 断言。
+- 增加缺失模块的启动阻断和包重装恢复、手工 priority-400 模块碰撞拒绝负例。
+  缺失模块能阻止启动；清理 stop 后 unit 可能 GC，改为核对 inactive/0，避免对
+  已卸载缓存的 unit 调 reset-failed 导致测试误失败。
+- 共享 socket 前后对照已通过；Debian 新包实际 egpd stop/start、完整 reload、CRLF
+  字节比较通过；Fedora 完整 profile/EGP/整套移除重装矩阵通过。
