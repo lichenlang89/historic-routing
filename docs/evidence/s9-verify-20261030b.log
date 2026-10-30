@@ -3,7 +3,7 @@
 [09:41:55Z] verify.sh              构建根目录 : /work/build
 [09:41:55Z] verify.sh              安装前缀   : /build/prefix
 [09:41:55Z] verify.sh              并行度     : 2
-[09:41:55Z] verify.sh              协议       : egp 
+[09:41:55Z] verify.sh              协议       : egp
 [09:41:55Z] verify.sh              ========== [A] 仓库完整性
 [PASS      ] A1 BASELINE                        FRR_COMMIT=27f287be9210… (10.9.0-dev)
 [PASS      ] A2 补丁 SHA256                   4 个补丁文件全部匹配 patches/frr/SHA256SUMS

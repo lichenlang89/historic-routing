@@ -83,6 +83,18 @@ immediately; an omitted network is removed after three accepted Updates.
 Dead neighbors and stale Updates also cause route withdrawal.
 Reconnect to zebra replays the current learned routes.
 
+Refuse and Error are generated, not only decoded (RFC 904 sections 4.5 and A.5).
+A Neighbor Acquisition Request whose Hello or Poll interval exceeds 3600 seconds
+is answered with Refuse (code 2) carrying status 6 (parameter problem); the
+neighbor state is left untouched. Error messages (type 8) report a bad header
+(reason 1), a bad data field (reason 2), a Poll naming a net this gateway does
+not serve (reason 3), and Hellos arriving closer than `max(1, hello/2)` seconds
+(reason 4). Polls are deliberately **not** rate-limited: RFC 904 section 4.4
+makes a repeated Poll a legal flow that spends the unsolicited Update budget.
+A received Error is advisory only - it is counted, does not change state, and is
+never answered with another Error. `show ip egp neighbors detail` prints the
+error and refuse counters.
+
 ## Ready-to-play Podman lab
 
 `lab.sh` uses two isolated containers, dummy stub interfaces and an internal

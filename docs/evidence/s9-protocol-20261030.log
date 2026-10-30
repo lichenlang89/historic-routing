@@ -1,6 +1,6 @@
-+ cd /root/hr-s9-20261030/repo/lab/egp
-+ export LAB_PREFIX=/root/hr-s9-20261030/prefix7/prefix
-+ LAB_PREFIX=/root/hr-s9-20261030/prefix7/prefix
++ cd <work>/repo/lab/egp
++ export LAB_PREFIX=<work>/prefix7/prefix
++ LAB_PREFIX=<work>/prefix7/prefix
 + export LAB_IMAGE=localhost/hr-rfc904-lab:20261026
 + LAB_IMAGE=localhost/hr-rfc904-lab:20261026
 + export LAB_RUNDIR=/var/tmp/hr-s9-lab
@@ -19,14 +19,14 @@
 + LAB_TIMERS='1 1'
 + ./lab.sh up
 [09:43:58Z] lab   实验镜像: localhost/hr-rfc904-lab:20261026
-[09:43:58Z] lab   安装前缀: /root/hr-s9-20261030/prefix7/prefix（egpd/zebra/vtysh/libfrr 均存在，var/run 挂载点已就绪）
-[09:43:58Z] lab   资源名无冲突: egp-s9e-r1 / egp-s9e-r2 / egp-s9e-net
+[09:43:58Z] lab   安装前缀: <work>/prefix7/prefix（egpd/zebra/vtysh/libfrr 均存在，var/run 挂载点已就绪）
+[09:43:58Z] lab   资源名无冲突: <lab-r> / <lab-r> / egp-s9e-net
 [09:43:58Z] lab   探针通过: libfrr 来自挂载前缀；具备 NET_ADMIN + NET_RAW
 [09:43:58Z] lab   创建实验网络 egp-s9e-net（198.18.180.0/24）
-[09:43:58Z] lab   创建容器 egp-s9e-r1（198.18.180.1）
-[09:43:58Z] lab   创建容器 egp-s9e-r2（198.18.180.2）
-[09:43:58Z] lab   [egp-s9e-r1] stub0=10.0.0.1/8 宣告 10.0.0.0 邻居 198.18.180.2 AS 65002 本地 AS 65001
-[09:44:01Z] lab   [egp-s9e-r2] stub0=172.16.0.1/16 宣告 172.16.0.0 邻居 198.18.180.1 AS 65001 本地 AS 65002
+[09:43:58Z] lab   创建容器 <lab-r>（198.18.180.1）
+[09:43:58Z] lab   创建容器 <lab-r>（198.18.180.2）
+[09:43:58Z] lab   [<lab-r>] stub0=10.0.0.1/8 宣告 10.0.0.0 邻居 198.18.180.2 AS 65002 本地 AS 65001
+[09:44:01Z] lab   [<lab-r>] stub0=172.16.0.1/16 宣告 172.16.0.0 邻居 198.18.180.1 AS 65001 本地 AS 65002
 [09:44:07Z] lab   两端 EGP 邻居均已 Up（约 4s）
 [09:44:07Z] lab   实验就绪：./lab.sh status / ./lab.sh test / ./lab.sh vty 1
 + ./lab.sh test-protocol
@@ -60,19 +60,19 @@ PASS no Error in response to an Error message
 PASS protocol regressions and original daemon recovery
 + ./lab.sh reload
 Traceback (most recent call last):
-  File "/root/hr-s9-20261030/repo/lab/egp/test_reload.py", line 93, in <module>
+  File "<work>/repo/lab/egp/test_reload.py", line 93, in <module>
     sys.exit(main())
              ^^^^^^
-  File "/root/hr-s9-20261030/repo/lab/egp/test_reload.py", line 58, in main
+  File "<work>/repo/lab/egp/test_reload.py", line 58, in main
     lab.wait("对端学到新增的 " + EXTRA_CIDR,
-  File "/root/hr-s9-20261030/repo/lab/egp/test_lab.py", line 154, in wait
+  File "<work>/repo/lab/egp/test_lab.py", line 154, in wait
     raise AssertionError("%s: %.0fs 内未满足%s" % (
 AssertionError: 对端学到新增的 192.168.0.0/24: 40s 内未满足
 + rc=1
 + echo LAB_RC=1
 LAB_RC=1
 + ./lab.sh down
-[09:47:00Z] lab   删除容器 egp-s9e-r1
-[09:47:00Z] lab   删除容器 egp-s9e-r2
+[09:47:00Z] lab   删除容器 <lab-r>
+[09:47:00Z] lab   删除容器 <lab-r>
 [09:47:00Z] lab   删除网络 egp-s9e-net
 [09:47:00Z] lab   清理完成（本实验资源已全部移除）
