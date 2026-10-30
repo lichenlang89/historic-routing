@@ -74,3 +74,8 @@ lifecycle 的事务后检查只查询 egpd，可能漏掉 Zebra 提前启动。
 先在旧 head 上运行合法 CRLF 恢复及自动启动故障注入负例，再验证修复后通过；
 使用现有包在原两台 aarch64 主机的独占资源内复测真实 reload/升级/回退，
 保留首次失败，恢复配置、原 FRR、宿主路由和测试资源，再推送并回复两条审查。
+
+审查修复执行结果：f33ce89 上两个 main 的真实文件/受控故障回归全部通过；
+RHEL/DEB 的 CRLF 实际安装包 reload、成对升级/回退及独立 SHA256 一致。
+Debian 私有脚本的 setup 和清理失败保留，按完整创建 ID 补清理后宿主状态恢复；
+详见[本轮证据](../evidence/package-driver-review-20261031/README.md)。
