@@ -539,6 +539,17 @@ S9.4（`doc/user/egp.rst` + man 页）**未执行**：现有构建镜像里没�
 
 同时把 `./lab.sh reload` 加进 `.github/workflows/ci.yml`（评审指出 CI 没跑它）。
 
+### 评审第二轮（同一 head 复核后仍剩 1 项 P2）
+
+`malformed_reason()` 与 `egp_decode()` 对合法 Status 的判断不一致，两处已改：
+
+1. Request/Confirm 的 Status 只允许 0–2（能力模式），原来只检查 `> 7`，Status 3–7 会被当成
+   数据域问题给 reason 2；现在按 code 判断，归 reason 1。
+2. Update/Error 合法携带 unsolicited 位 `0x80`，原来用 `status > 2` 判断，Status=129 的好头部被
+   误判成 reason 1；现在先屏蔽 `0x80` 再判断，坏数据体一律 reason 2。
+
+lab 增加两个独立样本：14 字节 Request（Status=6）→ `0001`；坏 Update 体在 Status=1 与 129 下都 → `0002`。
+
 ### S9.5 frr-reload 回归
 
 `lab.sh reload` 用 `frr-reload.py --reload` 对 egpd 做一次真实重载：新增一条 network、
