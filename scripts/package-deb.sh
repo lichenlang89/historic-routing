@@ -147,6 +147,13 @@ if [ -n "${HR_FRR_MIRROR_TARBALL:-}" ]; then
 	[ -f "$HR_FRR_MIRROR_TARBALL" ] || die "HR_FRR_MIRROR_TARBALL 不存在: $HR_FRR_MIRROR_TARBALL"
 	mkdir -p "$SRC/vendor"
 	cp -f "$HR_FRR_MIRROR_TARBALL" "$SRC/vendor/"
+	# fetch-frr validates both the archive hash and its declared repository root.
+	# dpkg-buildpackage must receive the complete offline input, not just the tar.
+	MIRROR_INPUT_DIR="$(cd "$(dirname "$HR_FRR_MIRROR_TARBALL")" && pwd)"
+	for manifest in SHA256SUMS VENDOR.txt; do
+		[ -f "$MIRROR_INPUT_DIR/$manifest" ] || die "离线镜像缺少 $MIRROR_INPUT_DIR/$manifest"
+		cp -f "$MIRROR_INPUT_DIR/$manifest" "$SRC/vendor/$manifest"
+	done
 	VENDOR_REL="vendor/$(basename "$HR_FRR_MIRROR_TARBALL")"
 	printf 'HR_FRR_MIRROR_TARBALL := $(CURDIR)/%s
 ' "$VENDOR_REL" > "$SRC/debian/hroptions.mk"

@@ -30,3 +30,13 @@ DEB 在允许主机内的 Debian arm64 隔离环境构建和安装，按实际�
 - 原宿主服务/容器/路由快照已保存到执行环境。
 - RHEL 原生编译工具缺失；依赖预检发现 pytest 和 libyang-devel 不在当前启用仓库，待核对 CRB。
 - Fedora 主机通过现有 RHEL 主机的 SSH 身份访问；尚无 Debian 系环境，正在获取原始 Debian 镜像。
+
+## 第一阶段进度
+
+- RHEL 10.2/aarch64 已从 00dcc4f 原生构建 RPM，并以正常 dnf 依赖解析安装匹配包。
+  两个安装 unit 仅添加独占 NetworkNamespacePath drop-in，ExecStart/ExecReload 保持原样。
+  实际 systemctl reload 已通过 network 增删/幂等、清空/重复清空、AS/timers、两类错误和恢复，
+  PID 不变、原配置字节恢复。未停止原系统 FRR；SELinux 未关闭。
+- Debian 首次构建因缺 libtool 失败，补齐 Build-Depends libtool-bin，日志保留。
+- Debian 在线取固定 FRR 提交遇到 TLS 中断；改用校验过的离线镜像，复现 package-deb.sh
+  仅复制 tar 而遗漏 SHA256SUMS/VENDOR.txt 的错误；补齐配套元数据后继续验证。
