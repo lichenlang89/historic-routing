@@ -46,6 +46,7 @@ usage() {
   test-updates     原始报文对端验证 Update 距离、逐网络撤路与恢复
   test-protocol    RFC 协议回归（要求 lab.env 中 LAB_TIMERS="1 1"）
   test-timers      独立间隔与慢 Hello 实时时钟回归（约 5 分钟）
+  reload           用 frr-reload.py 重载 egpd 配置，校验不重启、不抖邻居、可幂等
   down             删除本实验的容器与网络（只删本实验的）
   env              打印当前生效的参数（不含任何凭据）
 
@@ -377,6 +378,7 @@ case "$cmd" in
 	test-updates) check_params; cmd_test test_updates.py ;;
 	test-protocol) check_params; cmd_test test_protocol.py ;;
 	test-timers) check_params; cmd_test test_timers.py ;;
+	reload) check_params; cmd_test test_reload.py ;;
 	down)   check_params; cmd_down ;;
 	env)    cmd_env ;;
 	''|-h|--help|help) usage ;;
