@@ -1,0 +1,9 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+/opt/historic-routing/27f287be9/sbin(/.*)? -d system_u:object_r:bin_t:s0
+/opt/historic-routing/27f287be9/sbin/.* -- system_u:object_r:frr_exec_t:s0
+/opt/historic-routing/27f287be9/bin(/.*)? -d system_u:object_r:bin_t:s0
+/opt/historic-routing/27f287be9/bin/.* -- system_u:object_r:frr_exec_t:s0
+/opt/historic-routing/27f287be9/lib(/.*)? system_u:object_r:lib_t:s0
+/opt/historic-routing/27f287be9/etc/frr(/.*)? system_u:object_r:frr_conf_t:s0
+/opt/historic-routing/27f287be9/var(/.*)? system_u:object_r:frr_var_lib_t:s0
+/run/historic-routing(/.*)? system_u:object_r:frr_var_run_t:s0

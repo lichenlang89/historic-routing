@@ -47,3 +47,19 @@ DEB 在允许主机内的 Debian arm64 隔离环境构建和安装，按实际�
   RPM 默认配置改为 log stdout；DEB 也显式选择 stdout，由 systemd journal 收集。
   接下来用新开发包验证升级与回退。
 - 本轮 Debian 第一版 lintian 的 3 条长行警告逐条保留；格式修正随新包重新验证。
+
+## 本轮交接结果
+
+- RHEL 与 Debian 已正常构建、安装匹配开发包，实际安装 unit 全部 reload 用例通过。
+- 两端成对升级/回退/再升级、配置保留、依赖拒绝、服务起停与双向路由恢复通过。
+- RHEL 默认进程域是 unconfined_service_t；Enforcing 下另以可选 frr_t 手动配置通过
+  全量 reload/生命周期。最小 node_bind 扩展、目录标签与环境设置均有失败前证据。
+  公共 .te/.fc 已编译、加载、复验；临时模块/标签规则与测试资源已恢复清理。
+- Debian --keep 原先仍被 -tc 清掉原始构建日志，已修正；d098a0d 重建及安装复验通过。
+- 两宿主所有 route table 快照与初始逐字节一致，容器清单恢复；原系统 FRR 保持运行。
+- 当前详细证据、首次失败、具体版本、复测入口和限制见
+  [本轮报告](../evidence/package-service-20261031/README.md)。
+- 保持实验性/预发布：SELinux 策略尚未自动集成到 RPM 包的依赖/安装/卸载；Debian SELinux、
+  完整 Debian 宿主及暂缓的 x86 架构不在已验收范围。互通/长期压力另开任务。
+
+互通/长期压力后续任务：[Issue #16](https://github.com/lichenlang89/historic-routing/issues/16)，尚未执行。

@@ -1,0 +1,492 @@
+dpkg-buildpackage: info: source package historic-routing
+dpkg-buildpackage: info: source version 0.1.1~devservice3-3
+dpkg-buildpackage: info: source distribution unstable
+dpkg-buildpackage: info: source changed by Chenlang Li <Cc1580155hsg@163.com>
+ dpkg-source --before-build .
+dpkg-buildpackage: info: host architecture arm64
+ debian/rules clean
+dh clean
+   debian/rules override_dh_auto_clean
+make[1]: Entering directory '<work>'
+rm -rf <work> <work>
+make[1]: Leaving directory '<work>'
+   dh_clean
+	rm -f debian/debhelper-build-stamp
+	rm -rf debian/.debhelper/
+	rm -f -- debian/historic-routing-runtime.substvars debian/historic-routing-egp.substvars debian/files
+	rm -fr -- debian/historic-routing-runtime/ debian/tmp/ debian/historic-routing-egp/
+	find .  \( \( \
+		\( -path .\*/.git -o -path .\*/.svn -o -path .\*/.bzr -o -path .\*/.hg -o -path .\*/CVS -o -path .\*/.pc -o -path .\*/_darcs \) -prune -o -type f -a \
+	        \( -name '#*#' -o -name '.*~' -o -name '*~' -o -name DEADJOE \
+		 -o -name '*.orig' -o -name '*.rej' -o -name '*.bak' \
+		 -o -name '.*.orig' -o -name .*.rej -o -name '.SUMS' \
+		 -o -name TAGS -o \( -path '*/.deps/*' -a -name '*.P' \) \
+		\) -exec rm -f {} + \) -o \
+		\( -type d -a \( -name autom4te.cache -o -name __pycache__ \) -prune -exec rm -rf {} + \) \)
+ debian/rules binary
+dh binary
+   dh_update_autotools_config
+   dh_autoreconf
+   debian/rules override_dh_auto_configure
+make[1]: Entering directory '<work>'
+== configure 由 scripts/build.sh 执行（含固定 FRR 基线与补丁校验）
+make[1]: Leaving directory '<work>'
+   debian/rules override_dh_auto_build
+make[1]: Entering directory '<work>'
+# Debian 的硬化编译参数带 -ffile-prefix-map=<work> FRR 的 xref 记录
+# 相对路径，python/xref2vtysh.py 于是匹配不上 daemon 位表，会生成 VTYSH_LIB 这类
+# 不存在的符号（编译直接失败，实测见 S8-B 报告）。只去掉这一个参数，
+# 其余加固参数（-fstack-protector-strong、-D_FORTIFY_SOURCE、relro）全部保留。
+CFLAGS="$(printf '%s' "$CFLAGS" | sed -e 's/-ffile-prefix-map=[^ ]*//g')" \
+CXXFLAGS="$(printf '%s' "$CXXFLAGS" | sed -e 's/-ffile-prefix-map=[^ ]*//g')" \
+./scripts/build.sh \
+	--jobs 2 \
+	--build-root <work> \
+	--prefix /opt/historic-routing/27f287be9 \
+	--destdir <work> \
+	--configure-args "--runstatedir=/run/historic-routing"
+[18:48:49Z] build.sh               ===== 日志文件: <work> =====
+[18:48:49Z] build.sh               构建根目录 : <work>
+[18:48:49Z] build.sh               源码目录   : <work>
+[18:48:49Z] build.sh               构建目录   : <work>
+[18:48:49Z] build.sh               安装前缀   : /opt/historic-routing/27f287be9
+[18:48:49Z] build.sh               暂存根     : <work> <work>
+[18:48:49Z] build.sh               并行度     : 2
+[18:48:49Z] build.sh               协议       : egp
+[18:48:49Z] build.sh               ========== [0/9] 前置检查
+[18:48:49Z] build.sh                 pkg-config: libyang 3.12.2
+[18:48:49Z] build.sh                 pkg-config: json-c 0.18
+[18:48:49Z] build.sh                 gcc: gcc (Debian 14.2.0-19) 14.2.0
+[18:48:49Z] build.sh                 pytest: 8.3.5
+[18:48:49Z] build.sh               ========== [1/9] 获取固定基线 FRR
+[18:48:49Z] fetch-frr.sh           ===== 日志文件: <work> =====
+[18:48:50Z] fetch-frr.sh           WARN 使用离线镜像（已校验 SHA256）: frr-27f287be9.git.tar.xz -> <work>
+[18:48:50Z] fetch-frr.sh           上游仓库 : <work>
+[18:48:50Z] fetch-frr.sh           固定基线 : 27f287be9210d4024a140486b7b8ddd5eb41fe04 (10.9.0-dev)
+[18:48:50Z] fetch-frr.sh           目标目录 : <work>
+[18:48:50Z] fetch-frr.sh           尝试浅取单个提交（--depth 1）
+[18:48:51Z] fetch-frr.sh           完成: HEAD=27f287be9210d4024a140486b7b8ddd5eb41fe04，文件数 9587
+[18:48:51Z] build.sh               ========== [2/9] 应用 FRR 适配补丁
+[18:48:51Z] apply-patches.sh       ===== 日志文件: <work> =====
+[18:48:51Z] apply-patches.sh       FRR 树: <work>
+[18:48:51Z] apply-patches.sh       基线: 27f287be9210d4024a140486b7b8ddd5eb41fe04
+[18:48:51Z] apply-patches.sh       补丁数: 4（可选补丁 未启用）
+[18:48:51Z] apply-patches.sh       [1/4] 0001-lib-add-egp-route-type.patch  sha256=f0c693c4be9998de
+[18:48:51Z] apply-patches.sh       [2/4] 0002-zebra-install-egp-routes-with-distance-140.patch  sha256=d666e6a4221999ac
+[18:48:51Z] apply-patches.sh       [3/4] 0003-vtysh-add-egpd-client-and-node.patch  sha256=39dd24c225afcd84
+[18:48:51Z] apply-patches.sh       [4/4] 0004-build-enable-egpd-and-keep-existing-tests.patch  sha256=c6646e3c67232bf9
+[18:48:51Z] apply-patches.sh       校验补丁效果
+[18:48:51Z] apply-patches.sh       期望改动文件数: 19，实际: 19
+[18:48:51Z] apply-patches.sh       校验协议 egp 的集成点（ZEBRA_ROUTE_EGP / 'G' / VTYSH_EGPD=0x400000 / egpd）
+[18:48:51Z] apply-patches.sh       补丁应用完成：19 个文件被修改
+[18:48:51Z] build.sh               ========== [3/9] 集成协议源码
+[18:48:51Z] integrate-sources.sh   ===== 日志文件: <work> =====
+[18:48:51Z] integrate-sources.sh   === 协议 egp -> <work>
+[18:48:51Z] integrate-sources.sh     + egpd.c  sha256=e3264b6ffcc0fa0a
+[18:48:51Z] integrate-sources.sh     + egp_packet.c  sha256=6ca4df7471be74e4
+[18:48:51Z] integrate-sources.sh     + egp_packet.h  sha256=851546b3820ba699
+[18:48:51Z] integrate-sources.sh     + egp_reach.h  sha256=be85ded341ebe6aa
+[18:48:51Z] integrate-sources.sh     + egp_state.h  sha256=2416dfd2938bba51
+[18:48:51Z] integrate-sources.sh     + egp_age.h  sha256=1bfab5fe6949c27a
+[18:48:51Z] integrate-sources.sh     + egp_update.h  sha256=1cae40191358c677
+[18:48:51Z] integrate-sources.sh     + test_packet.c  sha256=3dfd5774ccdaf5d4
+[18:48:51Z] integrate-sources.sh     + subdir.am  sha256=463f9a99d2591156
+[18:48:51Z] integrate-sources.sh     + README.md  sha256=45985197015014bf
+[18:48:51Z] integrate-sources.sh     + lab.sh  sha256=9bf8251b4d664f93
+[18:48:51Z] integrate-sources.sh     + test_lab.py  sha256=6c5b8f584eb187be
+[18:48:51Z] integrate-sources.sh     文件集合校验通过（12 个）
+[18:48:51Z] integrate-sources.sh     + egp.rst  sha256=b6428fc9bf17f0b6
+[18:48:51Z] integrate-sources.sh     + frr-egpd.rst  sha256=0071fc17fde209c6
+[18:48:51Z] integrate-sources.sh   源码集成完成
+[18:48:51Z] build.sh               ========== [4/9] 生成构建系统（bootstrap）
+[18:48:54Z] build.sh               ========== [5/9] configure
+[18:49:00Z] build.sh                 HAVE_EGPD + rt_enabled(--enabled egpd): 已生成
+[18:49:00Z] build.sh               ========== [5b/9] 路由类型 / TESTS 注册校验
+[18:49:00Z] build.sh                 route_types.h 尚未生成（make 时生成），稍后再校验
+[18:49:00Z] build.sh                 Makefile: TESTS = $(am__EXEEXT_45) $(am__EXEEXT_13)
+[18:49:00Z] build.sh                 egpd/test_packet 的 automake 变量: am__EXEEXT_13
+[18:49:00Z] build.sh                 egpd/test_packet 已注册进 TESTS（经 am__EXEEXT_13）
+# TESTS 累加语义 A/B（GNU make，复刻 Makefile.am 的 include 顺序：pceplib 在 tests 之前）
+== pceplib/test/subdir.am 里的赋值（上游原样）
+9:TESTS = $(check_SCRIPTS)
+101:TESTS += $(check_SCRIPTS)
+== tests/subdir.am 里本项目新增的注册
+83:check_PROGRAMS += egpd/test_packet
+84:TESTS += egpd/test_packet
+== 旧写法（原 fork 的 TESTS =）
+OLD=egpd/test_packet
+== 新写法（本补丁的 TESTS +=）
+NEW=pcep_msg_tests pcep_pcc_api_tests egpd/test_packet
+[18:49:00Z] build.sh               ========== [6/9] 编译
+[18:50:12Z] build.sh                 OK egpd/egpd
+[18:50:12Z] build.sh                 OK zebra/zebra
+[18:50:12Z] build.sh                 OK vtysh/vtysh
+[18:50:12Z] build.sh                 ZEBRA_ROUTE_EGP=32（登记顺序第 1 个）
+[18:50:12Z] build.sh                 ZEBRA_ROUTE_ALL=33, ZEBRA_ROUTE_MAX=34
+[18:50:12Z] build.sh               ========== [7/9] 单元测试 egpd/test_packet（协议 egp）
+[18:50:12Z] build.sh                 egpd/test_packet:  tests passed
+########## egpd/test_packet
+EGP codec: golden wire format, bounds, checksum and unaligned tests passed
+[18:50:12Z] build.sh               ========== [8/9] make check（8a: TESTS 门禁 / 8b: 完整套件）
+[18:50:12Z] build.sh                 [8a] make check-TESTS
+[18:50:33Z] build.sh                 [8a] 1 个单元测试 PASS（TOTAL=1 PASS=1 FAIL=0）
+    PASS: egpd/test_packet
+[18:50:33Z] build.sh                 [8b] make check（含上游 pytest 套件）
+----- <work> (末 40 行) -----
+../../frr-src/tests/helpers/python/frrtest.py:92: AttributeError
+_________________ TestPimJpEncode.test_sgrpt_prune_overflow_OK _________________
+
+self = <test_pim_jp_encode.TestPimJpEncode object at 0xffff8c1705a0>
+
+    def testfunction(self):
+        self._run_tests()
+>       result = self.testresults[matchfunction]
+E       AttributeError: 'TestPimJpEncode' object has no attribute 'testresults'
+
+../../frr-src/tests/helpers/python/frrtest.py:92: AttributeError
+_____________________ TestPimJpEncode.test_exit_cleanly_2 ______________________
+
+self = <test_pim_jp_encode.TestPimJpEncode object at 0xffff8c49af50>
+
+    def testfunction(self):
+        self._run_tests()
+>       result = self.testresults[matchfunction]
+E       AttributeError: 'TestPimJpEncode' object has no attribute 'testresults'
+
+../../frr-src/tests/helpers/python/frrtest.py:92: AttributeError
+- generated xml file: <work> -
+=========================== short test summary info ============================
+FAILED ../../frr-src/tests/isisd/test_fuzz_isis_tlv.py::TestFuzzIsisTLV::test_exit_cleanly
+FAILED ../../frr-src/tests/isisd/test_isis_lspdb.py::TestIsisLSPDB::test_exit_cleanly
+FAILED ../../frr-src/tests/isisd/test_isis_remove_excess_adjs.py::TestIsisRemoveExcessAdjs::test_exit_cleanly
+FAILED ../../frr-src/tests/isisd/test_isis_spf.py::TestIsisSPF::test_refout
+FAILED ../../frr-src/tests/isisd/test_isis_tlv_ext_reach.py::TestIsisTlvExtReach::test_exit_cleanly
+FAILED ../../frr-src/tests/isisd/test_isis_vertex_queue.py::TestIsisVertexQueue::test_exit_cleanly
+FAILED ../../frr-src/tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_exit_cleanly
+FAILED ../../frr-src/tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_sgrpt_prune_with_sg_join_OK
+FAILED ../../frr-src/tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_sgrpt_prune_with_sg_join_and_prune_OK
+FAILED ../../frr-src/tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_sgrpt_prune_split_records_OK
+FAILED ../../frr-src/tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_sgrpt_prune_split_after_joins_OK
+FAILED ../../frr-src/tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_sgrpt_prune_same_record_as_starg_join_OK
+FAILED ../../frr-src/tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_sgrpt_prune_overflow_OK
+FAILED ../../frr-src/tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_exit_cleanly_2
+================== 14 failed, 514 passed, 5 skipped in 8.20s ===================
+make[2]: *** [Makefile:20298: tests/tests.xml] Error 1
+make[2]: Leaving directory '<work>'
+--------------------------------
+[18:50:42Z] build.sh                 被禁用的模块: doc protobuf ospfapi ospfclient isisd pimd pim6d ldpd nhrpd babeld pbrd fabricd vrrpd pathd
+[18:50:42Z] build.sh                 失败的测试目录: isisd pimd
+[18:50:42Z] build.sh                 [8b] 所有失败都属于已 --disable 的模块（isisd pimd ），判定为已知限制
+[18:50:42Z] build.sh                 执行 make dist
+[18:50:45Z] build.sh                 ok: frr-10.9.0-dev.tar.gz (8.1M), egpd/ 全部文件在内
+[18:50:45Z] build.sh               ========== [9/9] 安装与指纹
+[18:50:45Z] install.sh             ===== 日志文件: <work> =====
+[18:50:45Z] install.sh             构建目录: <work>
+[18:50:45Z] install.sh             安装前缀: /opt/historic-routing/27f287be9
+[18:50:45Z] install.sh             暂存根  : <work> <work>
+[18:50:45Z] install.sh             执行 make install
+[18:50:46Z] install.sh             校验安装产物
+[18:50:46Z] install.sh               OK sbin/zebra
+[18:50:46Z] install.sh               OK sbin/staticd
+[18:50:46Z] install.sh               OK bin/vtysh
+[18:50:46Z] install.sh               OK sbin/egpd
+[18:50:46Z] install.sh               OK lib/libfrr.so.0.0.0
+[18:50:46Z] install.sh             校验动态库依赖（ldd）
+[18:50:46Z] install.sh               egpd 的动态库全部可解析
+[18:50:46Z] install.sh             清单: <work>
+[18:50:46Z] install.sh             安装完成：<work>
+[18:50:46Z] build.sh               指纹: <work>
+[18:50:46Z] build.sh               ================ 构建成功 ================
+# historic-routing build fingerprint
+GENERATED_AT=2026-10-30T18:50:46Z
+REPO_COMMIT=d098a0dd77230741ea8ae3cba521300501491203
+REPO_COMMIT_SOURCE=env
+FRR_REPO=https://github.com/FRRouting/frr
+FRR_REPO_EFFECTIVE=mirror:frr-27f287be9.git.tar.xz
+FRR_MIRROR_SHA256=9e81df613fb3972141fc6bca734de23c961bb1dda422e43d798662d7c651ed5d
+FRR_COMMIT=27f287be9210d4024a140486b7b8ddd5eb41fe04
+FRR_DESCRIBE=10.9.0-dev
+FRR_SRC_TREE_DIRTY=22
+FRR_PATCHED_DIFF_SHA256=1e9db085cfc3d7b35f3f4bd72e72b716db447179be1c1ee714842683c0dc0518
+OPTIONAL_PATCH_0005=disabled
+PATCH_0001-lib-add-egp-route-type.patch sha256=f0c693c4be9998de6ad85136b4c3b6ca59d18d428fb533c30c13145dd461b51e
+PATCH_0002-zebra-install-egp-routes-with-distance-140.patch sha256=d666e6a4221999ac2e08a29e1aa375268cc1c7d49c750eb4dd123fe835887fbc
+PATCH_0003-vtysh-add-egpd-client-and-node.patch sha256=39dd24c225afcd843e53508d49fa46544ffe02360bd5a9df4e1d97fd444c031d
+PATCH_0004-build-enable-egpd-and-keep-existing-tests.patch sha256=c6646e3c67232bf9e0253085854868bb2283ccfe778ad226a620ade2fbd19583
+PROTO_SRC_egpd.c_SHA256=e3264b6ffcc0fa0a05e087aeed23849f33ebaf9ca9a65d1fcfd9d2cb5ecdbb7f
+PROTO_SRC_egp_packet.c_SHA256=6ca4df7471be74e489345a075790e1ec21696cf04843cad634910aa2af829c32
+PROTO_SRC_egp_packet.h_SHA256=851546b3820ba6999fc330343d3fc6d7a545e86730d67296430067b5691357ea
+PROTO_SRC_egp_reach.h_SHA256=be85ded341ebe6aada21149c9b6f18b3aeb2ff748dcddbcad95770b4a2d2cff1
+PROTO_SRC_egp_state.h_SHA256=2416dfd2938bba51ba79acffb9ccd14b4dffe31e247136be3e29f47dc8ca0902
+PROTO_SRC_egp_age.h_SHA256=1bfab5fe6949c27a011c4d1762b870807367dabf437c721113c9ef29e7e7fb8d
+PROTO_SRC_egp_update.h_SHA256=1cae40191358c67752739aeebe7c6404a8e7b4702058a35ae21db3d6c0aa2c9e
+PROTO_SRC_test_packet.c_SHA256=3dfd5774ccdaf5d457b57008664539a071c5c0ef750fdf72801e6c9b6c1fe57f
+PROTO_SRC_egpd.subdir.am_SHA256=463f9a99d259115629c01f2fca9e812f017f68eb73f8c61da345e3ba4c07fae5
+PROTO_SRC_README.md_SHA256=45985197015014bf971f5001e666b23dfabb91d6367c5be578e58f04adb3961a
+PROTO_SRC_lab.sh_SHA256=9bf8251b4d664f935ec3ce0b387448ffd9a05c7092b322408d71055fce50b7d4
+PROTO_SRC_test_lab.py_SHA256=6c5b8f584eb187bedf6f6f55b65d42e04b8a336c262574e8df580b77a4c2832a
+PROTO_SRC_user.rst_SHA256=b6428fc9bf17f0b677effb616b6b0d7c8cfc2c780940d6569b180af8967d6c78
+PROTO_SRC_man.rst_SHA256=0071fc17fde209c66d575e0c7862e5f745f268425b348e29d547920ff5205113
+CC=14.2.0
+CC_VERSION=gcc (Debian 14.2.0-19) 14.2.0
+MAKE_JOBS=2
+CONFIGURE_ARGS=--prefix=/opt/historic-routing/27f287be9 --sysconfdir=/opt/historic-routing/27f287be9/etc --localstatedir=/opt/historic-routing/27f287be9/var --enable-user=root --enable-group=root --enable-vty-group=root --disable-doc --disable-protobuf --disable-ospfapi --disable-ospfclient --disable-isisd --disable-pimd --disable-pim6d --disable-ldpd --disable-nhrpd --disable-babeld --disable-pbrd --disable-fabricd --disable-vrrpd --disable-pathd --enable-egpd --runstatedir=/run/historic-routing
+INSTALL_PREFIX=/opt/historic-routing/27f287be9
+MAKE_RESULT=ok
+EGPD_TEST_PACKET=passed
+MAKE_CHECK_RC=2
+MAKE_CHECK_FAILED_DIRS=isisd pimd
+MAKE_CHECK_SUMMARY=check-TESTS: 1/1 passed; make check rc=2: 仅在已 --disable 的模块 (isisd pimd ) 失败，14 failed, 514 passed, 5 skipped in 8.20s
+MAKE_DIST=ok: frr-10.9.0-dev.tar.gz (8.1M), egpd/ 全部文件在内
+PROTOCOL_EGP_BINARY_SHA256=8f157ff18b274ce838aa5cbe28afb3ce9e550fa2d45ccece0f87ae09c55a0b6a
+ZEBRA_BINARY_SHA256=d45483aaeb36be787277c3a202ae7efee530364c11af56c21722d792eff9d0cb
+VTYSH_BINARY_SHA256=8d45498d108fd20a726e0686d9ac695f7d07737e63c6ff6975b91ff0dffc8ec5
+PROTOCOLS=egp
+PROTOCOL_EGP_ROUTE_TYPE_ID=32
+PROTOCOL_EGP_DISPLAY_CHAR=G
+PROTOCOL_EGP_DISTANCE=140
+PROTOCOL_EGP_VTYSH_BIT=0x400000
+PROTOCOL_EGP_DAEMON=egpd
+ZEBRA_ROUTE_ALL_ID=33
+ZEBRA_ROUTE_MAX=34
+make[1]: Leaving directory '<work>'
+   debian/rules override_dh_auto_test
+make[1]: Entering directory '<work>'
+== 单元测试（egpd/test_packet）与 make check 已在 scripts/build.sh 内执行
+== 结果记录在 debian/hr-build/fingerprint.txt 与 logs/build.log
+make[1]: Leaving directory '<work>'
+   create-stamp debian/debhelper-build-stamp
+   dh_prep
+	rm -f -- debian/historic-routing-runtime.substvars debian/historic-routing-egp.substvars
+	rm -fr -- debian/.debhelper/generated/historic-routing-runtime/ debian/historic-routing-runtime/ debian/tmp/ debian/.debhelper/generated/historic-routing-egp/ debian/historic-routing-egp/
+   debian/rules override_dh_auto_install
+make[1]: Entering directory '<work>'
+# 只挑要装的文件（不是把整个 dest 目录塞进包）
+install -d <work> <work> <work> \
+	<work>
+install -m 0755 <work>  <work>
+install -m 0755 <work>   <work>
+install -m 0755 <work>   <work>
+install -m 0755 <work> <work>
+cp -a <work>      <work>
+# RUNPATH 必须是 RIGIN/../lib（与 RPM 一致：只用自己前缀里的 libfrr）
+patchelf --set-rpath '$ORIGIN/../lib' \
+	<work> <work> <work>
+# 配置骨架 + 许可证/构建溯源
+install -m 0644 debian/config/frr.conf   <work>
+install -m 0644 debian/config/vtysh.conf <work>
+install -m 0644 debian/config/egpd.conf  <work>
+# systemd 单元：dh_installsystemd 在本环境没有收 debian/<pkg>.<unit>（实测 .deb 里没有 unit），
+# 改为显式安装，并用自带的 postinst/prerm/postrm 控制行为（只 reload、只停自己的 unit）。
+install -d <work>
+install -m 0644 debian/historic-routing-runtime.historic-routing-zebra.service \
+	<work>
+install -m 0644 debian/historic-routing-egp.historic-routing-egpd.service \
+	<work>
+{ echo "# historic-routing DEB build info"; \
+  echo "package_version=0.1.1~devservice3-3"; \
+  echo "source_commit=d098a0dd77230741ea8ae3cba521300501491203"; \
+  echo "frr_commit=27f287be9210d4024a140486b7b8ddd5eb41fe04"; \
+  echo "abi=0.d098a0d-27f287be9"; \
+  echo "abi_raw=d098a0d-27f287be9"; \
+  echo "prefix=/opt/historic-routing/27f287be9"; \
+  echo "runstatedir=/run/historic-routing"; \
+  echo "built_at=2026-10-30T18:50:46Z"; \
+  echo "---- fingerprint.txt ----"; \
+  cat <work>; } > <work>
+chmod 0644 <work>
+make[1]: Leaving directory '<work>'
+   dh_install
+	install -m0755 -d debian/historic-routing-runtime//opt/historic-routing/27f287be9
+	cp --reflink=auto -a debian/tmp/opt/historic-routing/27f287be9/BUILD-INFO.txt debian/historic-routing-runtime//opt/historic-routing/27f287be9/
+	install -m0755 -d debian/historic-routing-runtime//opt/historic-routing/27f287be9/bin
+	cp --reflink=auto -a debian/tmp/opt/historic-routing/27f287be9/bin/vtysh debian/historic-routing-runtime//opt/historic-routing/27f287be9/bin/
+	install -m0755 -d debian/historic-routing-runtime//opt/historic-routing/27f287be9/lib
+	cp --reflink=auto -a debian/tmp/opt/historic-routing/27f287be9/lib/libfrr.so.0 debian/tmp/opt/historic-routing/27f287be9/lib/libfrr.so.0.0.0 debian/historic-routing-runtime//opt/historic-routing/27f287be9/lib/
+	install -m0755 -d debian/historic-routing-runtime//opt/historic-routing/27f287be9/sbin
+	cp --reflink=auto -a debian/tmp/opt/historic-routing/27f287be9/sbin/zebra debian/historic-routing-runtime//opt/historic-routing/27f287be9/sbin/
+	install -m0755 -d debian/historic-routing-runtime//usr/lib/systemd/system
+	cp --reflink=auto -a debian/tmp/usr/lib/systemd/system/historic-routing-zebra.service debian/historic-routing-runtime//usr/lib/systemd/system/
+	install -m0755 -d debian/historic-routing-runtime/opt/historic-routing/27f287be9/etc/frr/
+	cp --reflink=auto -a debian/tmp/opt/historic-routing/27f287be9/etc/frr/frr.conf debian/tmp/opt/historic-routing/27f287be9/etc/frr/vtysh.conf debian/historic-routing-runtime/opt/historic-routing/27f287be9/etc/frr//
+	install -m0755 -d debian/historic-routing-egp//opt/historic-routing/27f287be9/sbin
+	cp --reflink=auto -a debian/tmp/opt/historic-routing/27f287be9/sbin/egpd debian/tmp/opt/historic-routing/27f287be9/sbin/frr-reload.py debian/historic-routing-egp//opt/historic-routing/27f287be9/sbin/
+	install -m0755 -d debian/historic-routing-egp//usr/lib/systemd/system
+	cp --reflink=auto -a debian/tmp/usr/lib/systemd/system/historic-routing-egpd.service debian/historic-routing-egp//usr/lib/systemd/system/
+	install -m0755 -d debian/historic-routing-egp/opt/historic-routing/27f287be9/etc/frr/
+	cp --reflink=auto -a debian/tmp/opt/historic-routing/27f287be9/etc/frr/egpd.conf debian/historic-routing-egp/opt/historic-routing/27f287be9/etc/frr//
+   dh_installdocs
+	install -m0755 -d debian/historic-routing-runtime/usr/share/doc/historic-routing-runtime
+	install -m0755 -d debian/historic-routing-runtime/usr/share/doc/historic-routing-runtime
+	cp --reflink=auto -a ./README.md debian/historic-routing-runtime/usr/share/doc/historic-routing-runtime
+	cp --reflink=auto -a ./CHANGELOG.md debian/historic-routing-runtime/usr/share/doc/historic-routing-runtime
+	cp --reflink=auto -a ./docs/ARCHITECTURE.md debian/historic-routing-runtime/usr/share/doc/historic-routing-runtime
+	cp --reflink=auto -a ./docs/FIDELITY.md debian/historic-routing-runtime/usr/share/doc/historic-routing-runtime
+	cp --reflink=auto -a ./docs/PACKAGING.md debian/historic-routing-runtime/usr/share/doc/historic-routing-runtime
+	chmod -R u\+rw,go=rX debian/historic-routing-runtime/usr/share/doc
+	install -p -m0644 debian/copyright debian/historic-routing-runtime/usr/share/doc/historic-routing-runtime/copyright
+	install -m0755 -d debian/historic-routing-egp/usr/share/doc/historic-routing-egp
+	install -m0755 -d debian/historic-routing-egp/usr/share/doc/historic-routing-egp
+	cp --reflink=auto -a ./protocols/egp/README.md debian/historic-routing-egp/usr/share/doc/historic-routing-egp
+	chmod -R u\+rw,go=rX debian/historic-routing-egp/usr/share/doc
+	install -p -m0644 debian/copyright debian/historic-routing-egp/usr/share/doc/historic-routing-egp/copyright
+   dh_installchangelogs
+	install -m0755 -d debian/historic-routing-egp/usr/share/doc/historic-routing-egp
+	install -p -m0644 debian/.debhelper/generated/historic-routing-egp/dh_installchangelogs.dch.trimmed debian/historic-routing-egp/usr/share/doc/historic-routing-egp/changelog.Debian
+	install -p -m0644 ./CHANGELOG.md debian/historic-routing-egp/usr/share/doc/historic-routing-egp/changelog
+	install -m0755 -d debian/historic-routing-runtime/usr/share/doc/historic-routing-runtime
+	install -p -m0644 debian/.debhelper/generated/historic-routing-runtime/dh_installchangelogs.dch.trimmed debian/historic-routing-runtime/usr/share/doc/historic-routing-runtime/changelog.Debian
+	mv debian/historic-routing-runtime/usr/share/doc/historic-routing-runtime/CHANGELOG.md debian/historic-routing-runtime/usr/share/doc/historic-routing-runtime/changelog
+	chmod 0644 -- debian/historic-routing-runtime/usr/share/doc/historic-routing-runtime/changelog
+   debian/rules override_dh_installsystemd
+make[1]: Entering directory '<work>'
+dh_installsystemd --no-start --no-enable
+	[META] Append autosnippet "postinst-systemd-dont-enable" to postinst [debian/.debhelper/generated/historic-routing-runtime/postinst.service]
+	[META] Append autosnippet "postrm-systemd" to postrm [debian/historic-routing-runtime.postrm.debhelper]
+	[META] Append autosnippet "preinst-systemd-stop" to preinst [debian/.debhelper/generated/historic-routing-runtime/preinst.service]
+	[META] Prepend autosnippet "postrm-systemd-reload-only" to postrm [debian/historic-routing-runtime.postrm.debhelper.new]
+	mv debian/historic-routing-runtime.postrm.debhelper.new debian/historic-routing-runtime.postrm.debhelper
+	[META] Append autosnippet "postinst-systemd-dont-enable" to postinst [debian/.debhelper/generated/historic-routing-egp/postinst.service]
+	[META] Append autosnippet "postrm-systemd" to postrm [debian/historic-routing-egp.postrm.debhelper]
+	[META] Append autosnippet "preinst-systemd-stop" to preinst [debian/.debhelper/generated/historic-routing-egp/preinst.service]
+	[META] Prepend autosnippet "postrm-systemd-reload-only" to postrm [debian/historic-routing-egp.postrm.debhelper.new]
+	mv debian/historic-routing-egp.postrm.debhelper.new debian/historic-routing-egp.postrm.debhelper
+make[1]: Leaving directory '<work>'
+   dh_lintian
+	install -m0755 -d debian/historic-routing-runtime/usr/share/lintian/overrides
+	install -p -m0644 debian/historic-routing-runtime.lintian-overrides debian/historic-routing-runtime/usr/share/lintian/overrides/historic-routing-runtime
+	install -m0755 -d debian/historic-routing-egp/usr/share/lintian/overrides
+	install -p -m0644 debian/historic-routing-egp.lintian-overrides debian/historic-routing-egp/usr/share/lintian/overrides/historic-routing-egp
+   dh_perl
+   dh_link
+	rm -f debian/historic-routing-runtime/opt/historic-routing/27f287be9/lib/libfrr.so.0
+	ln -s libfrr.so.0.0.0 debian/historic-routing-runtime/opt/historic-routing/27f287be9/lib/libfrr.so.0
+   dh_strip_nondeterminism
+   dh_compress
+	cd debian/historic-routing-runtime
+	cd debian/historic-routing-egp
+	chmod a-x usr/share/doc/historic-routing-egp/README.md usr/share/doc/historic-routing-egp/changelog usr/share/doc/historic-routing-egp/changelog.Debian
+	chmod a-x usr/share/doc/historic-routing-runtime/ARCHITECTURE.md usr/share/doc/historic-routing-runtime/FIDELITY.md usr/share/doc/historic-routing-runtime/PACKAGING.md usr/share/doc/historic-routing-runtime/README.md usr/share/doc/historic-routing-runtime/changelog usr/share/doc/historic-routing-runtime/changelog.Debian
+	gzip -9nf usr/share/doc/historic-routing-egp/README.md usr/share/doc/historic-routing-egp/changelog usr/share/doc/historic-routing-egp/changelog.Debian
+	gzip -9nf usr/share/doc/historic-routing-runtime/ARCHITECTURE.md usr/share/doc/historic-routing-runtime/FIDELITY.md usr/share/doc/historic-routing-runtime/PACKAGING.md usr/share/doc/historic-routing-runtime/README.md usr/share/doc/historic-routing-runtime/changelog usr/share/doc/historic-routing-runtime/changelog.Debian
+	cd '<work>'
+	cd '<work>'
+   dh_fixperms
+	find debian/historic-routing-runtime ! -type l -a -true -a -true -print0 2>/dev/null | xargs -0r chmod go=rX,u+rw,a-s
+	find debian/historic-routing-egp ! -type l -a -true -a -true -print0 2>/dev/null | xargs -0r chmod go=rX,u+rw,a-s
+	find debian/historic-routing-egp/usr/share/doc -type f -a -true -a ! -regex 'debian/historic-routing-egp/usr/share/doc/[^/]*/examples/.*' -print0 2>/dev/null | xargs -0r chmod 0644
+	find debian/historic-routing-runtime/usr/share/doc -type f -a -true -a ! -regex 'debian/historic-routing-runtime/usr/share/doc/[^/]*/examples/.*' -print0 2>/dev/null | xargs -0r chmod 0644
+	find debian/historic-routing-egp/usr/share/doc -type d -a -true -a -true -print0 2>/dev/null | xargs -0r chmod 0755
+	find debian/historic-routing-egp/usr/share/lintian/overrides -type f -a -true -a -true -print0 2>/dev/null | xargs -0r chmod 0644
+	find debian/historic-routing-runtime/usr/share/doc -type d -a -true -a -true -print0 2>/dev/null | xargs -0r chmod 0755
+	find debian/historic-routing-runtime/usr/share/lintian/overrides -type f -a -true -a -true -print0 2>/dev/null | xargs -0r chmod 0644
+	find debian/historic-routing-egp -type f \( -name '*.so.*' -o -name '*.so' -o -name '*.la' -o -name '*.a' -o -name '*.js' -o -name '*.css' -o -name '*.scss' -o -name '*.sass' -o -name '*.jpeg' -o -name '*.jpg' -o -name '*.png' -o -name '*.gif' -o -name '*.cmxs' -o -name '*.node' \) -a -true -a -true -print0 2>/dev/null | xargs -0r chmod 0644
+	find debian/historic-routing-egp/usr/lib -type f -name '*.ali' -a -true -a -true -print0 2>/dev/null | xargs -0r chmod uga-w
+	find debian/historic-routing-runtime -type f \( -name '*.so.*' -o -name '*.so' -o -name '*.la' -o -name '*.a' -o -name '*.js' -o -name '*.css' -o -name '*.scss' -o -name '*.sass' -o -name '*.jpeg' -o -name '*.jpg' -o -name '*.png' -o -name '*.gif' -o -name '*.cmxs' -o -name '*.node' \) -a -true -a -true -print0 2>/dev/null | xargs -0r chmod 0644
+	find debian/historic-routing-runtime/usr/lib -type f -name '*.ali' -a -true -a -true -print0 2>/dev/null | xargs -0r chmod uga-w
+	rm -f debian/historic-routing-egp.debhelper.log debian/historic-routing-runtime.debhelper.log
+   debian/rules override_dh_missing
+make[1]: Entering directory '<work>'
+dh_missing --fail-missing
+make[1]: Leaving directory '<work>'
+	rm -f debian/historic-routing-egp.debhelper.log debian/historic-routing-runtime.debhelper.log
+   debian/rules override_dh_dwz
+make[1]: Entering directory '<work>'
+== 跳过 dh_dwz（不提供 dbgsym，避免 /usr/lib/debug 进包）
+make[1]: Leaving directory '<work>'
+   debian/rules override_dh_strip
+make[1]: Entering directory '<work>'
+dh_strip --no-automatic-dbgsym
+	strip --remove-section=.comment --remove-section=.note debian/historic-routing-egp/opt/historic-routing/27f287be9/sbin/egpd
+	strip --remove-section=.comment --remove-section=.note --strip-unneeded debian/historic-routing-runtime/opt/historic-routing/27f287be9/lib/libfrr.so.0.0.0
+	strip --remove-section=.comment --remove-section=.note debian/historic-routing-runtime/opt/historic-routing/27f287be9/bin/vtysh
+	strip --remove-section=.comment --remove-section=.note debian/historic-routing-runtime/opt/historic-routing/27f287be9/sbin/zebra
+make[1]: Leaving directory '<work>'
+   dh_makeshlibs -a
+	rm -f debian/historic-routing-runtime/DEBIAN/shlibs
+	install -m0755 -d debian/historic-routing-runtime/DEBIAN
+	install -p -m0644 debian/historic-routing-runtime.shlibs debian/historic-routing-runtime/DEBIAN/shlibs
+	chmod 0644 -- debian/historic-routing-runtime/DEBIAN/shlibs
+	mv debian/.debhelper/generated/historic-routing-runtime/triggers.new debian/.debhelper/generated/historic-routing-runtime/triggers
+	rm -f debian/historic-routing-egp/DEBIAN/shlibs
+	rm -f debian/historic-routing-egp.debhelper.log debian/historic-routing-runtime.debhelper.log
+   debian/rules override_dh_shlibdeps
+make[1]: Entering directory '<work>'
+dh_shlibdeps -l<work>
+	install -m0755 -d debian/historic-routing-egp/DEBIAN
+	dpkg-shlibdeps -Tdebian/historic-routing-egp.substvars -l<work> debian/historic-routing-egp/opt/historic-routing/27f287be9/sbin/egpd
+	install -m0755 -d debian/historic-routing-runtime/DEBIAN
+	dpkg-shlibdeps -Tdebian/historic-routing-runtime.substvars -l<work> debian/historic-routing-runtime/opt/historic-routing/27f287be9/bin/vtysh debian/historic-routing-runtime/opt/historic-routing/27f287be9/lib/libfrr.so.0.0.0 debian/historic-routing-runtime/opt/historic-routing/27f287be9/sbin/zebra
+dpkg-shlibdeps: warning: diversions involved - output may be incorrect
+ diversion by libc6 from: /lib/ld-linux-aarch64.so.1
+dpkg-shlibdeps: warning: diversions involved - output may be incorrect
+ diversion by libc6 to: /lib/ld-linux-aarch64.so.1.usr-is-merged
+dpkg-shlibdeps: warning: diversions involved - output may be incorrect
+ diversion by libc6 from: /lib/ld-linux-aarch64.so.1
+dpkg-shlibdeps: warning: diversions involved - output may be incorrect
+ diversion by libc6 to: /lib/ld-linux-aarch64.so.1.usr-is-merged
+dpkg-shlibdeps: warning: diversions involved - output may be incorrect
+ diversion by libreadline8t64 from: /lib/aarch64-linux-gnu/libreadline.so.8
+dpkg-shlibdeps: warning: diversions involved - output may be incorrect
+ diversion by libreadline8t64 to: /lib/aarch64-linux-gnu/libreadline.so.8.usr-is-merged
+make[1]: Leaving directory '<work>'
+   dh_installdeb
+	install -m0755 -d debian/historic-routing-runtime/DEBIAN
+	cp -f debian/historic-routing-runtime.postinst debian/historic-routing-runtime/DEBIAN/postinst
+	[META] Replace #TOKEN#s in "debian/historic-routing-runtime/DEBIAN/postinst"
+	chmod 0755 -- debian/historic-routing-runtime/DEBIAN/postinst
+	printf '#!/bin/sh\nset -e\n' > debian/historic-routing-runtime/DEBIAN/preinst
+	cat debian/.debhelper/generated/historic-routing-runtime/preinst.service >> debian/historic-routing-runtime/DEBIAN/preinst
+	chmod 0755 -- debian/historic-routing-runtime/DEBIAN/preinst
+	cp -f debian/historic-routing-runtime.prerm debian/historic-routing-runtime/DEBIAN/prerm
+	[META] Replace #TOKEN#s in "debian/historic-routing-runtime/DEBIAN/prerm"
+	chmod 0755 -- debian/historic-routing-runtime/DEBIAN/prerm
+	cp -f debian/historic-routing-runtime.postrm debian/historic-routing-runtime/DEBIAN/postrm
+	[META] Replace #TOKEN#s in "debian/historic-routing-runtime/DEBIAN/postrm"
+	chmod 0755 -- debian/historic-routing-runtime/DEBIAN/postrm
+	install -p -m0644 debian/historic-routing-runtime.conffiles debian/historic-routing-runtime/DEBIAN/conffiles
+	install -p -m0644 debian/.debhelper/generated/historic-routing-runtime/triggers debian/historic-routing-runtime/DEBIAN/triggers
+	chmod 0644 -- debian/historic-routing-runtime/DEBIAN/conffiles
+	install -m0755 -d debian/historic-routing-egp/DEBIAN
+	cp -f debian/historic-routing-egp.postinst debian/historic-routing-egp/DEBIAN/postinst
+	[META] Replace #TOKEN#s in "debian/historic-routing-egp/DEBIAN/postinst"
+	chmod 0755 -- debian/historic-routing-egp/DEBIAN/postinst
+	printf '#!/bin/sh\nset -e\n' > debian/historic-routing-egp/DEBIAN/preinst
+	cat debian/.debhelper/generated/historic-routing-egp/preinst.service >> debian/historic-routing-egp/DEBIAN/preinst
+	chmod 0755 -- debian/historic-routing-egp/DEBIAN/preinst
+	cp -f debian/historic-routing-egp.prerm debian/historic-routing-egp/DEBIAN/prerm
+	[META] Replace #TOKEN#s in "debian/historic-routing-egp/DEBIAN/prerm"
+	chmod 0755 -- debian/historic-routing-egp/DEBIAN/prerm
+	cp -f debian/historic-routing-egp.postrm debian/historic-routing-egp/DEBIAN/postrm
+	[META] Replace #TOKEN#s in "debian/historic-routing-egp/DEBIAN/postrm"
+	chmod 0755 -- debian/historic-routing-egp/DEBIAN/postrm
+	install -p -m0644 debian/historic-routing-egp.conffiles debian/historic-routing-egp/DEBIAN/conffiles
+	chmod 0644 -- debian/historic-routing-egp/DEBIAN/conffiles
+   dh_gencontrol
+	install -m0755 -d debian/historic-routing-runtime/DEBIAN
+	echo misc:Depends= >> debian/historic-routing-runtime.substvars
+	echo misc:Pre-Depends= >> debian/historic-routing-runtime.substvars
+	dpkg-gencontrol -phistoric-routing-runtime -ldebian/changelog -Tdebian/historic-routing-runtime.substvars -cdebian/control -Pdebian/historic-routing-runtime
+	install -m0755 -d debian/historic-routing-egp/DEBIAN
+	echo misc:Depends= >> debian/historic-routing-egp.substvars
+	echo misc:Pre-Depends= >> debian/historic-routing-egp.substvars
+	dpkg-gencontrol -phistoric-routing-egp -ldebian/changelog -Tdebian/historic-routing-egp.substvars -cdebian/control -Pdebian/historic-routing-egp
+	chmod 0644 -- debian/historic-routing-runtime/DEBIAN/control
+	chmod 0644 -- debian/historic-routing-egp/DEBIAN/control
+   dh_md5sums
+	install -m0755 -d debian/historic-routing-egp/DEBIAN
+	install -m0755 -d debian/historic-routing-runtime/DEBIAN
+	cd debian/historic-routing-egp >/dev/null && xargs -r0 md5sum | perl -pe 'if (s@^\\@@) { s/\\\\/\\/g; }' > DEBIAN/md5sums
+	cd debian/historic-routing-runtime >/dev/null && xargs -r0 md5sum | perl -pe 'if (s@^\\@@) { s/\\\\/\\/g; }' > DEBIAN/md5sums
+	chmod 0644 -- debian/historic-routing-egp/DEBIAN/md5sums
+	chmod 0644 -- debian/historic-routing-runtime/DEBIAN/md5sums
+   dh_builddeb
+	dpkg-deb --root-owner-group --build debian/historic-routing-runtime ..
+	dpkg-deb --root-owner-group --build debian/historic-routing-egp ..
+dpkg-deb: building package 'historic-routing-runtime' in '../historic-routing-runtime_0.1.1~devservice3-3_arm64.deb'.
+dpkg-deb: building package 'historic-routing-egp' in '../historic-routing-egp_0.1.1~devservice3-3_arm64.deb'.
+ dpkg-genbuildinfo --build=binary -O../historic-routing_0.1.1~devservice3-3_arm64.buildinfo
+ dpkg-genchanges --build=binary -O../historic-routing_0.1.1~devservice3-3_arm64.changes
+dpkg-genchanges: info: binary-only upload (no source code included)
+ dpkg-source --after-build .
+dpkg-buildpackage: info: binary-only upload (no source included)

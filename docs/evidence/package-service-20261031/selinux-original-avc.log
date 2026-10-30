@@ -1,0 +1,1 @@
+audit(1793385547.951:23524125): avc:  denied  { node_bind } for  pid=2274227 comm="egpd" saddr=198.18.250.11 scontext=system_u:system_r:frr_t:s0 tcontext=system_u:object_r:node_t:s0 tclass=rawip_socket permissive=0

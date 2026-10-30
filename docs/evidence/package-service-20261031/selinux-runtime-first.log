@@ -1,0 +1,117 @@
+historic-routing-runtime-0.1.1-0.2.devbb070e0.el10.aarch64
+historic-routing-egp-0.1.1-0.2.devbb070e0.el10.aarch64
+BACKEND {"ip1": "198.18.250.11", "ip2": "198.18.250.12", "packages": "rpm", "peer": {"netns": "hrpkg-rhel2", "socket": "/run/hrpkg-peer"}, "prefix": "/opt/historic-routing/27f287be9", "target": {"netns": "hrpkg-rhel1", "socket": "/run/historic-routing/frr"}}
+PLATFORM target
+NAME="Red Hat Enterprise Linux"
+VERSION="10.2 (Coughlan)"
+RELEASE_TYPE=stable
+ID="rhel"
+ID_LIKE="centos fedora"
+VERSION_ID="10.2"
+PLATFORM_ID="platform:el10"
+PRETTY_NAME="Red Hat Enterprise Linux 10.2 (Coughlan)"
+ANSI_COLOR="0;31"
+LOGO="fedora-logo-icon"
+CPE_NAME="cpe:/o:redhat:enterprise_linux:10.2"
+HOME_URL="https://www.redhat.com/"
+VENDOR_NAME="Red Hat"
+VENDOR_URL="https://www.redhat.com/"
+DOCUMENTATION_URL="https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/10"
+BUG_REPORT_URL="https://issues.redhat.com/"
+
+REDHAT_BUGZILLA_PRODUCT="Red Hat Enterprise Linux 10"
+REDHAT_BUGZILLA_PRODUCT_VERSION=10.2
+REDHAT_SUPPORT_PRODUCT="Red Hat Enterprise Linux"
+REDHAT_SUPPORT_PRODUCT_VERSION="10.2"
+
+historic-routing-runtime-0.1.1-0.2.devbb070e0.el10.aarch64
+historic-routing-egp-0.1.1-0.2.devbb070e0.el10.aarch64
+
+# /usr/lib/systemd/system/historic-routing-egpd.service
+[Unit]
+# SPDX-License-Identifier: GPL-2.0-or-later
+# historic-routing 的 EGP daemon（实验性 stub gateway，开发验证构建）。
+# 依赖同一次构建的 historic-routing-zebra（通过 ZAPI 下发路由）。
+Description=historic-routing EGP daemon (experimental, non-production)
+Documentation=https://github.com/lichenlang89/historic-routing
+After=network.target historic-routing-zebra.service
+Wants=historic-routing-zebra.service
+ConditionPathExists=/opt/historic-routing/27f287be9/sbin/egpd
+
+[Service]
+Type=simple
+# 与 zebra 同一套 socket 目录（/run/historic-routing/frr，由 systemd RuntimeDirectory 管理）
+RuntimeDirectory=historic-routing/frr
+RuntimeDirectoryMode=0755
+ExecStart=/opt/historic-routing/27f287be9/sbin/egpd \
+	-f /opt/historic-routing/27f287be9/etc/frr/egpd.conf \
+	-i /run/historic-routing/frr/egpd.pid \
+	-z /run/historic-routing/frr/zserv.api \
+	--vty_socket /run/historic-routing/frr \
+	-u root -g root
+ExecReload=/opt/historic-routing/27f287be9/sbin/frr-reload.py --reload --daemon egpd \
+	--bindir /opt/historic-routing/27f287be9/bin --confdir /opt/historic-routing/27f287be9/etc/frr \
+	--logfile /run/historic-routing/frr/egpd-reload.log \
+	--rundir /run/historic-routing/frr --vty_socket /run/historic-routing/frr \
+	/opt/historic-routing/27f287be9/etc/frr/egpd.conf
+# Cease may need the RFC 904 120-second abort timeout.
+TimeoutStartSec=150
+KillMode=mixed
+Restart=on-failure
+RestartSec=2
+StateDirectory=
+
+[Install]
+WantedBy=multi-user.target
+
+# /etc/systemd/system/historic-routing-egpd.service.d/90-hrpkg-netns.conf
+[Service]
+NetworkNamespacePath=/run/netns/hrpkg-rhel1
+Environment=HOME=/run/historic-routing/frr PYTHONNOUSERSITE=1
+
+MainPID=2284094
+ExecStart={ path=/opt/historic-routing/27f287be9/sbin/egpd ; argv[]=/opt/historic-routing/27f287be9/sbin/egpd -f /opt/historic-routing/27f287be9/etc/frr/egpd.conf -i /run/historic-routing/frr/egpd.pid -z /run/historic-routing/frr/zserv.api --vty_socket /run/historic-routing/frr -u root -g root ; ignore_errors=no ; start_time=[Sat 2026-10-31 02:44:13 CST] ; stop_time=[n/a] ; pid=2284094 ; code=(null) ; status=0/0 }
+ExecReload={ path=/opt/historic-routing/27f287be9/sbin/frr-reload.py ; argv[]=/opt/historic-routing/27f287be9/sbin/frr-reload.py --reload --daemon egpd --bindir /opt/historic-routing/27f287be9/bin --confdir /opt/historic-routing/27f287be9/etc/frr --logfile /run/historic-routing/frr/egpd-reload.log --rundir /run/historic-routing/frr --vty_socket /run/historic-routing/frr /opt/historic-routing/27f287be9/etc/frr/egpd.conf ; ignore_errors=no ; start_time=[n/a] ; stop_time=[n/a] ; pid=0 ; code=(null) ; status=0/0 }
+FragmentPath=/usr/lib/systemd/system/historic-routing-egpd.service
+DropInPaths=/etc/systemd/system/historic-routing-egpd.service.d/90-hrpkg-netns.conf
+
+PLATFORM peer
+NAME="Red Hat Enterprise Linux"
+VERSION="10.2 (Coughlan)"
+RELEASE_TYPE=stable
+ID="rhel"
+ID_LIKE="centos fedora"
+VERSION_ID="10.2"
+PLATFORM_ID="platform:el10"
+PRETTY_NAME="Red Hat Enterprise Linux 10.2 (Coughlan)"
+ANSI_COLOR="0;31"
+LOGO="fedora-logo-icon"
+CPE_NAME="cpe:/o:redhat:enterprise_linux:10.2"
+HOME_URL="https://www.redhat.com/"
+VENDOR_NAME="Red Hat"
+VENDOR_URL="https://www.redhat.com/"
+DOCUMENTATION_URL="https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/10"
+BUG_REPORT_URL="https://issues.redhat.com/"
+
+REDHAT_BUGZILLA_PRODUCT="Red Hat Enterprise Linux 10"
+REDHAT_BUGZILLA_PRODUCT_VERSION=10.2
+REDHAT_SUPPORT_PRODUCT="Red Hat Enterprise Linux"
+REDHAT_SUPPORT_PRODUCT_VERSION="10.2"
+
+historic-routing-runtime-0.1.1-0.2.devbb070e0.el10.aarch64
+historic-routing-egp-0.1.1-0.2.devbb070e0.el10.aarch64
+
+Traceback (most recent call last):
+  File "<work>", line 138, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "<work>", line 109, in main
+    lab.wait('installed service baseline', lambda: lab.both_up() and lab.both_routes(), timeout=60)
+  File "<work>", line 154, in wait
+    raise AssertionError("%s: %.0fs 内未满足%s" % (
+AssertionError: installed service baseline: 60s 内未满足（最后错误: ['/opt/historic-routing/27f287be9/bin/vtysh', '--config_dir', '/opt/historic-routing/27f287be9/etc/frr', '--vty_socket', '/run/historic-routing/frr', '-d', 'egpd', '-c', 'show ip egp neighbors'] rc=1
+Exiting: failed to connect to any daemons.
+）
+Failed to reset failed state of unit historic-routing-egpd.service: Unit historic-routing-egpd.service not loaded.
+Failed to reset failed state of unit historic-routing-zebra.service: Unit historic-routing-zebra.service not loaded.
+NATIVE_SERVICE_RC=1

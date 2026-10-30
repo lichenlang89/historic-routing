@@ -1,0 +1,3 @@
+audit(1793385853.323:23526017): avc:  denied  { create } for  pid=2284092 comm="zebra" name="zserv.api" scontext=system_u:system_r:frr_t:s0 tcontext=system_u:object_r:var_run_t:s0 tclass=sock_file permissive=0
+audit(1793385853.343:23526018): avc:  denied  { create } for  pid=2284092 comm="zebra" name="zebra.vty" scontext=system_u:system_r:frr_t:s0 tcontext=system_u:object_r:var_run_t:s0 tclass=sock_file permissive=0
+audit(1793385853.343:23526019): avc:  denied  { create } for  pid=2284094 comm="egpd" name="egpd.vty" scontext=system_u:system_r:frr_t:s0 tcontext=system_u:object_r:var_run_t:s0 tclass=sock_file permissive=0

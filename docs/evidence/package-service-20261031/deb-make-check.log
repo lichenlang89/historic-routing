@@ -1,0 +1,1079 @@
+make[2]: Entering directory '<work>'
+=================================================================
+frr-format: build for gcc 14.2.0-ec4b155205921aa4 failed
+
+Somewhere on earth, a panda is sad now.
+Please make it happy by installing GCC plugin development files.
+
+Debian/Ubuntu: sudo apt install gcc-14-plugin-dev
+Fedora: part of main GCC package, is your GCC install broken?
+=================================================================
+true
+( cd tests; /usr/bin/python3 <work> --junitxml=tests.xml -v <work>  --ignore=isisd/   --ignore=pimd/ ; )
+============================= test session starts ==============================
+platform linux -- Python 3.13.5, pytest-8.3.5, pluggy-1.5.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+rootdir: <work>
+configfile: pytest.ini
+plugins: xdist-3.6.1
+collecting ... collected 533 items
+
+../../frr-src/tests/bgpd/test_allowas_rmap.py::TestAllowasRmap::test_exit_cleanly PASSED [  0%]
+../../frr-src/tests/bgpd/test_allowas_rmap.py::TestAllowasRmap::test_allowas_in_rmap_uaf_UPDATE_through_allowas_in_route_map_does_not_free_the_parsed_attr_s_extra PASSED [  0%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_exit_cleanly PASSED [  0%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_seq1 PASSED    [  0%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_seq2 PASSED    [  0%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_seq3 PASSED    [  1%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_seqset PASSED  [  1%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_seqset2 PASSED [  1%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_multi PASSED   [  1%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_confed PASSED  [  1%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_confed2 PASSED [  2%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_confset PASSED [  2%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_confmulti PASSED [  2%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_seq4 PASSED    [  2%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_tripleseq1 PASSED [  2%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_someprivate PASSED [  3%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_allprivate PASSED [  3%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_long PASSED    [  3%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_seq1extra PASSED [  3%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_empty PASSED   [  3%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_redundantset PASSED [  3%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_reconcile_lead_asp PASSED [  4%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_reconcile_new_asp PASSED [  4%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_reconcile_confed PASSED [  4%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_reconcile_start_trans PASSED [  4%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_reconcile_start_trans4 PASSED [  4%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_reconcile_start_trans_error PASSED [  5%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_redundantset2 PASSED [  5%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_zero_size_overflow PASSED [  5%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_zero_size_overflow_valid_segment PASSED [  5%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_invalid_segment_type PASSED [  5%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_BGP_AS_ZERO PASSED [  6%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_prepend_test_0 PASSED [  6%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_prepend_test_1 PASSED [  6%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_prepend_test_2 PASSED [  6%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_prepend_test_3 PASSED [  6%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_prepend_test_4 PASSED [  6%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_prepend_test_5 PASSED [  7%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_prepend_test_6 PASSED [  7%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_prepend_test_7 PASSED [  7%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_prepend_test_8 PASSED [  7%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_prepend_test_9 PASSED [  7%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_aggregate_test_0 PASSED [  8%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_aggregate_test_1 PASSED [  8%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_aggregate_test_2 PASSED [  8%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_aggregate_test_3 PASSED [  8%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_aggregate_test_4 PASSED [  8%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_reconcile_test_0 PASSED [  9%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_reconcile_test_1 PASSED [  9%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_reconcile_test_2 PASSED [  9%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_reconcile_test_3 PASSED [  9%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_reconcile_test_4 PASSED [  9%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_left_cmp PASSED [  9%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_left_cmp_2 PASSED [ 10%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_left_cmp_3 PASSED [ 10%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_left_cmp_4 PASSED [ 10%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_left_cmp_5 PASSED [ 10%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_left_cmp_6 PASSED [ 10%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_left_cmp_7 PASSED [ 11%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_left_cmp_8 PASSED [ 11%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_left_cmp_9 PASSED [ 11%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_left_cmp_10 PASSED [ 11%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_left_cmp_11 PASSED [ 11%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_left_cmp_12 PASSED [ 12%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_left_cmp_13 PASSED [ 12%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_left_cmp_14 PASSED [ 12%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_left_cmp_15 PASSED [ 12%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_left_cmp_16 PASSED [ 12%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_left_cmp_17 PASSED [ 12%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_left_cmp_18 PASSED [ 13%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_left_cmp_19 PASSED [ 13%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_left_cmp_20 PASSED [ 13%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_left_cmp_21 PASSED [ 13%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_left_cmp_22 PASSED [ 13%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_empty_get_test PASSED [ 14%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_basic_test PASSED [ 14%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_length_too_short PASSED [ 14%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_length_too_long PASSED [ 14%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_incorrect_flag PASSED [ 14%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_as4_path_with_as2_format_data PASSED [ 15%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_as4_with_incorrect_attr_length PASSED [ 15%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_basic_4_byte_as_path PASSED [ 15%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_4b_AS_PATH_too_short PASSED [ 15%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_4b_AS_PATH_too_long PASSED [ 15%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_4b_AS_PATH_too_long2 PASSED [ 15%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_4b_AS_PATH_bad_flags PASSED [ 16%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_4b_AS4_PATH_w_o_AS_PATH PASSED [ 16%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_4b_AS4_PATH_confed PASSED [ 16%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_4b_AS4_PATH_BGP_AS_ZERO PASSED [ 16%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_4b_AS4_PATH_malformed_from_AS4_peer PASSED [ 16%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_AS4_AGGREGATOR_partial_malformed PASSED [ 17%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_AS4_AGGREGATOR_bad_flags PASSED [ 17%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_4b_AS4_PATH_AS4_received_not_advertised PASSED [ 17%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_AS4_AGGREGATOR_malformed_treat_as_withdraw_configured PASSED [ 17%]
+../../frr-src/tests/bgpd/test_aspath.py::TestAspath::test_AS4_PATH_malformed_treat_as_withdraw_configured PASSED [ 17%]
+../../frr-src/tests/bgpd/test_attr_parse.py::TestAttrParse::test_exit_cleanly PASSED [ 18%]
+../../frr-src/tests/bgpd/test_attr_parse.py::TestAttrParse::test_baseline_ebgp_well_formed_ORIGIN_AS_PATH_NEXT_HOP_eBGP PASSED [ 18%]
+../../frr-src/tests/bgpd/test_attr_parse.py::TestAttrParse::test_short_attr_header_ebgp_two_trailing_octets_too_few_for_an_attribute_header_eBGP PASSED [ 18%]
+../../frr-src/tests/bgpd/test_attr_parse.py::TestAttrParse::test_short_attr_header_ibgp_two_trailing_octets_too_few_for_an_attribute_header_iBGP PASSED [ 18%]
+../../frr-src/tests/bgpd/test_attr_parse.py::TestAttrParse::test_extlen_underflow_ebgp_three_trailing_octets_with_Extended_Length_set_eBGP PASSED [ 18%]
+../../frr-src/tests/bgpd/test_attr_parse.py::TestAttrParse::test_extlen_underflow_ibgp_three_trailing_octets_with_Extended_Length_set_iBGP PASSED [ 18%]
+../../frr-src/tests/bgpd/test_attr_parse.py::TestAttrParse::test_repeated_attr_ebgp_MULTI_EXIT_DISC_twice_eBGP PASSED [ 19%]
+../../frr-src/tests/bgpd/test_attr_parse.py::TestAttrParse::test_repeated_attr_ibgp_MULTI_EXIT_DISC_twice_iBGP PASSED [ 19%]
+../../frr-src/tests/bgpd/test_attr_parse.py::TestAttrParse::test_repeated_mp_reach_ibgp_MP_REACH_NLRI_twice_must_still_notify_iBGP PASSED [ 19%]
+../../frr-src/tests/bgpd/test_attr_parse.py::TestAttrParse::test_prefix_sid_bad_label_index_ebgp_PREFIX_SID_with_a_malformed_Label_Index_TLV_eBGP PASSED [ 19%]
+../../frr-src/tests/bgpd/test_attr_parse.py::TestAttrParse::test_aigp_bad_flags_ibgp_AIGP_with_the_transitive_bit_set_iBGP PASSED [ 19%]
+../../frr-src/tests/bgpd/test_attr_parse.py::TestAttrParse::test_community_partial_ebgp_COMMUNITIES_received_with_Partial_is_re_advertised_with_Partial_eBGP PASSED [ 20%]
+../../frr-src/tests/bgpd/test_attr_parse.py::TestAttrParse::test_community_complete_ebgp_COMMUNITIES_received_without_Partial_is_re_advertised_without_it_eBGP PASSED [ 20%]
+../../frr-src/tests/bgpd/test_attr_parse.py::TestAttrParse::test_as4_aggregator_partial_ebgp_partial_AS4_AGGREGATOR_re_advertised_as_a_partial_AGGREGATOR_eBGP PASSED [ 20%]
+../../frr-src/tests/bgpd/test_attr_parse.py::TestAttrParse::test_nexthop_flag_optional_ebgp_NEXT_HOP_with_the_optional_bit_set_eBGP PASSED [ 20%]
+../../frr-src/tests/bgpd/test_attr_parse.py::TestAttrParse::test_nexthop_len_3_ebgp_NEXT_HOP_with_length_3_eBGP PASSED [ 20%]
+../../frr-src/tests/bgpd/test_attr_parse.py::TestAttrParse::test_nexthop_len_5_ebgp_NEXT_HOP_with_length_5_eBGP PASSED [ 21%]
+../../frr-src/tests/bgpd/test_attr_parse.py::TestAttrParse::test_nexthop_len_0_ebgp_NEXT_HOP_with_length_0_eBGP PASSED [ 21%]
+../../frr-src/tests/bgpd/test_attr_parse.py::TestAttrParse::test_local_pref_len_3_ebgp_LOCAL_PREF_length_3_from_a_plain_eBGP_peer_is_discarded PASSED [ 21%]
+../../frr-src/tests/bgpd/test_attr_parse.py::TestAttrParse::test_local_pref_len_3_ebgp_oad_LOCAL_PREF_length_3_over_an_OAD_session_is_treat_as_withdraw PASSED [ 21%]
+../../frr-src/tests/bgpd/test_attr_parse.py::TestAttrParse::test_local_pref_len_0_ebgp_oad_LOCAL_PREF_length_0_over_an_OAD_session_is_treat_as_withdraw PASSED [ 21%]
+../../frr-src/tests/bgpd/test_bgp_table.py::TestTable::test_exit_cleanly PASSED [ 21%]
+../../frr-src/tests/bgpd/test_bgp_table.py::TestTable::test_Checks_successfull PASSED [ 22%]
+../../frr-src/tests/bgpd/test_bgp_table.py::TestTable::test_Checks_successfull_2 PASSED [ 22%]
+../../frr-src/tests/bgpd/test_bgp_table.py::TestTable::test_Checks_successfull_3 PASSED [ 22%]
+../../frr-src/tests/bgpd/test_bgp_table.py::TestTable::test_Checks_successfull_4 PASSED [ 22%]
+../../frr-src/tests/bgpd/test_bgp_table.py::TestTable::test_Checks_successfull_5 PASSED [ 22%]
+../../frr-src/tests/bgpd/test_bgp_table.py::TestTable::test_Checks_successfull_6 PASSED [ 23%]
+../../frr-src/tests/bgpd/test_bgp_table.py::TestTable::test_Checks_successfull_7 PASSED [ 23%]
+../../frr-src/tests/bgpd/test_bgp_table.py::TestTable::test_Checks_successfull_8 PASSED [ 23%]
+../../frr-src/tests/bgpd/test_bgp_table.py::TestTable::test_Checks_successfull_9 PASSED [ 23%]
+../../frr-src/tests/bgpd/test_bgp_table.py::TestTable::test_Checks_successfull_10 PASSED [ 23%]
+../../frr-src/tests/bgpd/test_bgp_table.py::TestTable::test_Checks_successfull_11 PASSED [ 24%]
+../../frr-src/tests/bgpd/test_bgp_table.py::TestTable::test_Checks_successfull_12 PASSED [ 24%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_exit_cleanly PASSED [ 24%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_MP4_MP_IP_Uni PASSED [ 24%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_MPv6_MP_IPv6_Uni PASSED [ 24%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_MP2_MP_IP_Multicast PASSED [ 24%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_MP3_MP_IP6_MPLS_labeled_VPN PASSED [ 25%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_MP5_MP_IP6_MPLS_VPN PASSED [ 25%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_MP6_MP_IP4_MPLS_labeled_VPN PASSED [ 25%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_MP8_MP_unknown_AFI_SAFI PASSED [ 25%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_MP_short_MP_IP4_Unicast_length_too_short_minimum PASSED [ 25%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_MP_overflow_MP_IP4_Unicast_length_too_long PASSED [ 26%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_caphdr_capability_header_and_no_more PASSED [ 26%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_nodata_header_no_data_but_length_says_there_is PASSED [ 26%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_padded_valid_with_padding PASSED [ 26%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_minsize_violates_minsize_requirement PASSED [ 26%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_ORF_ORF_simple_single_entry_single_tuple PASSED [ 27%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_ORF_many_ORF_multi_entry_tuple PASSED [ 27%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_ORFlo_ORF_multi_entry_tuple_hdr_length_too_short PASSED [ 27%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_ORFlu_ORF_multi_entry_tuple_length_too_long PASSED [ 27%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_ORFnu_ORF_multi_entry_tuple_entry_number_too_long PASSED [ 27%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_ORFno_ORF_multi_entry_tuple_entry_number_too_short PASSED [ 27%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_ORFpad_ORF_multi_entry_tuple_padded_to_align PASSED [ 28%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_AS4_AS4_capability PASSED [ 28%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_GR_GR_capability PASSED [ 28%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_GR_short_GR_capability_but_header_length_too_short PASSED [ 28%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_GR_long_GR_capability_but_header_length_too_long PASSED [ 28%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_GR_trunc_GR_capability_but_truncated PASSED [ 29%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_GR_empty_GR_capability_but_empty PASSED [ 29%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_MP_empty_MP_capability_but_empty PASSED [ 29%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_ORF_empty_ORF_capability_but_empty PASSED [ 29%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_AS4_empty_AS4_capability_but_empty PASSED [ 29%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_dyn_empty_Dynamic_capability_but_empty PASSED [ 30%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_dyn_old_Dynamic_capability_deprecated_version PASSED [ 30%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_Role_Role_capability PASSED [ 30%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_Role_long_Role_capability_but_too_long PASSED [ 30%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_Role_empty_Role_capability_but_empty PASSED [ 30%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_Cap_singlets_One_capability_per_Optional_Param PASSED [ 30%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_Cap_series_Series_of_capability_one_Optional_Param PASSED [ 31%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_AS4more_AS4_capability_after_other_caps_singlets PASSED [ 31%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_AS4series_AS4_capability_in_series_of_capabilities PASSED [ 31%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_AS4real_AS4_capability_in_series_of_capabilities PASSED [ 31%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_AS4real2_AS4_capability_in_series_of_capabilities PASSED [ 31%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_DynCap_Dynamic_Capability_Message_IP_Multicast PASSED [ 32%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_DynCapLong_Dynamic_Capability_Message_IP_Multicast_truncated PASSED [ 32%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_DynCapPadded_Dynamic_Capability_Message_IP_Multicast_padded PASSED [ 32%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_DynCapMPCpadded_Dynamic_Capability_Message_IP_Multicast_cap_data_padded PASSED [ 32%]
+../../frr-src/tests/bgpd/test_capability.py::TestCapability::test_DynCapMPCoverflow_Dynamic_Capability_Message_IP_Multicast_cap_data_length PASSED [ 32%]
+../../frr-src/tests/bgpd/test_community.py::TestCommunity::test_exit_cleanly PASSED [ 33%]
+../../frr-src/tests/bgpd/test_community.py::TestCommunity::test_large_community_not_truncated PASSED [ 33%]
+../../frr-src/tests/bgpd/test_ecommunity.py::TestEcommunity::test_exit_cleanly PASSED [ 33%]
+../../frr-src/tests/bgpd/test_ecommunity.py::TestEcommunity::test_ipaddr PASSED [ 33%]
+../../frr-src/tests/bgpd/test_ecommunity.py::TestEcommunity::test_ipaddr_so PASSED [ 33%]
+../../frr-src/tests/bgpd/test_ecommunity.py::TestEcommunity::test_asn PASSED [ 33%]
+../../frr-src/tests/bgpd/test_ecommunity.py::TestEcommunity::test_asn4 PASSED [ 34%]
+../../frr-src/tests/bgpd/test_mp_attr.py::TestMpAttr::test_exit_cleanly PASSED [ 34%]
+../../frr-src/tests/bgpd/test_mp_attr.py::TestMpAttr::test_IPv6_IPV6_MP_Reach_global_nexthop_1_NLRI PASSED [ 34%]
+../../frr-src/tests/bgpd/test_mp_attr.py::TestMpAttr::test_IPv6_2_IPV6_MP_Reach_global_nexthop_2_NLRIs PASSED [ 34%]
+../../frr-src/tests/bgpd/test_mp_attr.py::TestMpAttr::test_IPv6_default_IPV6_MP_Reach_global_nexthop_2_NLRIs_default PASSED [ 34%]
+../../frr-src/tests/bgpd/test_mp_attr.py::TestMpAttr::test_IPv6_lnh_IPV6_MP_Reach_global_local_nexthops_2_NLRIs_default PASSED [ 35%]
+../../frr-src/tests/bgpd/test_mp_attr.py::TestMpAttr::test_IPv6_nhlen_IPV6_MP_Reach_inappropriate_nexthop_length PASSED [ 35%]
+../../frr-src/tests/bgpd/test_mp_attr.py::TestMpAttr::test_IPv6_nhlen2_IPV6_MP_Reach_invalid_nexthop_length PASSED [ 35%]
+../../frr-src/tests/bgpd/test_mp_attr.py::TestMpAttr::test_IPv6_nhlen3_IPV6_MP_Reach_nexthop_length_overflow PASSED [ 35%]
+../../frr-src/tests/bgpd/test_mp_attr.py::TestMpAttr::test_IPv6_nhlen4_IPV6_MP_Reach_nexthop_length_short PASSED [ 35%]
+../../frr-src/tests/bgpd/test_mp_attr.py::TestMpAttr::test_IPv6_nlri_IPV6_MP_Reach_NLRI_bitlen_overflow PASSED [ 36%]
+../../frr-src/tests/bgpd/test_mp_attr.py::TestMpAttr::test_IPv4_IPv4_MP_Reach_2_NLRIs_default PASSED [ 36%]
+../../frr-src/tests/bgpd/test_mp_attr.py::TestMpAttr::test_IPv4_nhlen_IPv4_MP_Reach_nexthop_lenth_overflow PASSED [ 36%]
+../../frr-src/tests/bgpd/test_mp_attr.py::TestMpAttr::test_IPv4_nlrilen_IPv4_MP_Reach_nlri_lenth_overflow PASSED [ 36%]
+../../frr-src/tests/bgpd/test_mp_attr.py::TestMpAttr::test_IPv4_VPNv4_IPv4_VPNv4_MP_Reach_RD_Nexthop_2_NLRIs PASSED [ 36%]
+../../frr-src/tests/bgpd/test_mp_attr.py::TestMpAttr::test_IPv4_VPNv4_bogus_plen_IPv4_MPLS_labeled_VPN_MP_Reach_RD_Nexthop_NLRI_bogus_p_len PASSED [ 36%]
+../../frr-src/tests/bgpd/test_mp_attr.py::TestMpAttr::test_IPv4_VPNv4_plen1_short_IPv4_VPNv4_MP_Reach_RD_Nexthop_2_NLRIs_1st_plen_short PASSED [ 37%]
+../../frr-src/tests/bgpd/test_mp_attr.py::TestMpAttr::test_IPv4_VPNv4_plen1_long_IPv4_VPNv4_MP_Reach_RD_Nexthop_2_NLRIs_1st_plen_long PASSED [ 37%]
+../../frr-src/tests/bgpd/test_mp_attr.py::TestMpAttr::test_IPv4_VPNv4_plenn_long_IPv4_VPNv4_MP_Reach_RD_Nexthop_3_NLRIs_last_plen_long PASSED [ 37%]
+../../frr-src/tests/bgpd/test_mp_attr.py::TestMpAttr::test_IPv4_VPNv4_plenn_short_IPv4_VPNv4_MP_Reach_RD_Nexthop_2_NLRIs_last_plen_short PASSED [ 37%]
+../../frr-src/tests/bgpd/test_mp_attr.py::TestMpAttr::test_IPv4_VPNv4_bogus_rd_type_IPv4_VPNv4_MP_Reach_RD_NH_2_NLRI_unknown_RD_in_1st_log_but_parse PASSED [ 37%]
+../../frr-src/tests/bgpd/test_mp_attr.py::TestMpAttr::test_IPv4_VPNv4_0_nlri_IPv4_VPNv4_MP_Reach_RD_Nexthop_3_NLRI_3rd_0_bogus PASSED [ 38%]
+../../frr-src/tests/bgpd/test_mp_attr.py::TestMpAttr::test_IPv6_bug_IPv6_global_nexthop_1_default_NLRI PASSED [ 38%]
+../../frr-src/tests/bgpd/test_mp_attr.py::TestMpAttr::test_IPv6_unreach_IPV6_MP_Unreach_1_NLRI PASSED [ 38%]
+../../frr-src/tests/bgpd/test_mp_attr.py::TestMpAttr::test_IPv6_unreach2_IPV6_MP_Unreach_2_NLRIs PASSED [ 38%]
+../../frr-src/tests/bgpd/test_mp_attr.py::TestMpAttr::test_IPv6_unreach_default_IPV6_MP_Unreach_2_NLRIs_default PASSED [ 38%]
+../../frr-src/tests/bgpd/test_mp_attr.py::TestMpAttr::test_IPv6_unreach_nlri_IPV6_MP_Unreach_NLRI_bitlen_overflow PASSED [ 39%]
+../../frr-src/tests/bgpd/test_mp_attr.py::TestMpAttr::test_IPv4_unreach_IPv4_MP_Unreach_2_NLRIs_default PASSED [ 39%]
+../../frr-src/tests/bgpd/test_mp_attr.py::TestMpAttr::test_IPv4_unreach_nlrilen_IPv4_MP_Unreach_nlri_length_overflow PASSED [ 39%]
+../../frr-src/tests/bgpd/test_mp_attr.py::TestMpAttr::test_IPv4_unreach_VPNv4_IPv4_MPLS_labeled_VPN_MP_Unreach_RD_3_NLRIs PASSED [ 39%]
+../../frr-src/tests/bgpd/test_mp_attr.py::TestMpAttr::test_PREFIX_SID_PREFIX_SID_Test_1 PASSED [ 39%]
+../../frr-src/tests/bgpd/test_mp_attr.py::TestMpAttr::test_PREFIX_SID_SRv6_L3_Service_duplicate_PREFIX_SID_ignores_duplicate_SRv6_L3_Service_TLVs PASSED [ 39%]
+../../frr-src/tests/bgpd/test_mp_attr.py::TestMpAttr::test_PREFIX_SID_SRv6_L3_Service_length_overflow_PREFIX_SID_rejects_an_overlong_SRv6_L3_Service_TLV PASSED [ 40%]
+../../frr-src/tests/bgpd/test_mp_attr.py::TestMpAttr::test_PREFIX_SID_SRv6_L3_Service_missing_reserved_PREFIX_SID_rejects_an_SRv6_L3_Service_TLV_without_the_reserved_byte PASSED [ 40%]
+../../frr-src/tests/bgpd/test_mp_attr.py::TestMpAttr::test_PREFIX_SID_SRv6_L3_Service_sid_info_short_PREFIX_SID_rejects_a_short_SRv6_SID_Information_Sub_TLV PASSED [ 40%]
+../../frr-src/tests/bgpd/test_mp_attr.py::TestMpAttr::test_PREFIX_SID_SRv6_L3_Service_sid_structure_bad_length_PREFIX_SID_rejects_an_SRv6_SID_Structure_Sub_Sub_TLV_with_a_bad_length PASSED [ 40%]
+../../frr-src/tests/bgpd/test_mp_attr.py::TestMpAttr::test_PREFIX_SID_SRv6_L3_Service_sid_structure_bad_transposition_PREFIX_SID_rejects_an_SRv6_SID_Structure_Sub_Sub_TLV_with_bad_transposition PASSED [ 40%]
+../../frr-src/tests/bgpd/test_mp_attr.py::TestMpAttr::test_PREFIX_SID_SRv6_L3_Service_repeated_sid_info_PREFIX_SID_accepts_repeated_SRv6_SID_Information_Sub_TLVs PASSED [ 41%]
+../../frr-src/tests/bgpd/test_orf_defer.py::TestOrfDefer::test_exit_cleanly PASSED [ 41%]
+../../frr-src/tests/bgpd/test_orf_defer.py::TestOrfDefer::test_defer_malformed_entry PASSED [ 41%]
+../../frr-src/tests/bgpd/test_orf_defer.py::TestOrfDefer::test_defer_remove_the_last_entries PASSED [ 41%]
+../../frr-src/tests/bgpd/test_orf_defer.py::TestOrfDefer::test_defer_remove_all PASSED [ 41%]
+../../frr-src/tests/bgpd/test_orf_instance.py::TestOrfInstance::test_exit_cleanly PASSED [ 42%]
+../../frr-src/tests/bgpd/test_orf_instance.py::TestOrfInstance::test_each_peer_has_its_own_ORF_prefix_list PASSED [ 42%]
+../../frr-src/tests/bgpd/test_orf_instance.py::TestOrfInstance::test_peer_A_filters_with_its_own_entries_only PASSED [ 42%]
+../../frr-src/tests/bgpd/test_orf_instance.py::TestOrfInstance::test_Remove_All_from_peer_B_leaves_peer_A_s_ORF_prefix_list PASSED [ 42%]
+../../frr-src/tests/bgpd/test_orf_instance.py::TestOrfInstance::test_peer_B_going_down_leaves_peer_A_s_ORF_prefix_list PASSED [ 42%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_exit_cleanly PASSED [ 42%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_advertisement_interval PASSED [ 43%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_capability_dynamic PASSED [ 43%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_capability_extended_nexthop PASSED [ 43%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_description PASSED [ 43%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_disable_connected_check PASSED [ 43%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_dont_capability_negotiate PASSED [ 44%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_capability_fqdn PASSED [ 44%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_local_as PASSED [ 44%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_local_as_1_no_prepend PASSED [ 44%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_local_as_1_no_prepend_replace_as PASSED [ 44%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_override_capability PASSED [ 45%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_passive PASSED [ 45%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_password PASSED [ 45%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_shutdown PASSED [ 45%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_strict_capability_match PASSED [ 45%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_timers PASSED [ 45%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_timers_connect PASSED [ 46%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_update_source PASSED [ 46%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_update_source_2 PASSED [ 46%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_addpath PASSED [ 46%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_addpath PASSED [ 46%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_addpath PASSED [ 47%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_addpath PASSED [ 47%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_allowas_in PASSED [ 47%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_allowas_in PASSED [ 47%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_allowas_in PASSED [ 47%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_allowas_in PASSED [ 48%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_allowas_in_origin PASSED [ 48%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_allowas_in_origin PASSED [ 48%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_allowas_in_origin PASSED [ 48%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_allowas_in_origin PASSED [ 48%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_as_override PASSED [ 48%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_as_override PASSED [ 49%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_as_override PASSED [ 49%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_as_override PASSED [ 49%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_attribute_unchanged_as_path PASSED [ 49%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_attribute_unchanged_as_path PASSED [ 49%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_attribute_unchanged_as_path PASSED [ 50%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_attribute_unchanged_as_path PASSED [ 50%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_attribute_unchanged_next_hop PASSED [ 50%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_attribute_unchanged_next_hop PASSED [ 50%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_attribute_unchanged_next_hop PASSED [ 50%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_attribute_unchanged_next_hop PASSED [ 51%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_attribute_unchanged_med PASSED [ 51%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_attribute_unchanged_med PASSED [ 51%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_attribute_unchanged_med PASSED [ 51%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_attribute_unchanged_med PASSED [ 51%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_attribute_unchanged_as_path_next_hop PASSED [ 51%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_attribute_unchanged_as_path_next_hop PASSED [ 52%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_attribute_unchanged_as_path_next_hop PASSED [ 52%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_attribute_unchanged_as_path_next_hop PASSED [ 52%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_attribute_unchanged_as_path_med PASSED [ 52%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_attribute_unchanged_as_path_med PASSED [ 52%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_attribute_unchanged_as_path_med PASSED [ 53%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_attribute_unchanged_as_path_med PASSED [ 53%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_attribute_unchanged_as_path_next_hop_med PASSED [ 53%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_attribute_unchanged_as_path_next_hop_med PASSED [ 53%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_attribute_unchanged_as_path_next_hop_med PASSED [ 53%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_attribute_unchanged_as_path_next_hop_med PASSED [ 54%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_vpn_encapsulation_mpls PASSED [ 54%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_vpn_encapsulation_mpls PASSED [ 54%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_vpn_encapsulation_srv6 PASSED [ 54%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_vpn_encapsulation_srv6 PASSED [ 54%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_capability_orf_prefix_list_send PASSED [ 54%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_capability_orf_prefix_list_send PASSED [ 55%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_capability_orf_prefix_list_send PASSED [ 55%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_capability_orf_prefix_list_send PASSED [ 55%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_capability_orf_prefix_list_receive PASSED [ 55%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_capability_orf_prefix_list_receive PASSED [ 55%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_capability_orf_prefix_list_receive PASSED [ 56%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_capability_orf_prefix_list_receive PASSED [ 56%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_capability_orf_prefix_list_both PASSED [ 56%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_capability_orf_prefix_list_both PASSED [ 56%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_capability_orf_prefix_list_both PASSED [ 56%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_capability_orf_prefix_list_both PASSED [ 57%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_default_originate PASSED [ 57%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_default_originate PASSED [ 57%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_default_originate PASSED [ 57%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_default_originate PASSED [ 57%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_default_originate_route_map PASSED [ 57%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_default_originate_route_map PASSED [ 58%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_default_originate_route_map PASSED [ 58%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_default_originate_route_map PASSED [ 58%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_distribute_list PASSED [ 58%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_distribute_list PASSED [ 58%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_distribute_list PASSED [ 59%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_distribute_list PASSED [ 59%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_distribute_list_2 PASSED [ 59%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_distribute_list_2 PASSED [ 59%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_distribute_list_2 PASSED [ 59%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_distribute_list_2 PASSED [ 60%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_filter_list PASSED [ 60%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_filter_list PASSED [ 60%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_filter_list PASSED [ 60%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_filter_list PASSED [ 60%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_filter_list_2 PASSED [ 60%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_filter_list_2 PASSED [ 61%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_filter_list_2 PASSED [ 61%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_filter_list_2 PASSED [ 61%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_maximum_prefix PASSED [ 61%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_maximum_prefix PASSED [ 61%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_maximum_prefix PASSED [ 62%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_maximum_prefix PASSED [ 62%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_maximum_prefix_2 PASSED [ 62%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_maximum_prefix_2 PASSED [ 62%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_maximum_prefix_2 PASSED [ 62%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_maximum_prefix_2 PASSED [ 63%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_maximum_prefix_3 PASSED [ 63%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_maximum_prefix_3 PASSED [ 63%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_maximum_prefix_3 PASSED [ 63%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_maximum_prefix_3 PASSED [ 63%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_maximum_prefix_4 PASSED [ 63%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_maximum_prefix_4 PASSED [ 64%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_maximum_prefix_4 PASSED [ 64%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_maximum_prefix_4 PASSED [ 64%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_maximum_prefix_5 PASSED [ 64%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_maximum_prefix_5 PASSED [ 64%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_maximum_prefix_5 PASSED [ 65%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_maximum_prefix_5 PASSED [ 65%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_next_hop_self PASSED [ 65%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_next_hop_self PASSED [ 65%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_next_hop_self PASSED [ 65%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_next_hop_self PASSED [ 66%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_next_hop_self_force PASSED [ 66%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_next_hop_self_force PASSED [ 66%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_next_hop_self_force PASSED [ 66%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_next_hop_self_force PASSED [ 66%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_prefix_list PASSED [ 66%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_prefix_list PASSED [ 67%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_prefix_list PASSED [ 67%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_prefix_list PASSED [ 67%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_prefix_list_2 PASSED [ 67%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_prefix_list_2 PASSED [ 67%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_prefix_list_2 PASSED [ 68%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_prefix_list_2 PASSED [ 68%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_remove_private_AS PASSED [ 68%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_remove_private_AS PASSED [ 68%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_remove_private_AS PASSED [ 68%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_remove_private_AS PASSED [ 69%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_remove_private_AS_all PASSED [ 69%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_remove_private_AS_all PASSED [ 69%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_remove_private_AS_all PASSED [ 69%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_remove_private_AS_all PASSED [ 69%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_remove_private_AS_replace_AS PASSED [ 69%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_remove_private_AS_replace_AS PASSED [ 70%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_remove_private_AS_replace_AS PASSED [ 70%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_remove_private_AS_replace_AS PASSED [ 70%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_remove_private_AS_all_replace_AS PASSED [ 70%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_remove_private_AS_all_replace_AS PASSED [ 70%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_remove_private_AS_all_replace_AS PASSED [ 71%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_remove_private_AS_all_replace_AS PASSED [ 71%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_route_map PASSED [ 71%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_route_map PASSED [ 71%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_route_map PASSED [ 71%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_route_map PASSED [ 72%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_route_map_2 PASSED [ 72%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_route_map_2 PASSED [ 72%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_route_map_2 PASSED [ 72%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_route_map_2 PASSED [ 72%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_route_reflector_client PASSED [ 72%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_route_reflector_client PASSED [ 73%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_route_reflector_client PASSED [ 73%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_route_reflector_client PASSED [ 73%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_route_server_client PASSED [ 73%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_route_server_client PASSED [ 73%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_route_server_client PASSED [ 74%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_route_server_client PASSED [ 74%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_send_community PASSED [ 74%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_send_community PASSED [ 74%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_send_community PASSED [ 74%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_send_community PASSED [ 75%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_send_community_extended PASSED [ 75%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_send_community_extended PASSED [ 75%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_send_community_extended PASSED [ 75%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_send_community_extended PASSED [ 75%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_send_community_large PASSED [ 75%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_send_community_large PASSED [ 76%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_send_community_large PASSED [ 76%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_send_community_large PASSED [ 76%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_soft_reconfiguration_inbound PASSED [ 76%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_soft_reconfiguration_inbound PASSED [ 76%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_soft_reconfiguration_inbound PASSED [ 77%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_soft_reconfiguration_inbound PASSED [ 77%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_unsuppress_map PASSED [ 77%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_unsuppress_map PASSED [ 77%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_unsuppress_map PASSED [ 77%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_unsuppress_map PASSED [ 78%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_unicast_weight PASSED [ 78%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_multicast_weight PASSED [ 78%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_unicast_weight PASSED [ 78%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_multicast_weight PASSED [ 78%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv4_vpn_accept_own PASSED [ 78%]
+../../frr-src/tests/bgpd/test_peer_attr.py::TestFlag::test_peer_ipv6_vpn_accept_own PASSED [ 79%]
+../../frr-src/tests/bgpd/test_unencodable_withdraw.py::TestUnencodableWithdraw::test_exit_cleanly PASSED [ 79%]
+../../frr-src/tests/bgpd/test_unencodable_withdraw.py::TestUnencodableWithdraw::test_Unencodable_replacement_new_path_extended_limit_and_recovery PASSED [ 79%]
+../../frr-src/tests/isisd/test_fuzz_isis_tlv.py::TestFuzzIsisTLV::test_exit_cleanly FAILED [ 79%]
+../../frr-src/tests/isisd/test_isis_lspdb.py::TestIsisLSPDB::test_exit_cleanly FAILED [ 79%]
+../../frr-src/tests/isisd/test_isis_remove_excess_adjs.py::TestIsisRemoveExcessAdjs::test_exit_cleanly FAILED [ 80%]
+../../frr-src/tests/isisd/test_isis_spf.py::TestIsisSPF::test_refout FAILED [ 80%]
+../../frr-src/tests/isisd/test_isis_tlv_ext_reach.py::TestIsisTlvExtReach::test_exit_cleanly FAILED [ 80%]
+../../frr-src/tests/isisd/test_isis_vertex_queue.py::TestIsisVertexQueue::test_exit_cleanly FAILED [ 80%]
+../../frr-src/tests/lib/cli/test_cli.py::TestCli::test_refout PASSED     [ 80%]
+../../frr-src/tests/lib/cli/test_commands.py::TestCommands::test_refout SKIPPED [ 81%]
+../../frr-src/tests/lib/northbound/test_oper_data.py::TestNbOperData::test_refout PASSED [ 81%]
+../../frr-src/tests/lib/northbound/test_oper_exists.py::TestNbOperData::test_refout PASSED [ 81%]
+../../frr-src/tests/lib/test_assert.py::test_assert_0 PASSED             [ 81%]
+../../frr-src/tests/lib/test_assert.py::test_assert_1 PASSED             [ 81%]
+../../frr-src/tests/lib/test_assert.py::test_assert_2 PASSED             [ 81%]
+../../frr-src/tests/lib/test_assert.py::test_assert_3 PASSED             [ 82%]
+../../frr-src/tests/lib/test_assert.py::test_assert_4 PASSED             [ 82%]
+../../frr-src/tests/lib/test_assert.py::test_assert_10 PASSED            [ 82%]
+../../frr-src/tests/lib/test_assert.py::test_assert_11 PASSED            [ 82%]
+../../frr-src/tests/lib/test_atomlist.py::TestAtomlist::test_exit_cleanly PASSED [ 82%]
+../../frr-src/tests/lib/test_darr.py::TestDarr::test_exit_cleanly PASSED [ 83%]
+../../frr-src/tests/lib/test_frrlua.py::TestFrrlua::test_exit_cleanly SKIPPED [ 83%]
+../../frr-src/tests/lib/test_frrscript.py::TestFrrscript::test_exit_cleanly SKIPPED [ 83%]
+../../frr-src/tests/lib/test_graph.py::TestGraph::test_refout PASSED     [ 83%]
+../../frr-src/tests/lib/test_grpc.py::TestGRPC::test_exits_cleanly SKIPPED [ 83%]
+../../frr-src/tests/lib/test_idalloc.py::TestIDAlloc::test_exit_cleanly PASSED [ 84%]
+../../frr-src/tests/lib/test_idalloc.py::TestIDAlloc::test_ID_Allocator_test_successful PASSED [ 84%]
+../../frr-src/tests/lib/test_link_state.py::TestLinkState::test_exit_cleanly PASSED [ 84%]
+../../frr-src/tests/lib/test_link_state.py::TestLinkState::test_Link_State_database_tests_passed PASSED [ 84%]
+../../frr-src/tests/lib/test_mgmt_msg.py::TestMgmtMsg::test_exit_cleanly PASSED [ 84%]
+../../frr-src/tests/lib/test_mgmt_msg.py::TestMgmtMsg::test_disconnect_in_handler_OK PASSED [ 84%]
+../../frr-src/tests/lib/test_mgmt_msg.py::TestMgmtMsg::test_disconnect_flushes_queues_OK PASSED [ 85%]
+../../frr-src/tests/lib/test_network_address.py::TestNetworkAddress::test_refout PASSED [ 85%]
+../../frr-src/tests/lib/test_nexthop.py::TestNexthopIter::test_exit_cleanly PASSED [ 85%]
+../../frr-src/tests/lib/test_nexthop.py::TestNexthopIter::test_Simple_test_passed PASSED [ 85%]
+../../frr-src/tests/lib/test_nexthop_iter.py::TestNexthopIter::test_exit_cleanly PASSED [ 85%]
+../../frr-src/tests/lib/test_nexthop_iter.py::TestNexthopIter::test_Simple_test_passed PASSED [ 86%]
+../../frr-src/tests/lib/test_nexthop_iter.py::TestNexthopIter::test_PRNG_test_passed PASSED [ 86%]
+../../frr-src/tests/lib/test_ntop.py::TestNtop::test_exit_cleanly PASSED [ 86%]
+../../frr-src/tests/lib/test_prefix2str.py::TestPrefix2str::test_exit_cleanly PASSED [ 86%]
+../../frr-src/tests/lib/test_printfrr.py::TestPrintfrr::test_exit_cleanly PASSED [ 86%]
+../../frr-src/tests/lib/test_rcu.py::TestRcu::test_exit_cleanly PASSED   [ 87%]
+../../frr-src/tests/lib/test_ringbuf.py::TestRingbuf::test_exit_cleanly PASSED [ 87%]
+../../frr-src/tests/lib/test_srcdest_table.py::TestSrcdestTable::test_exit_cleanly PASSED [ 87%]
+../../frr-src/tests/lib/test_srcdest_table.py::TestSrcdestTable::test_srcdest_Next_Test_successful PASSED [ 87%]
+../../frr-src/tests/lib/test_stream.py::TestStream::test_refout PASSED   [ 87%]
+../../frr-src/tests/lib/test_stream_expand.py::TestStreamExpand::test_exit_cleanly PASSED [ 87%]
+../../frr-src/tests/lib/test_stream_expand.py::TestStreamExpand::test_stream_put_expand_empty PASSED [ 88%]
+../../frr-src/tests/lib/test_stream_expand.py::TestStreamExpand::test_stream_put_null_expand_empty PASSED [ 88%]
+../../frr-src/tests/lib/test_stream_expand.py::TestStreamExpand::test_stream_put_expand_partial PASSED [ 88%]
+../../frr-src/tests/lib/test_stream_expand.py::TestStreamExpand::test_stream_put_expand_full PASSED [ 88%]
+../../frr-src/tests/lib/test_stream_expand.py::TestStreamExpand::test_stream_write_expand_empty PASSED [ 88%]
+../../frr-src/tests/lib/test_stream_expand.py::TestStreamExpand::test_stream_write_expand_full PASSED [ 89%]
+../../frr-src/tests/lib/test_table.py::TestTable::test_exit_cleanly PASSED [ 89%]
+../../frr-src/tests/lib/test_table.py::TestTable::test_Verifying_cmp PASSED [ 89%]
+../../frr-src/tests/lib/test_table.py::TestTable::test_Verifying_cmp_2 PASSED [ 89%]
+../../frr-src/tests/lib/test_table.py::TestTable::test_Verifying_cmp_3 PASSED [ 89%]
+../../frr-src/tests/lib/test_table.py::TestTable::test_Verifying_cmp_4 PASSED [ 90%]
+../../frr-src/tests/lib/test_table.py::TestTable::test_Verifying_cmp_5 PASSED [ 90%]
+../../frr-src/tests/lib/test_table.py::TestTable::test_Verifying_cmp_6 PASSED [ 90%]
+../../frr-src/tests/lib/test_table.py::TestTable::test_Verifying_successor PASSED [ 90%]
+../../frr-src/tests/lib/test_table.py::TestTable::test_Verifying_successor_2 PASSED [ 90%]
+../../frr-src/tests/lib/test_table.py::TestTable::test_Verifying_successor_3 PASSED [ 90%]
+../../frr-src/tests/lib/test_table.py::TestTable::test_Verifying_successor_4 PASSED [ 91%]
+../../frr-src/tests/lib/test_table.py::TestTable::test_Verifying_successor_5 PASSED [ 91%]
+../../frr-src/tests/lib/test_table.py::TestTable::test_Verifying_successor_6 PASSED [ 91%]
+../../frr-src/tests/lib/test_table.py::TestTable::test_Verifying_successor_7 PASSED [ 91%]
+../../frr-src/tests/lib/test_table.py::TestTable::test_Verifying_successor_8 PASSED [ 91%]
+../../frr-src/tests/lib/test_table.py::TestTable::test_Verifying_successor_9 PASSED [ 92%]
+../../frr-src/tests/lib/test_table.py::TestTable::test_Verifying_successor_10 PASSED [ 92%]
+../../frr-src/tests/lib/test_table.py::TestTable::test_Verifying_successor_11 PASSED [ 92%]
+../../frr-src/tests/lib/test_table.py::TestTable::test_Verified_pausing PASSED [ 92%]
+../../frr-src/tests/lib/test_timer_correctness.py::TestTimerCorrectness::test_exit_cleanly PASSED [ 92%]
+../../frr-src/tests/lib/test_timer_correctness.py::TestTimerCorrectness::test_Expected_output_and_actual_output_match PASSED [ 93%]
+../../frr-src/tests/lib/test_ttable.py::TestTTable::test_refout PASSED   [ 93%]
+../../frr-src/tests/lib/test_typelist.py::TestTypelist::test_exit_cleanly PASSED [ 93%]
+../../frr-src/tests/lib/test_typelist.py::TestTypelist::test_LIST_end PASSED [ 93%]
+../../frr-src/tests/lib/test_typelist.py::TestTypelist::test_DLIST_end PASSED [ 93%]
+../../frr-src/tests/lib/test_typelist.py::TestTypelist::test_ATOMLIST_end PASSED [ 93%]
+../../frr-src/tests/lib/test_typelist.py::TestTypelist::test_HEAP_end PASSED [ 94%]
+../../frr-src/tests/lib/test_typelist.py::TestTypelist::test_SORTLIST_UNIQ_end PASSED [ 94%]
+../../frr-src/tests/lib/test_typelist.py::TestTypelist::test_SORTLIST_NONUNIQ_end PASSED [ 94%]
+../../frr-src/tests/lib/test_typelist.py::TestTypelist::test_HASH_end PASSED [ 94%]
+../../frr-src/tests/lib/test_typelist.py::TestTypelist::test_HASH_collisions_end PASSED [ 94%]
+../../frr-src/tests/lib/test_typelist.py::TestTypelist::test_SKIPLIST_UNIQ_end PASSED [ 95%]
+../../frr-src/tests/lib/test_typelist.py::TestTypelist::test_SKIPLIST_NONUNIQ_end PASSED [ 95%]
+../../frr-src/tests/lib/test_typelist.py::TestTypelist::test_RBTREE_UNIQ_end PASSED [ 95%]
+../../frr-src/tests/lib/test_typelist.py::TestTypelist::test_RBTREE_NONUNIQ_end PASSED [ 95%]
+../../frr-src/tests/lib/test_typelist.py::TestTypelist::test_ATOMSORT_UNIQ_end PASSED [ 95%]
+../../frr-src/tests/lib/test_typelist.py::TestTypelist::test_ATOMSORT_NONUNIQ_end PASSED [ 96%]
+../../frr-src/tests/lib/test_versioncmp.py::TestVersionCmp::test_exit_cleanly PASSED [ 96%]
+../../frr-src/tests/lib/test_xref.py::TestXref::test_exit_cleanly PASSED [ 96%]
+../../frr-src/tests/lib/test_zlog.py::TestZlog::test_exit_cleanly PASSED [ 96%]
+../../frr-src/tests/lib/test_zlog.py::TestZlog::test_test_hexdump_passed PASSED [ 96%]
+../../frr-src/tests/lib/test_zlog.py::TestZlog::test_test_from_child PASSED [ 96%]
+../../frr-src/tests/lib/test_zlog.py::TestZlog::test_truncated_in_recirculation PASSED [ 97%]
+../../frr-src/tests/lib/test_zlog.py::TestZlog::test_test_truncation PASSED [ 97%]
+../../frr-src/tests/lib/test_zlog.py::TestZlog::test_test_recirculate_passed PASSED [ 97%]
+../../frr-src/tests/lib/test_zmq.py::TestZMQ::test_refout SKIPPED (Z...) [ 97%]
+../../frr-src/tests/ospf6d/test_lsdb.py::TestLSDB::test_refout PASSED    [ 97%]
+../../frr-src/tests/ospfd/test_ospf_asbr_summary.py::TestOspfAsbrSummary::test_refout PASSED [ 98%]
+../../frr-src/tests/ospfd/test_ospf_spf.py::TestOspfSPF::test_refout PASSED [ 98%]
+../../frr-src/tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_exit_cleanly FAILED [ 98%]
+../../frr-src/tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_sgrpt_prune_with_sg_join_OK FAILED [ 98%]
+../../frr-src/tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_sgrpt_prune_with_sg_join_and_prune_OK FAILED [ 98%]
+../../frr-src/tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_sgrpt_prune_split_records_OK FAILED [ 99%]
+../../frr-src/tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_sgrpt_prune_split_after_joins_OK FAILED [ 99%]
+../../frr-src/tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_sgrpt_prune_same_record_as_starg_join_OK FAILED [ 99%]
+../../frr-src/tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_sgrpt_prune_overflow_OK FAILED [ 99%]
+../../frr-src/tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_exit_cleanly_2 FAILED [ 99%]
+../../frr-src/tests/zebra/test_lm_plugin.py::TestLmplugin::test_refout PASSED [100%]
+
+=================================== FAILURES ===================================
+______________________ TestFuzzIsisTLV.test_exit_cleanly _______________________
+
+self = <test_fuzz_isis_tlv.TestFuzzIsisTLV object at 0xffff8c1742d0>
+
+    def testfunction(self):
+>       self._run_tests()
+
+../../frr-src/tests/helpers/python/frrtest.py:91:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+../../frr-src/tests/helpers/python/frrtest.py:61: in _run_tests
+    proc = subprocess.Popen([binpath(program)], stdout=subprocess.PIPE)
+/usr/lib/python3.13/subprocess.py:1039: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.13/subprocess.py:1857: in _execute_child
+    self._posix_spawn(args, executable, env, restore_signals, close_fds,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <Popen: returncode: None args: ['isisd/test_fuzz_isis_tlv']>
+args = ['isisd/test_fuzz_isis_tlv'], executable = 'isisd/test_fuzz_isis_tlv'
+env = None, restore_signals = True, close_fds = True, p2cread = -1
+p2cwrite = -1, c2pread = 11, c2pwrite = 12, errread = -1, errwrite = -1
+
+    def _posix_spawn(self, args, executable, env, restore_signals, close_fds,
+                     p2cread, p2cwrite,
+                     c2pread, c2pwrite,
+                     errread, errwrite):
+        """Execute program using os.posix_spawn()."""
+        kwargs = {}
+        if restore_signals:
+            # See _Py_RestoreSignals() in Python/pylifecycle.c
+            sigset = []
+            for signame in ('SIGPIPE', 'SIGXFZ', 'SIGXFSZ'):
+                signum = getattr(signal, signame, None)
+                if signum is not None:
+                    sigset.append(signum)
+            kwargs['setsigdef'] = sigset
+
+        file_actions = []
+        for fd in (p2cwrite, c2pread, errread):
+            if fd != -1:
+                file_actions.append((os.POSIX_SPAWN_CLOSE, fd))
+        for fd, fd2 in (
+            (p2cread, 0),
+            (c2pwrite, 1),
+            (errwrite, 2),
+        ):
+            if fd != -1:
+                file_actions.append((os.POSIX_SPAWN_DUP2, fd, fd2))
+
+        if close_fds:
+            file_actions.append((os.POSIX_SPAWN_CLOSEFROM, 3))
+
+        if file_actions:
+            kwargs['file_actions'] = file_actions
+
+>       self.pid = os.posix_spawn(executable, args, env, **kwargs)
+E       FileNotFoundError: [Errno 2] No such file or directory: 'isisd/test_fuzz_isis_tlv'
+
+/usr/lib/python3.13/subprocess.py:1801: FileNotFoundError
+_______________________ TestIsisLSPDB.test_exit_cleanly ________________________
+
+self = <test_isis_lspdb.TestIsisLSPDB object at 0xffff8c174550>
+
+    def testfunction(self):
+>       self._run_tests()
+
+../../frr-src/tests/helpers/python/frrtest.py:91:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+../../frr-src/tests/helpers/python/frrtest.py:61: in _run_tests
+    proc = subprocess.Popen([binpath(program)], stdout=subprocess.PIPE)
+/usr/lib/python3.13/subprocess.py:1039: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.13/subprocess.py:1857: in _execute_child
+    self._posix_spawn(args, executable, env, restore_signals, close_fds,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <Popen: returncode: None args: ['isisd/test_isis_lspdb']>
+args = ['isisd/test_isis_lspdb'], executable = 'isisd/test_isis_lspdb'
+env = None, restore_signals = True, close_fds = True, p2cread = -1
+p2cwrite = -1, c2pread = 11, c2pwrite = 12, errread = -1, errwrite = -1
+
+    def _posix_spawn(self, args, executable, env, restore_signals, close_fds,
+                     p2cread, p2cwrite,
+                     c2pread, c2pwrite,
+                     errread, errwrite):
+        """Execute program using os.posix_spawn()."""
+        kwargs = {}
+        if restore_signals:
+            # See _Py_RestoreSignals() in Python/pylifecycle.c
+            sigset = []
+            for signame in ('SIGPIPE', 'SIGXFZ', 'SIGXFSZ'):
+                signum = getattr(signal, signame, None)
+                if signum is not None:
+                    sigset.append(signum)
+            kwargs['setsigdef'] = sigset
+
+        file_actions = []
+        for fd in (p2cwrite, c2pread, errread):
+            if fd != -1:
+                file_actions.append((os.POSIX_SPAWN_CLOSE, fd))
+        for fd, fd2 in (
+            (p2cread, 0),
+            (c2pwrite, 1),
+            (errwrite, 2),
+        ):
+            if fd != -1:
+                file_actions.append((os.POSIX_SPAWN_DUP2, fd, fd2))
+
+        if close_fds:
+            file_actions.append((os.POSIX_SPAWN_CLOSEFROM, 3))
+
+        if file_actions:
+            kwargs['file_actions'] = file_actions
+
+>       self.pid = os.posix_spawn(executable, args, env, **kwargs)
+E       FileNotFoundError: [Errno 2] No such file or directory: 'isisd/test_isis_lspdb'
+
+/usr/lib/python3.13/subprocess.py:1801: FileNotFoundError
+__________________ TestIsisRemoveExcessAdjs.test_exit_cleanly __________________
+
+self = <test_isis_remove_excess_adjs.TestIsisRemoveExcessAdjs object at 0xffff8c174690>
+
+    def testfunction(self):
+>       self._run_tests()
+
+../../frr-src/tests/helpers/python/frrtest.py:91:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+../../frr-src/tests/helpers/python/frrtest.py:61: in _run_tests
+    proc = subprocess.Popen([binpath(program)], stdout=subprocess.PIPE)
+/usr/lib/python3.13/subprocess.py:1039: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.13/subprocess.py:1857: in _execute_child
+    self._posix_spawn(args, executable, env, restore_signals, close_fds,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <Popen: returncode: None args: ['isisd/test_isis_remove_excess_adjs']>
+args = ['isisd/test_isis_remove_excess_adjs']
+executable = 'isisd/test_isis_remove_excess_adjs', env = None
+restore_signals = True, close_fds = True, p2cread = -1, p2cwrite = -1
+c2pread = 11, c2pwrite = 12, errread = -1, errwrite = -1
+
+    def _posix_spawn(self, args, executable, env, restore_signals, close_fds,
+                     p2cread, p2cwrite,
+                     c2pread, c2pwrite,
+                     errread, errwrite):
+        """Execute program using os.posix_spawn()."""
+        kwargs = {}
+        if restore_signals:
+            # See _Py_RestoreSignals() in Python/pylifecycle.c
+            sigset = []
+            for signame in ('SIGPIPE', 'SIGXFZ', 'SIGXFSZ'):
+                signum = getattr(signal, signame, None)
+                if signum is not None:
+                    sigset.append(signum)
+            kwargs['setsigdef'] = sigset
+
+        file_actions = []
+        for fd in (p2cwrite, c2pread, errread):
+            if fd != -1:
+                file_actions.append((os.POSIX_SPAWN_CLOSE, fd))
+        for fd, fd2 in (
+            (p2cread, 0),
+            (c2pwrite, 1),
+            (errwrite, 2),
+        ):
+            if fd != -1:
+                file_actions.append((os.POSIX_SPAWN_DUP2, fd, fd2))
+
+        if close_fds:
+            file_actions.append((os.POSIX_SPAWN_CLOSEFROM, 3))
+
+        if file_actions:
+            kwargs['file_actions'] = file_actions
+
+>       self.pid = os.posix_spawn(executable, args, env, **kwargs)
+E       FileNotFoundError: [Errno 2] No such file or directory: 'isisd/test_isis_remove_excess_adjs'
+
+/usr/lib/python3.13/subprocess.py:1801: FileNotFoundError
+___________________________ TestIsisSPF.test_refout ____________________________
+
+self = <test_isis_spf.TestIsisSPF object at 0xffff8c174050>
+
+    def test_refout(self):
+        basedir = os.path.dirname(inspect.getsourcefile(type(self)))
+        program = os.path.join(basedir, self.program)
+
+        if getattr(self, "built_refin", False):
+            refin = binpath(program) + ".in"
+        else:
+            refin = program + ".in"
+        if getattr(self, "built_refout", False):
+            refout = binpath(program) + ".refout"
+        else:
+            refout = program + ".refout"
+
+        intext = ""
+        if os.path.exists(refin):
+            with open(refin, "rb") as f:
+                intext = f.read()
+        with open(refout, "rb") as f:
+            reftext = f.read()
+
+>       proc = subprocess.Popen(
+            [binpath(program)], stdin=subprocess.PIPE, stdout=subprocess.PIPE
+        )
+
+../../frr-src/tests/helpers/python/frrtest.py:199:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/usr/lib/python3.13/subprocess.py:1039: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.13/subprocess.py:1857: in _execute_child
+    self._posix_spawn(args, executable, env, restore_signals, close_fds,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <Popen: returncode: None args: ['isisd/test_isis_spf']>
+args = ['isisd/test_isis_spf'], executable = 'isisd/test_isis_spf', env = None
+restore_signals = True, close_fds = True, p2cread = 11, p2cwrite = 12
+c2pread = 13, c2pwrite = 14, errread = -1, errwrite = -1
+
+    def _posix_spawn(self, args, executable, env, restore_signals, close_fds,
+                     p2cread, p2cwrite,
+                     c2pread, c2pwrite,
+                     errread, errwrite):
+        """Execute program using os.posix_spawn()."""
+        kwargs = {}
+        if restore_signals:
+            # See _Py_RestoreSignals() in Python/pylifecycle.c
+            sigset = []
+            for signame in ('SIGPIPE', 'SIGXFZ', 'SIGXFSZ'):
+                signum = getattr(signal, signame, None)
+                if signum is not None:
+                    sigset.append(signum)
+            kwargs['setsigdef'] = sigset
+
+        file_actions = []
+        for fd in (p2cwrite, c2pread, errread):
+            if fd != -1:
+                file_actions.append((os.POSIX_SPAWN_CLOSE, fd))
+        for fd, fd2 in (
+            (p2cread, 0),
+            (c2pwrite, 1),
+            (errwrite, 2),
+        ):
+            if fd != -1:
+                file_actions.append((os.POSIX_SPAWN_DUP2, fd, fd2))
+
+        if close_fds:
+            file_actions.append((os.POSIX_SPAWN_CLOSEFROM, 3))
+
+        if file_actions:
+            kwargs['file_actions'] = file_actions
+
+>       self.pid = os.posix_spawn(executable, args, env, **kwargs)
+E       FileNotFoundError: [Errno 2] No such file or directory: 'isisd/test_isis_spf'
+
+/usr/lib/python3.13/subprocess.py:1801: FileNotFoundError
+____________________ TestIsisTlvExtReach.test_exit_cleanly _____________________
+
+self = <test_isis_tlv_ext_reach.TestIsisTlvExtReach object at 0xffff8c174910>
+
+    def testfunction(self):
+>       self._run_tests()
+
+../../frr-src/tests/helpers/python/frrtest.py:91:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+../../frr-src/tests/helpers/python/frrtest.py:61: in _run_tests
+    proc = subprocess.Popen([binpath(program)], stdout=subprocess.PIPE)
+/usr/lib/python3.13/subprocess.py:1039: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.13/subprocess.py:1857: in _execute_child
+    self._posix_spawn(args, executable, env, restore_signals, close_fds,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <Popen: returncode: None args: ['isisd/test_isis_tlv_ext_reach']>
+args = ['isisd/test_isis_tlv_ext_reach']
+executable = 'isisd/test_isis_tlv_ext_reach', env = None, restore_signals = True
+close_fds = True, p2cread = -1, p2cwrite = -1, c2pread = 11, c2pwrite = 12
+errread = -1, errwrite = -1
+
+    def _posix_spawn(self, args, executable, env, restore_signals, close_fds,
+                     p2cread, p2cwrite,
+                     c2pread, c2pwrite,
+                     errread, errwrite):
+        """Execute program using os.posix_spawn()."""
+        kwargs = {}
+        if restore_signals:
+            # See _Py_RestoreSignals() in Python/pylifecycle.c
+            sigset = []
+            for signame in ('SIGPIPE', 'SIGXFZ', 'SIGXFSZ'):
+                signum = getattr(signal, signame, None)
+                if signum is not None:
+                    sigset.append(signum)
+            kwargs['setsigdef'] = sigset
+
+        file_actions = []
+        for fd in (p2cwrite, c2pread, errread):
+            if fd != -1:
+                file_actions.append((os.POSIX_SPAWN_CLOSE, fd))
+        for fd, fd2 in (
+            (p2cread, 0),
+            (c2pwrite, 1),
+            (errwrite, 2),
+        ):
+            if fd != -1:
+                file_actions.append((os.POSIX_SPAWN_DUP2, fd, fd2))
+
+        if close_fds:
+            file_actions.append((os.POSIX_SPAWN_CLOSEFROM, 3))
+
+        if file_actions:
+            kwargs['file_actions'] = file_actions
+
+>       self.pid = os.posix_spawn(executable, args, env, **kwargs)
+E       FileNotFoundError: [Errno 2] No such file or directory: 'isisd/test_isis_tlv_ext_reach'
+
+/usr/lib/python3.13/subprocess.py:1801: FileNotFoundError
+____________________ TestIsisVertexQueue.test_exit_cleanly _____________________
+
+self = <test_isis_vertex_queue.TestIsisVertexQueue object at 0xffff8c174a50>
+
+    def testfunction(self):
+>       self._run_tests()
+
+../../frr-src/tests/helpers/python/frrtest.py:91:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+../../frr-src/tests/helpers/python/frrtest.py:61: in _run_tests
+    proc = subprocess.Popen([binpath(program)], stdout=subprocess.PIPE)
+/usr/lib/python3.13/subprocess.py:1039: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.13/subprocess.py:1857: in _execute_child
+    self._posix_spawn(args, executable, env, restore_signals, close_fds,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <Popen: returncode: None args: ['isisd/test_isis_vertex_queue']>
+args = ['isisd/test_isis_vertex_queue']
+executable = 'isisd/test_isis_vertex_queue', env = None, restore_signals = True
+close_fds = True, p2cread = -1, p2cwrite = -1, c2pread = 11, c2pwrite = 12
+errread = -1, errwrite = -1
+
+    def _posix_spawn(self, args, executable, env, restore_signals, close_fds,
+                     p2cread, p2cwrite,
+                     c2pread, c2pwrite,
+                     errread, errwrite):
+        """Execute program using os.posix_spawn()."""
+        kwargs = {}
+        if restore_signals:
+            # See _Py_RestoreSignals() in Python/pylifecycle.c
+            sigset = []
+            for signame in ('SIGPIPE', 'SIGXFZ', 'SIGXFSZ'):
+                signum = getattr(signal, signame, None)
+                if signum is not None:
+                    sigset.append(signum)
+            kwargs['setsigdef'] = sigset
+
+        file_actions = []
+        for fd in (p2cwrite, c2pread, errread):
+            if fd != -1:
+                file_actions.append((os.POSIX_SPAWN_CLOSE, fd))
+        for fd, fd2 in (
+            (p2cread, 0),
+            (c2pwrite, 1),
+            (errwrite, 2),
+        ):
+            if fd != -1:
+                file_actions.append((os.POSIX_SPAWN_DUP2, fd, fd2))
+
+        if close_fds:
+            file_actions.append((os.POSIX_SPAWN_CLOSEFROM, 3))
+
+        if file_actions:
+            kwargs['file_actions'] = file_actions
+
+>       self.pid = os.posix_spawn(executable, args, env, **kwargs)
+E       FileNotFoundError: [Errno 2] No such file or directory: 'isisd/test_isis_vertex_queue'
+
+/usr/lib/python3.13/subprocess.py:1801: FileNotFoundError
+______________________ TestPimJpEncode.test_exit_cleanly _______________________
+
+self = <test_pim_jp_encode.TestPimJpEncode object at 0xffff8c20c690>
+
+    def testfunction(self):
+>       self._run_tests()
+
+../../frr-src/tests/helpers/python/frrtest.py:91:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+../../frr-src/tests/helpers/python/frrtest.py:61: in _run_tests
+    proc = subprocess.Popen([binpath(program)], stdout=subprocess.PIPE)
+/usr/lib/python3.13/subprocess.py:1039: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+/usr/lib/python3.13/subprocess.py:1857: in _execute_child
+    self._posix_spawn(args, executable, env, restore_signals, close_fds,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <Popen: returncode: None args: ['pimd/test_pim_jp_encode']>
+args = ['pimd/test_pim_jp_encode'], executable = 'pimd/test_pim_jp_encode'
+env = None, restore_signals = True, close_fds = True, p2cread = -1
+p2cwrite = -1, c2pread = 11, c2pwrite = 12, errread = -1, errwrite = -1
+
+    def _posix_spawn(self, args, executable, env, restore_signals, close_fds,
+                     p2cread, p2cwrite,
+                     c2pread, c2pwrite,
+                     errread, errwrite):
+        """Execute program using os.posix_spawn()."""
+        kwargs = {}
+        if restore_signals:
+            # See _Py_RestoreSignals() in Python/pylifecycle.c
+            sigset = []
+            for signame in ('SIGPIPE', 'SIGXFZ', 'SIGXFSZ'):
+                signum = getattr(signal, signame, None)
+                if signum is not None:
+                    sigset.append(signum)
+            kwargs['setsigdef'] = sigset
+
+        file_actions = []
+        for fd in (p2cwrite, c2pread, errread):
+            if fd != -1:
+                file_actions.append((os.POSIX_SPAWN_CLOSE, fd))
+        for fd, fd2 in (
+            (p2cread, 0),
+            (c2pwrite, 1),
+            (errwrite, 2),
+        ):
+            if fd != -1:
+                file_actions.append((os.POSIX_SPAWN_DUP2, fd, fd2))
+
+        if close_fds:
+            file_actions.append((os.POSIX_SPAWN_CLOSEFROM, 3))
+
+        if file_actions:
+            kwargs['file_actions'] = file_actions
+
+>       self.pid = os.posix_spawn(executable, args, env, **kwargs)
+E       FileNotFoundError: [Errno 2] No such file or directory: 'pimd/test_pim_jp_encode'
+
+/usr/lib/python3.13/subprocess.py:1801: FileNotFoundError
+_______________ TestPimJpEncode.test_sgrpt_prune_with_sg_join_OK _______________
+
+self = <test_pim_jp_encode.TestPimJpEncode object at 0xffff8c20c7d0>
+
+    def testfunction(self):
+        self._run_tests()
+>       result = self.testresults[matchfunction]
+E       AttributeError: 'TestPimJpEncode' object has no attribute 'testresults'
+
+../../frr-src/tests/helpers/python/frrtest.py:92: AttributeError
+__________ TestPimJpEncode.test_sgrpt_prune_with_sg_join_and_prune_OK __________
+
+self = <test_pim_jp_encode.TestPimJpEncode object at 0xffff8c4ee780>
+
+    def testfunction(self):
+        self._run_tests()
+>       result = self.testresults[matchfunction]
+E       AttributeError: 'TestPimJpEncode' object has no attribute 'testresults'
+
+../../frr-src/tests/helpers/python/frrtest.py:92: AttributeError
+______________ TestPimJpEncode.test_sgrpt_prune_split_records_OK _______________
+
+self = <test_pim_jp_encode.TestPimJpEncode object at 0xffff8c4ee8b0>
+
+    def testfunction(self):
+        self._run_tests()
+>       result = self.testresults[matchfunction]
+E       AttributeError: 'TestPimJpEncode' object has no attribute 'testresults'
+
+../../frr-src/tests/helpers/python/frrtest.py:92: AttributeError
+____________ TestPimJpEncode.test_sgrpt_prune_split_after_joins_OK _____________
+
+self = <test_pim_jp_encode.TestPimJpEncode object at 0xffff8c01c5f0>
+
+    def testfunction(self):
+        self._run_tests()
+>       result = self.testresults[matchfunction]
+E       AttributeError: 'TestPimJpEncode' object has no attribute 'testresults'
+
+../../frr-src/tests/helpers/python/frrtest.py:92: AttributeError
+________ TestPimJpEncode.test_sgrpt_prune_same_record_as_starg_join_OK _________
+
+self = <test_pim_jp_encode.TestPimJpEncode object at 0xffff8c1707c0>
+
+    def testfunction(self):
+        self._run_tests()
+>       result = self.testresults[matchfunction]
+E       AttributeError: 'TestPimJpEncode' object has no attribute 'testresults'
+
+../../frr-src/tests/helpers/python/frrtest.py:92: AttributeError
+_________________ TestPimJpEncode.test_sgrpt_prune_overflow_OK _________________
+
+self = <test_pim_jp_encode.TestPimJpEncode object at 0xffff8c1705a0>
+
+    def testfunction(self):
+        self._run_tests()
+>       result = self.testresults[matchfunction]
+E       AttributeError: 'TestPimJpEncode' object has no attribute 'testresults'
+
+../../frr-src/tests/helpers/python/frrtest.py:92: AttributeError
+_____________________ TestPimJpEncode.test_exit_cleanly_2 ______________________
+
+self = <test_pim_jp_encode.TestPimJpEncode object at 0xffff8c49af50>
+
+    def testfunction(self):
+        self._run_tests()
+>       result = self.testresults[matchfunction]
+E       AttributeError: 'TestPimJpEncode' object has no attribute 'testresults'
+
+../../frr-src/tests/helpers/python/frrtest.py:92: AttributeError
+- generated xml file: <work> -
+=========================== short test summary info ============================
+FAILED ../../frr-src/tests/isisd/test_fuzz_isis_tlv.py::TestFuzzIsisTLV::test_exit_cleanly
+FAILED ../../frr-src/tests/isisd/test_isis_lspdb.py::TestIsisLSPDB::test_exit_cleanly
+FAILED ../../frr-src/tests/isisd/test_isis_remove_excess_adjs.py::TestIsisRemoveExcessAdjs::test_exit_cleanly
+FAILED ../../frr-src/tests/isisd/test_isis_spf.py::TestIsisSPF::test_refout
+FAILED ../../frr-src/tests/isisd/test_isis_tlv_ext_reach.py::TestIsisTlvExtReach::test_exit_cleanly
+FAILED ../../frr-src/tests/isisd/test_isis_vertex_queue.py::TestIsisVertexQueue::test_exit_cleanly
+FAILED ../../frr-src/tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_exit_cleanly
+FAILED ../../frr-src/tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_sgrpt_prune_with_sg_join_OK
+FAILED ../../frr-src/tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_sgrpt_prune_with_sg_join_and_prune_OK
+FAILED ../../frr-src/tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_sgrpt_prune_split_records_OK
+FAILED ../../frr-src/tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_sgrpt_prune_split_after_joins_OK
+FAILED ../../frr-src/tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_sgrpt_prune_same_record_as_starg_join_OK
+FAILED ../../frr-src/tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_sgrpt_prune_overflow_OK
+FAILED ../../frr-src/tests/pimd/test_pim_jp_encode.py::TestPimJpEncode::test_exit_cleanly_2
+================== 14 failed, 514 passed, 5 skipped in 8.20s ===================
+make[2]: *** [Makefile:20298: tests/tests.xml] Error 1
+make[2]: Leaving directory '<work>'

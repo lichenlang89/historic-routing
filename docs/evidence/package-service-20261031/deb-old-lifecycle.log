@@ -1,0 +1,178 @@
+OLD_PAIRED_VERSION=0.1.1~dev3dd0c63-1
+MISMATCH_PROBE rc=100
+Reading package lists...
+Building dependency tree...
+Reading state information...
+The following packages will be REMOVED:
+  historic-routing-egp
+The following packages will be upgraded:
+  historic-routing-runtime
+1 upgraded, 0 newly installed, 1 to remove and 1 not upgraded.
+E: Packages need to be removed but remove is disabled.
+
+MISMATCH_PROBE rc=100
+Reading package lists...
+Building dependency tree...
+Reading state information...
+Solving dependencies...
+Some packages could not be installed. This may mean that you have
+requested an impossible situation or if you are using the unstable
+distribution that some required packages have not yet been created
+or been moved out of Incoming.
+The following information may help to resolve the situation:
+
+The following packages have unmet dependencies:
+ historic-routing-egp : Depends: historic-routing-runtime (= 0.1.1~devservice2-2) but 0.1.1~dev3dd0c63-1 is to be installed
+                        Depends: historic-routing-abi (= 0.bb070e0-27f287be9)
+E: Unable to correct problems, you have held broken packages.
+E: The following information from --solver 3.0 may provide additional context:
+   Unable to satisfy dependencies. Reached two conflicting decisions:
+   1. historic-routing-egp:arm64=0.1.1~devservice2-2 is selected as an upgrade
+   2. historic-routing-egp:arm64=0.1.1~devservice2-2 Depends historic-routing-runtime (= 0.1.1~devservice2-2)
+      but none of the choices are installable:
+      [no choices]
+
+Reading package lists...
+Building dependency tree...
+Reading state information...
+The following packages will be upgraded:
+  historic-routing-egp historic-routing-runtime
+2 upgraded, 0 newly installed, 0 to remove and 1 not upgraded.
+Need to get 0 B/2256 kB of archives.
+After this operation, 0 B of additional disk space will be used.
+Get:1 /tmp/hrpkg-packages/new/historic-routing-egp_0.1.1~devservice2-2_arm64.deb historic-routing-egp arm64 0.1.1~devservice2-2 [57.4 kB]
+Get:2 /tmp/hrpkg-packages/new/historic-routing-runtime_0.1.1~devservice2-2_arm64.deb historic-routing-runtime arm64 0.1.1~devservice2-2 [2198 kB]
+(Reading database ...
+(Reading database ... 5%
+(Reading database ... 10%
+(Reading database ... 15%
+(Reading database ... 20%
+(Reading database ... 25%
+(Reading database ... 30%
+(Reading database ... 35%
+(Reading database ... 40%
+(Reading database ... 45%
+(Reading database ... 50%
+(Reading database ... 55%
+(Reading database ... 60%
+(Reading database ... 65%
+(Reading database ... 70%
+(Reading database ... 75%
+(Reading database ... 80%
+(Reading database ... 85%
+(Reading database ... 90%
+(Reading database ... 95%
+(Reading database ... 100%
+(Reading database ... 30361 files and directories currently installed.)
+Preparing to unpack .../historic-routing-egp_0.1.1~devservice2-2_arm64.deb ...
+Unpacking historic-routing-egp (0.1.1~devservice2-2) over (0.1.1~dev3dd0c63-1) ...
+Preparing to unpack .../historic-routing-runtime_0.1.1~devservice2-2_arm64.deb ...
+Unpacking historic-routing-runtime (0.1.1~devservice2-2) over (0.1.1~dev3dd0c63-1) ...
+Setting up historic-routing-runtime (0.1.1~devservice2-2) ...
+Setting up historic-routing-egp (0.1.1~devservice2-2) ...
+
+Configuration file '/opt/historic-routing/27f287be9/etc/frr/egpd.conf'
+ ==> Modified (by you or by a script) since installation.
+ ==> Package distributor has shipped an updated version.
+ ==> Using current old file as you requested.
+Processing triggers for libc-bin (2.41-12+deb13u4) ...
+
+PASS paired upgrade: configuration retained, no automatic start, RIB/kernel recovered; 0.1.1~devservice2-2
+Reading package lists...
+Building dependency tree...
+Reading state information...
+The following packages will be DOWNGRADED:
+  historic-routing-egp historic-routing-runtime
+0 upgraded, 0 newly installed, 2 downgraded, 0 to remove and 1 not upgraded.
+Need to get 0 B/2259 kB of archives.
+After this operation, 0 B of additional disk space will be used.
+Get:1 /tmp/hrpkg-packages/old/historic-routing-egp_0.1.1~dev3dd0c63-1_arm64.deb historic-routing-egp arm64 0.1.1~dev3dd0c63-1 [57.3 kB]
+Get:2 /tmp/hrpkg-packages/old/historic-routing-runtime_0.1.1~dev3dd0c63-1_arm64.deb historic-routing-runtime arm64 0.1.1~dev3dd0c63-1 [2201 kB]
+dpkg: warning: downgrading historic-routing-egp (0.1.1~devservice2-2) to (0.1.1~dev3dd0c63-1)
+(Reading database ...
+(Reading database ... 5%
+(Reading database ... 10%
+(Reading database ... 15%
+(Reading database ... 20%
+(Reading database ... 25%
+(Reading database ... 30%
+(Reading database ... 35%
+(Reading database ... 40%
+(Reading database ... 45%
+(Reading database ... 50%
+(Reading database ... 55%
+(Reading database ... 60%
+(Reading database ... 65%
+(Reading database ... 70%
+(Reading database ... 75%
+(Reading database ... 80%
+(Reading database ... 85%
+(Reading database ... 90%
+(Reading database ... 95%
+(Reading database ... 100%
+(Reading database ... 30361 files and directories currently installed.)
+Preparing to unpack .../historic-routing-egp_0.1.1~dev3dd0c63-1_arm64.deb ...
+Unpacking historic-routing-egp (0.1.1~dev3dd0c63-1) over (0.1.1~devservice2-2) ...
+dpkg: warning: downgrading historic-routing-runtime (0.1.1~devservice2-2) to (0.1.1~dev3dd0c63-1)
+Preparing to unpack .../historic-routing-runtime_0.1.1~dev3dd0c63-1_arm64.deb ...
+Unpacking historic-routing-runtime (0.1.1~dev3dd0c63-1) over (0.1.1~devservice2-2) ...
+Setting up historic-routing-runtime (0.1.1~dev3dd0c63-1) ...
+Setting up historic-routing-egp (0.1.1~dev3dd0c63-1) ...
+
+Configuration file '/opt/historic-routing/27f287be9/etc/frr/egpd.conf'
+ ==> Modified (by you or by a script) since installation.
+ ==> Package distributor has shipped an updated version.
+ ==> Using current old file as you requested.
+Processing triggers for libc-bin (2.41-12+deb13u4) ...
+
+PASS paired rollback: configuration retained, RIB/kernel recovered; 0.1.1~dev3dd0c63-1
+Reading package lists...
+Building dependency tree...
+Reading state information...
+The following packages will be upgraded:
+  historic-routing-egp historic-routing-runtime
+2 upgraded, 0 newly installed, 0 to remove and 1 not upgraded.
+Need to get 0 B/2256 kB of archives.
+After this operation, 0 B of additional disk space will be used.
+Get:1 /tmp/hrpkg-packages/new/historic-routing-egp_0.1.1~devservice2-2_arm64.deb historic-routing-egp arm64 0.1.1~devservice2-2 [57.4 kB]
+Get:2 /tmp/hrpkg-packages/new/historic-routing-runtime_0.1.1~devservice2-2_arm64.deb historic-routing-runtime arm64 0.1.1~devservice2-2 [2198 kB]
+(Reading database ...
+(Reading database ... 5%
+(Reading database ... 10%
+(Reading database ... 15%
+(Reading database ... 20%
+(Reading database ... 25%
+(Reading database ... 30%
+(Reading database ... 35%
+(Reading database ... 40%
+(Reading database ... 45%
+(Reading database ... 50%
+(Reading database ... 55%
+(Reading database ... 60%
+(Reading database ... 65%
+(Reading database ... 70%
+(Reading database ... 75%
+(Reading database ... 80%
+(Reading database ... 85%
+(Reading database ... 90%
+(Reading database ... 95%
+(Reading database ... 100%
+(Reading database ... 30361 files and directories currently installed.)
+Preparing to unpack .../historic-routing-egp_0.1.1~devservice2-2_arm64.deb ...
+Unpacking historic-routing-egp (0.1.1~devservice2-2) over (0.1.1~dev3dd0c63-1) ...
+Preparing to unpack .../historic-routing-runtime_0.1.1~devservice2-2_arm64.deb ...
+Unpacking historic-routing-runtime (0.1.1~devservice2-2) over (0.1.1~dev3dd0c63-1) ...
+Setting up historic-routing-runtime (0.1.1~devservice2-2) ...
+Setting up historic-routing-egp (0.1.1~devservice2-2) ...
+
+Configuration file '/opt/historic-routing/27f287be9/etc/frr/egpd.conf'
+ ==> Modified (by you or by a script) since installation.
+ ==> Package distributor has shipped an updated version.
+ ==> Using current old file as you requested.
+Processing triggers for libc-bin (2.41-12+deb13u4) ...
+
+PASS final paired upgrade and systemctl reload
+RESTORED_CONFIG /opt/historic-routing/27f287be9/etc/frr/frr.conf sha256=25502bfad078e03f419cbf784b5a507786aca30bedfb8964c01e1a725ee31e8b
+RESTORED_CONFIG /opt/historic-routing/27f287be9/etc/frr/egpd.conf sha256=1b7847a34abb748b50e86b494866cb123fb6bb9c25c31745e69681b91e81fe2f
+RESTORED_CONFIG /opt/historic-routing/27f287be9/etc/frr/vtysh.conf sha256=b53a78d8877fd138b1927aaccf855404d76e2c1d32ec662c00a7f0515a973b21
+PASS original configuration restored after lifecycle tests
