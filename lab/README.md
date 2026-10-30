@@ -25,6 +25,7 @@ cd lab/egp
 ./lab.sh status           # 邻居 / RIB / 内核路由
 ./lab.sh vty 1            # 进 r1 的 vtysh（exit 退出）
 ./lab.sh test             # 12 项集成测试 + 收尾校验
+./lab.sh reload           # frr-reload 重载回归（不重启、不抖邻居、幂等）
 ./lab.sh down             # 只删本实验的容器与网络
 ```
 

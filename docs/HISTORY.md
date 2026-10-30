@@ -488,10 +488,12 @@ S6 复核发现：**这行只是警告**（zebra 仍正常启动并装路由）�
 4. **保留区间是团队约定**：`0x400000`..`0x3FFFFFF` 不在任何规范里，只是本项目自用；
    若将来与上游 FRR 的位分配冲突，`check-allocations.sh --frr` 会报出来，需要改用新位。
 
-## S9：收口文档里写着的三条限制（执行记录，S9.1/S9.2）
+## S9：收口文档里写着的限制（执行记录，S9.1/S9.2/S9.3/S9.5）
 
-本轮只做 S9 的前两个子步，S9.3–S9.5 未执行，因此本节不涉及 Error/Refuse、
-`doc/user/egp.rst` 与 frr-reload 回归。
+S9.4（`doc/user/egp.rst` + man 页）**未执行**：现有构建镜像里没有 sphinx，宿主也没有
+`pip`，在 `--network host` 容器里 `dnf install python3-sphinx` 也拿不到包，
+写了也无法渲染验证，按项目规矩不开工。其余四个子步都真跑过，证据见
+`docs/evidence/s9-20261030.md`、`docs/evidence/s9-20261030b.md` 与同目录四份原始日志。
 
 ### S9.1 `show ip route egp` / `redistribute egp` 默认可用
 
@@ -512,12 +514,39 @@ S6 复核发现：**这行只是警告**（zebra 仍正常启动并装路由）�
 - 每邻居 tx/rx 计数（hello/poll/update），只用于观测，协议状态机不读它
 - `protocols/egp/evidence/SOURCES.sha256` 随 `egpd.c` 更新
 
-### 实测（证据见 `docs/evidence/s9-20261030.md` 与同目录两份原始日志）
+### S9.3 Refuse 与 Error 报文
+
+- 编解码层支持 `type 8`：10 字节头 + Reason + 原始报文头的前 12 字节（RFC 904 A.5），
+  单元测试覆盖往返、校验和覆盖范围、长度与 Code 非 0 的拒绝。
+- `Refuse`（Acquisition code 2）：Request 里的 Hello/Poll 超过 3600s 时回 status 6
+  （parameter problem），不改状态。
+- `Error`：坏头（reason 1）、坏数据域（reason 2）、Poll 指到未知网络（reason 3）、
+  Hello 间隔小于 `max(1, hello/2)` 秒（reason 4）；收到 Error 只计数，不改状态、不回复
+  （RFC 904 §4.5）。**Poll 不做超频判定**——RFC 904 §4.4 的重复 Poll 是合法流程。
+- 计数器 `errors tx/rx`、`refuse tx` 进 `detail` 与 `json`。
+
+### S9.5 frr-reload 回归
+
+`lab.sh reload` 用 `frr-reload.py --reload` 对 egpd 做一次真实重载：新增一条 network、
+同配置二次重载、恢复原配置三步都断言了 pid 不变、邻居不抖、只增删那一条网络。
+
+### 实测（证据见 `docs/evidence/s9-20261030.md`、`docs/evidence/s9-20261030b.md`）
 
 - `verify.sh --build-only`：PASS 13 / KNOWN-FAIL 1 / SKIP 0 / FAIL 0；
   `A2` 为 4 个补丁、`A4` 为 13 个文件（原 12），`B7` 仍为 14 failed（isisd/pimd，未新增）。
 - `lab.sh up && status && test`：13/13 通过；检查 04 的 `show ip route egp` 命中
   `172.16.0.0/16` 与 `10.0.0.0/8`，`show ip route egp` 的 legend 出现 `G - EGP`。
+- `lab.sh test-protocol`（`LAB_TIMERS="1 1"`）：28 条 PASS，其中 5 条是本轮新增的
+  Refuse/Error 断言；原有 23 条（邻接、可达性、Cease、遗漏老化、主动更新、定时器协商）不变。
+- `lab.sh reload`：三条断言全 PASS。
+
+### 本轮实测暴露并修掉的两个问题
+
+1. 最初的实现在 **Poll** 上也做超频判定，直接打断了 `unsolicited_updates()` 依赖的
+   "重复 Poll 消耗主动更新预算"流程（既有用例超时）。现在超频 Error 只对 Hello 生效。
+2. 阈值两处数值错误：`EGP_MAX_INTERVAL` 起初 86400（16 位字段到不了，Refuse 永不触发）
+   → 3600；`hello/2` 在 `hello=1` 时为 0 → `max(1, hello/2)`。
+
 
 ### 本轮的环境事实（与 S5/S6 记录不同的部分）
 
