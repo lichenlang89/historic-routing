@@ -66,7 +66,7 @@ BuildRequires:  gcc gcc-c++ make autoconf automake libtool bison flex patch tar 
 BuildRequires:  python3-devel python3-pytest python3-pytest-xdist
 BuildRequires:  json-c-devel libyang-devel libcap-devel readline-devel pcre2-devel
 BuildRequires:  c-ares-devel elfutils-libelf-devel systemd-devel pkgconf-pkg-config
-BuildRequires:  patchelf
+BuildRequires:  patchelf checkpolicy policycoreutils bzip2
 Requires:       /bin/sh
 
 %description
@@ -91,6 +91,25 @@ historic-routing 的 EGP（RFC 904）守护进程 egpd。这是实验性的 stub
 不是 RFC 904 意义上的 core gateway，也不建议用于生产网络。
 本包必须与同一次构建产出的 historic-routing-runtime 严格配对（%{hr_kind_note}）
 （ABI 标识 %{hr_abi}）。
+
+
+%package -n historic-routing-selinux
+Summary:        Optional SELinux targeted profile for historic-routing
+BuildArch:      noarch
+Requires:       historic-routing-runtime = %{version}-%{release}
+Requires:       frr-selinux selinux-policy-targeted policycoreutils libselinux-utils systemd
+Requires(pre):  historic-routing-runtime = %{version}-%{release}
+Requires(pre):  frr-selinux selinux-policy-targeted policycoreutils libselinux-utils systemd
+Requires(post): policycoreutils libselinux-utils systemd
+Requires(preun): policycoreutils libselinux-utils systemd
+Requires(postun): systemd
+Requires(posttrans): policycoreutils libselinux-utils
+
+%description -n historic-routing-selinux
+Optional, experimental targeted SELinux profile for the packaged runtime and EGP.
+Uses the distribution frr_t domain and a minimal raw IP node_bind extension.
+Installs and removes only its priority-200 module, project labels and unit drop-ins.
+Requires stopped project services on first installation; never enables or starts them.
 
 %prep
 # tarball 顶层目录是 historic-routing-<version>（不是 Name-version）
@@ -133,6 +152,16 @@ export CFLAGS CXXFLAGS LDFLAGS
 	--destdir %{_builddir}/hr-build/dest \
 	--configure-args "--runstatedir=%{hr_runstatedir}" \
 	--protocols egp
+
+
+# Compile policy independently of the host's loaded policy store.
+mkdir -p selinux-build
+sed 's|/opt/historic-routing/27f287be9|%{hr_prefix}|g' \
+    packaging/selinux/historic_routing_egp.fc > selinux-build/historic_routing_egp.fc
+checkmodule -M -m -o selinux-build/historic_routing_egp.mod packaging/selinux/historic_routing_egp.te
+semodule_package -o selinux-build/historic_routing_egp.pp \
+    -m selinux-build/historic_routing_egp.mod -f selinux-build/historic_routing_egp.fc
+bzip2 -9 selinux-build/historic_routing_egp.pp
 
 %install
 rm -rf %{buildroot}
@@ -224,6 +253,19 @@ CONF
 sed -e 's|@PREFIX@|%{hr_prefix}|g' -e 's|@RUNSTATEDIR@|%{hr_runstatedir}|g' \
 	%{SOURCE2} > %{buildroot}%{_unitdir}/historic-routing-egpd.service
 
+
+install -D -m 0644 selinux-build/historic_routing_egp.pp.bz2 \
+    %{buildroot}%{_datadir}/selinux/packages/targeted/historic_routing_egp.pp.bz2
+install -d %{buildroot}%{_libexecdir}/historic-routing
+sed -e 's|@PREFIX@|%{hr_prefix}|g' -e 's|@RUNSTATEDIR@|%{hr_runstatedir}|g' \
+    packaging/selinux/rpm-policy.sh.in > %{buildroot}%{_libexecdir}/historic-routing/selinux-policy
+chmod 0755 %{buildroot}%{_libexecdir}/historic-routing/selinux-policy
+for unit in zebra egpd; do
+    install -d %{buildroot}%{_unitdir}/historic-routing-$unit.service.d
+    sed -e 's|@RUNSTATEDIR@|%{hr_runstatedir}|g' packaging/selinux/20-selinux.conf.in > \
+        %{buildroot}%{_unitdir}/historic-routing-$unit.service.d/20-selinux.conf
+done
+
 %post
 # 只刷新 unit 缓存：不 enable、不 start
 systemctl daemon-reload >/dev/null 2>&1 || :
@@ -231,10 +273,59 @@ systemctl daemon-reload >/dev/null 2>&1 || :
 %preun
 if [ $1 -eq 0 ]; then
 	# 只在卸载时停自己的 unit；不碰系统 frr.service
-	systemctl stop historic-routing-egpd.service >/dev/null 2>&1 || :
+	systemctl stop historic-routing-egpd.service historic-routing-zebra.service >/dev/null 2>&1 || :
 fi
 
 %postun
+systemctl daemon-reload >/dev/null 2>&1 || :
+
+
+%preun -n historic-routing-egp
+if [ $1 -eq 0 ]; then
+    systemctl stop historic-routing-egpd.service >/dev/null 2>&1 || :
+fi
+
+%postun -n historic-routing-egp
+systemctl daemon-reload >/dev/null 2>&1 || :
+
+%pre -n historic-routing-selinux -p /bin/bash
+set -e
+SELINUXTYPE=targeted
+if [ -f /etc/selinux/config ]; then . /etc/selinux/config; fi
+if [ "$SELINUXTYPE" != targeted ]; then
+    echo 'historic-routing-selinux supports only the targeted policy store' >&2; exit 1
+fi
+modules=$(semodule -s targeted -lfull)
+if awk '$1 != 200 && $2 == "historic_routing_egp" { found=1 } END { exit !found }' <<< "$modules"; then
+    echo 'A local historic_routing_egp module exists; review/remove it before installing this RPM' >&2; exit 1
+fi
+if [ "$1" -eq 1 ]; then
+    if awk '$2 == "historic_routing_egp" { found=1 } END { exit !found }' <<< "$modules"; then
+        echo 'An unowned historic_routing_egp module exists; refusing to overwrite it' >&2; exit 1
+    fi
+    if [ -d /run/systemd/system ]; then
+        for unit in historic-routing-egpd.service historic-routing-zebra.service; do
+            state=$(systemctl show "$unit" -p ActiveState --value)
+            case "$state" in
+                active|activating|deactivating|reloading)
+                    echo "Stop $unit before first installing the SELinux profile" >&2; exit 1;;
+            esac
+        done
+    fi
+fi
+
+%post -n historic-routing-selinux
+%{_libexecdir}/historic-routing/selinux-policy install
+
+%posttrans -n historic-routing-selinux
+%{_libexecdir}/historic-routing/selinux-policy relabel
+
+%preun -n historic-routing-selinux
+if [ $1 -eq 0 ]; then
+    %{_libexecdir}/historic-routing/selinux-policy remove
+fi
+
+%postun -n historic-routing-selinux
 systemctl daemon-reload >/dev/null 2>&1 || :
 
 %files
@@ -268,6 +359,19 @@ systemctl daemon-reload >/dev/null 2>&1 || :
 %{hr_prefix}/sbin/frr-reload.py
 %config(noreplace) %{hr_prefix}/etc/frr/egpd.conf
 %{_unitdir}/historic-routing-egpd.service
+
+
+%files -n historic-routing-selinux
+%license LICENSE
+%doc packaging/selinux/README.md
+%{_datadir}/selinux/packages/targeted/historic_routing_egp.pp.bz2
+%dir %{_libexecdir}/historic-routing
+%{_libexecdir}/historic-routing/selinux-policy
+%dir %{_unitdir}/historic-routing-zebra.service.d
+%dir %{_unitdir}/historic-routing-egpd.service.d
+%{_unitdir}/historic-routing-zebra.service.d/20-selinux.conf
+%{_unitdir}/historic-routing-egpd.service.d/20-selinux.conf
+%ghost %verify(not md5 size mode mtime) %{_sharedstatedir}/selinux/targeted/active/modules/200/historic_routing_egp
 
 %changelog
 * Sun Oct 25 2026 Chenlang Li <Cc1580155hsg@163.com> - %{hr_version}-%{hr_release}
