@@ -3,39 +3,56 @@
 """frr-reload 回归：重载 egpd 配置不得重启进程、不得抖动邻居，且必须幂等。
 
 用例（都在实验里真跑）：
-  1. 在运行配置后追加一条 `egp network`，用 frr-reload.py --reload 应用：
+  1. 在完整运行配置后追加一条 `egp network`，用 frr-reload.py --reload 应用：
      对端在超时内学到该网络，egpd 的 pid 不变，两端邻居仍是 Up，原有网络不丢。
   2. 同一份配置再重载一次：frr-reload 报无变化，pid 不变，状态不变。
   3. 恢复原配置：只有新增的那条网络被撤掉。
 
+实验里的注意事项（都是实测出来的）：
+  * frr-reload.py 在 `sbin/`，且必须给 --bindir/--confdir，否则它以 /usr/bin、
+    /etc/frr 为默认值直接报 "not a valid path"；
+  * 它要在 rundir 下写临时文件，默认 /var/run/frr 不存在，需先建；
+  * 配置要按**完整**运行配置喂进去；只喂 `egp` 行会让它把 hostname 等行判成待删。
+
 由 `lab.sh reload` 调用；需要先 `lab.sh up`。
 """
 import sys
-import time
 
 import test_lab as lab
 
 EXTRA = "192.168.0.0"
 EXTRA_CIDR = "192.168.0.0/24"
 CONF = "/tmp/run/reload.conf"
-ENV = ("PATH=/build/prefix/bin:$PATH "
-       "LD_LIBRARY_PATH=/build/prefix/lib:/build/prefix/lib/frr")
+PREFIX = "/build/prefix"
+ENV = ("PATH=%s/bin:%s/sbin:$PATH LD_LIBRARY_PATH=%s/lib:%s/lib/frr"
+       % (PREFIX, PREFIX, PREFIX, PREFIX))
+RELOAD = ("%s %s/sbin/frr-reload.py --reload --bindir %s/bin --confdir %s/etc/frr "
+          "--vty_socket /tmp/run %s" % (ENV, PREFIX, PREFIX, PREFIX, CONF))
 
 
-def egp_config(node):
+def running_config(node):
+    """完整运行配置；去掉 vtysh 横幅、缺失文件告警和结尾的 end。"""
     text = lab.vty(node, "egpd", "show running-config")
-    return [line for line in text.splitlines() if line.startswith("egp ")]
+    lines = []
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("%"):
+            continue
+        if stripped.startswith("Building configuration") or stripped.startswith("Current configuration"):
+            continue
+        if stripped == "end":
+            continue
+        lines.append(line.rstrip())
+    return lines
 
 
 def write_conf(node, lines):
     lab.rsh(node, "sh", "-c",
-            "cat > %s <<'EOF'\n%s\nEOF" % (CONF, "\n".join(lines)))
+            "mkdir -p /var/run/frr; cat > %s <<'EOF'\n%s\nEOF" % (CONF, "\n".join(lines)))
 
 
 def reload(node):
-    return lab.rsh(node, "sh", "-c",
-                   "%s /build/prefix/bin/frr-reload.py --reload --vty_socket /tmp/run %s"
-                   % (ENV, CONF), check=False)
+    return lab.rsh(node, "sh", "-c", RELOAD, check=False)
 
 
 def egpd_pid(node):
@@ -45,7 +62,7 @@ def egpd_pid(node):
 def main():
     lab.wait("reload 前置：双方 Up 且双向路由齐备",
              lambda: lab.both_up() and lab.both_routes(), timeout=60)
-    base = egp_config(lab.R1)
+    base = running_config(lab.R1)
     if not base:
         raise AssertionError("读不到 egpd 的运行配置")
     pid = egpd_pid(lab.R1)
