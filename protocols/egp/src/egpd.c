@@ -263,8 +263,8 @@ static void indication(struct neighbor *n, time_t t)
 }
 /* RFC 904 A.5: reason 1 covers a bad message length and invalid Type/Code/Status
  * fields. What the header cannot already rule out is a data-field problem
- * (reason 2) - the Update body length is variable, so only a header or a
- * shorter-than-minimum Update counts as a length error there. */
+ * (reason 2). The rules mirror egp_decode() exactly, including the legal
+ * unsolicited bit (0x80) that only Update and Error carry. */
 static int malformed_reason(const uint8_t *b, size_t len)
 {
 	static const size_t acquire_len[] = {14, 14, 10, 10, 10};
@@ -272,6 +272,9 @@ static int malformed_reason(const uint8_t *b, size_t len)
 	switch (type) {
 	case EGP_ACQUIRE:
 		if (code > 4 || status > 7 || len != acquire_len[code])
+			return EGP_ERR_HEADER;
+		/* Request/Confirm only carry the two capability modes. */
+		if (code <= 1 && status > 2)
 			return EGP_ERR_HEADER;
 		return EGP_ERR_FIELD; /* e.g. a zero interval: bad data field */
 	case EGP_REACH:
@@ -282,7 +285,7 @@ static int malformed_reason(const uint8_t *b, size_t len)
 		return !code && (status & 0x7f) <= 2 && len == 24 ? EGP_ERR_FIELD
 		                                                  : EGP_ERR_HEADER;
 	case EGP_UPDATE:
-		if (code || status > 2 || len < 16)
+		if (code || (status & 0x7f) > 2 || len < 16)
 			return EGP_ERR_HEADER;
 		return EGP_ERR_FIELD;
 	default:

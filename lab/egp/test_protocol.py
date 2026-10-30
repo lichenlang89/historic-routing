@@ -365,28 +365,38 @@ def error_messages():
             assert ev['body'][:4] == '0002', ev
             print('PASS Error(reason 2) for a nonsense Request interval', flush=True)
 
+            # Round 2 of the review: illegal Status is still a header problem.
+            p.command(send=[3, 0, 6, 902, '001e0078'])
+            ev = p.wait(lambda e: e.get('recv', [])[:2] == [8, 0], timeout=5)
+            assert ev['body'][:4] == '0001', ev
+            print('PASS Error(reason 1) for an illegal Request Status', flush=True)
+
             # Poll for a net this gateway does not serve -> reason 3.
-            p.command(send=[2, 0, 1, 902, '0000' + other_hex])
+            p.command(send=[2, 0, 1, 903, '0000' + other_hex])
             ev = p.wait(lambda e: e.get('recv', [])[:2] == [8, 0], timeout=5)
             assert ev['body'][:4] == '0003', ev
             print('PASS Error(reason 3) for a Poll about an unknown net', flush=True)
 
             # Two Hellos inside half the minimum interval -> reason 4.
-            p.command(send=[5, 0, 1, 903, ''])
             p.command(send=[5, 0, 1, 904, ''])
+            p.command(send=[5, 0, 1, 905, ''])
             ev = p.wait(lambda e: e.get('recv', [])[:2] == [8, 0], timeout=5)
             assert ev['body'][:4] == '0004', ev
             assert len(ev['body']) == 28, 'Error body must be reason + 12 header octets'
             print('PASS Error(reason 4) for excessive polling rate', flush=True)
 
-            # Malformed Update body (counts that cannot be parsed) -> reason 2.
-            p.command(send=[1, 0, 1, 905, '0101' + shared_hex])
+            # Malformed Update body (counts that cannot be parsed) -> reason 2,
+            # both solicited and with the legal unsolicited bit set.
+            p.command(send=[1, 0, 1, 906, '0101' + shared_hex])
+            ev = p.wait(lambda e: e.get('recv', [])[:2] == [8, 0], timeout=5)
+            assert ev['body'][:4] == '0002', ev
+            p.command(send=[1, 0, 129, 907, '0101' + shared_hex])
             ev = p.wait(lambda e: e.get('recv', [])[:2] == [8, 0], timeout=5)
             assert ev['body'][:4] == '0002', ev
             print('PASS Error(reason 2) for a malformed Update', flush=True)
 
             # An Error message must never be answered by another Error.
-            p.command(send=[8, 0, 1, 906, '0002' + '00' * 12])
+            p.command(send=[8, 0, 1, 908, '0002' + '00' * 12])
             try:
                 p.wait(lambda e: e.get('recv', [])[:2] == [8, 0], timeout=2)
             except TimeoutError:
