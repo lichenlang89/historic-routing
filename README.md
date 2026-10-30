@@ -53,7 +53,9 @@ sudo /opt/historic-routing/27f287be9/bin/vtysh
 ```text
 show daemons
 show ip egp neighbors
+show ip egp neighbors detail
 show ip route
+show ip route egp
 show running-config
 ```
 

@@ -10,6 +10,13 @@
 - 因此 `patches/frr/SHA256SUMS` 与 `0001-0004` 的哈希全部更新；`0001` 现在改
   4 个文件（新增 `lib/log.c`）。
 
+### Added
+
+- `show ip egp neighbors [detail] [json]`、`show ip egp neighbors A.B.C.D [json]`：
+  输出每邻居的定时器剩余、tx/rx 计数器，以及每条学到的网络（前缀 / distance /
+  gateway / 遗漏次数 / age）。
+- `clear ip egp neighbor *`：一次重启所有邻居的获取。
+
 ## [0.1.1] - 2026-10-25
 
 首个带安装包的发布版（实验性，非生产用途）。

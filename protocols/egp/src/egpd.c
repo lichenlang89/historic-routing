@@ -7,6 +7,7 @@
 #include "egp_update.h"
 #include "lib/command.h"
 #include "lib/frrevent.h"
+#include "lib/json.h"
 #include "lib/libfrr.h"
 #include "lib/log.h"
 #include "lib/network.h"
@@ -33,6 +34,8 @@ struct neighbor {
 	size_t count;
 	struct egp_route routes[EGP_MAX_ROUTES];
 	uint8_t misses[EGP_MAX_ROUTES];
+	/* Observability only: never consulted by the protocol state machine. */
+	uint32_t hellos_tx, hellos_rx, polls_tx, polls_rx, updates_tx, updates_rx;
 };
 static struct neighbor peers[MAX_PEERS];
 static struct egp_route networks[EGP_MAX_ROUTES];
@@ -155,6 +158,19 @@ static bool transmit(struct neighbor *n, uint8_t type, uint8_t code, uint16_t se
 	if (sendto(n->fd, buf, len, 0, (struct sockaddr *)&dst, sizeof(dst)) != len) {
 		zlog_warn("EGP send to %pI4: %s", &n->peer, safe_strerror(errno));
 		return false;
+	}
+	switch (type) {
+	case EGP_UPDATE:
+		n->updates_tx++;
+		break;
+	case EGP_POLL:
+		n->polls_tx++;
+		break;
+	case EGP_REACH:
+		n->hellos_tx++;
+		break;
+	default:
+		break;
 	}
 	return true;
 }
@@ -292,6 +308,7 @@ static void receive(struct event *event)
 		return;
 	if (m.type == EGP_REACH) {
 		if (!m.code) {
+			n->hellos_rx++;
 			egp_update_command(&n->updates, m.seq, false);
 			if (!n->active && m.status == 1)
 				indication(n, t);
@@ -305,6 +322,7 @@ static void receive(struct event *event)
 	if (m.shared.s_addr != n->shared.s_addr)
 		return;
 	if (m.type == EGP_POLL) {
+		n->polls_rx++;
 		egp_update_command(&n->updates, m.seq, true);
 		if (!n->active && m.status == 1)
 			indication(n, t);
@@ -318,6 +336,7 @@ static void receive(struct event *event)
 	    !egp_update_matches(&n->updates, unsolicited, m.seq, n->seq,
 	                        n->poll_pending, n->poll_seq))
 		return;
+	n->updates_rx++;
 	/* Stub-only: accept sender gateway, reject third-party transit claims.
 	 * RFC 888 section 5: distance 255 withdraws that net, not the Update. */
 	for (i = 0; i < m.count; i++) {
@@ -500,6 +519,17 @@ DEFUN(clear_egp_peer, clear_egp_peer_cmd, "clear ip egp neighbor A.B.C.D",
 		}
 	return CMD_SUCCESS;
 }
+DEFUN(clear_egp_all, clear_egp_all_cmd, "clear ip egp neighbor *",
+      CLEAR_STR IP_STR "EGP\nRestart all neighbor acquisitions\nAll neighbors\n")
+{
+	size_t i;
+	for (i = 0; i < MAX_PEERS; i++) {
+		if (!peers[i].used || peers[i].state == CEASE || shutting_down)
+			continue;
+		start_peer(&peers[i], now());
+	}
+	return CMD_SUCCESS;
+}
 DEFUN(no_egp_peer, no_egp_peer_cmd, "no egp neighbor A.B.C.D", NO_STR "EGP\nNeighbor\nPeer IPv4\n")
 {
 	struct in_addr peer;
@@ -542,17 +572,143 @@ DEFUN(egp_network_cmd_fn, egp_network_cmd, "[no] egp network A.B.C.D", NO_STR "E
 				peers[i].updates.dirty = true;
 	return CMD_SUCCESS;
 }
-DEFUN(show_egp, show_egp_cmd, "show ip egp neighbors", SHOW_STR IP_STR "EGP\nNeighbors\n")
+static struct neighbor *find_peer(struct in_addr peer)
 {
 	size_t i;
-	vty_out(vty,
-	        "EGP local AS %u, zebra %s\nPeer             AS     State        Mode     Routes\n",
-	        local_as, zc->sock >= 0 ? "connected" : "disconnected");
 	for (i = 0; i < MAX_PEERS; i++)
-		if (peers[i].used)
-			vty_out(vty, "%pI4 %u %s %s %zu\n", &peers[i].peer, peers[i].as,
-			        states[peers[i].state], peers[i].active ? "active" : "passive",
-			        peers[i].count);
+		if (peers[i].used && peers[i].peer.s_addr == peer.s_addr)
+			return &peers[i];
+	return NULL;
+}
+static const char *state_name(const struct neighbor *n)
+{
+	return states[n->state];
+}
+static void peer_prefixes_text(struct vty *vty, const struct neighbor *n, time_t t)
+{
+	size_t i;
+	for (i = 0; i < n->count; i++)
+		vty_out(vty, "  prefix %pI4/%u distance %u gateway %pI4 misses %u age %llds\n",
+		        &n->routes[i].net, egp_classlen(n->routes[i].net) * 8,
+		        n->routes[i].distance, &n->routes[i].gateway, n->misses[i],
+		        (long long)(n->last_update ? t - n->last_update : -1));
+}
+static void peer_detail_text(struct vty *vty, const struct neighbor *n, time_t t)
+{
+	vty_out(vty, "Peer %pI4 AS %u\n", &n->peer, n->as);
+	vty_out(vty, "  local-address %pI4, state %s, mode %s\n", &n->local, state_name(n),
+	        n->active ? "active" : "passive");
+	vty_out(vty,
+	        "  timers hello %u poll %u; next hello %llds, next poll %llds, abort in %llds\n",
+	        n->hello, n->poll, (long long)(n->next_hello > t ? n->next_hello - t : 0),
+	        (long long)(n->next_poll > t ? n->next_poll - t : 0),
+	        (long long)(n->abort_at > t ? n->abort_at - t : 0));
+	vty_out(vty, "  counters tx/rx: hello %u/%u, poll %u/%u, update %u/%u\n", n->hellos_tx,
+	        n->hellos_rx, n->polls_tx, n->polls_rx, n->updates_tx, n->updates_rx);
+	vty_out(vty, "  prefixes %zu, last update %llds ago\n", n->count,
+	        (long long)(n->last_update ? t - n->last_update : -1));
+	peer_prefixes_text(vty, n, t);
+}
+static struct json_object *peer_json(const struct neighbor *n, time_t t)
+{
+	struct json_object *o = json_object_new_object();
+	struct json_object *arr = json_object_new_array();
+	char buf[INET_ADDRSTRLEN], pbuf[INET_ADDRSTRLEN + 5];
+	size_t i;
+	for (i = 0; i < n->count; i++) {
+		struct json_object *r = json_object_new_object();
+		snprintf(pbuf, sizeof(pbuf), "%s/%u",
+		         inet_ntop(AF_INET, &n->routes[i].net, buf, sizeof(buf)),
+		         egp_classlen(n->routes[i].net) * 8);
+		json_object_string_add(r, "prefix", pbuf);
+		json_object_int_add(r, "distance", n->routes[i].distance);
+		json_object_string_add(r, "gateway",
+		                       inet_ntop(AF_INET, &n->routes[i].gateway, buf,
+		                                 sizeof(buf)));
+		json_object_int_add(r, "misses", n->misses[i]);
+		json_object_array_add(arr, r);
+	}
+	json_object_string_add(o, "address", inet_ntop(AF_INET, &n->peer, buf, sizeof(buf)));
+	json_object_int_add(o, "as", n->as);
+	json_object_string_add(o, "state", state_name(n));
+	json_object_string_add(o, "mode", n->active ? "active" : "passive");
+	json_object_int_add(o, "hello", n->hello);
+	json_object_int_add(o, "poll", n->poll);
+	json_object_int_add(o, "prefixCount", n->count);
+	json_object_int_add(o, "helloTx", n->hellos_tx);
+	json_object_int_add(o, "helloRx", n->hellos_rx);
+	json_object_int_add(o, "pollTx", n->polls_tx);
+	json_object_int_add(o, "pollRx", n->polls_rx);
+	json_object_int_add(o, "updateTx", n->updates_tx);
+	json_object_int_add(o, "updateRx", n->updates_rx);
+	json_object_int_add(o, "lastUpdateAge",
+	                    n->last_update ? (int)(t - n->last_update) : -1);
+	json_object_object_add(o, "prefixes", arr);
+	return o;
+}
+static void neighbors_text(struct vty *vty, bool detail, time_t t)
+{
+	size_t i;
+	vty_out(vty, "EGP local AS %u, zebra %s, %zu network(s) configured\n", local_as,
+	        zc->sock >= 0 ? "connected" : "disconnected", network_count);
+	if (!detail)
+		vty_out(vty, "Peer             AS     State        Mode     Prefixes\n");
+	for (i = 0; i < MAX_PEERS; i++) {
+		if (!peers[i].used)
+			continue;
+		if (detail) {
+			peer_detail_text(vty, &peers[i], t);
+			continue;
+		}
+		vty_out(vty, "%pI4 %u %s %s %zu\n", &peers[i].peer, peers[i].as,
+		        state_name(&peers[i]), peers[i].active ? "active" : "passive",
+		        peers[i].count);
+	}
+}
+DEFUN(show_egp, show_egp_cmd, "show ip egp neighbors [detail] [json]",
+      SHOW_STR IP_STR "EGP\nNeighbors\nPer-neighbor detail\nJSON output\n")
+{
+	int idx = 0;
+	bool detail = argv_find(argv, argc, "detail", &idx);
+	bool as_json = argv_find(argv, argc, "json", &idx);
+	time_t t = now();
+	size_t i;
+	if (as_json) {
+		struct json_object *top = json_object_new_object();
+		struct json_object *arr = json_object_new_array();
+		json_object_int_add(top, "localAs", local_as);
+		json_object_int_add(top, "zebraConnected", zc->sock >= 0 ? 1 : 0);
+		json_object_int_add(top, "configuredNetworks", network_count);
+		for (i = 0; i < MAX_PEERS; i++)
+			if (peers[i].used)
+				json_object_array_add(arr, peer_json(&peers[i], t));
+		json_object_object_add(top, "peers", arr);
+		vty_json(vty, top);
+		return CMD_SUCCESS;
+	}
+	neighbors_text(vty, detail, t);
+	return CMD_SUCCESS;
+}
+DEFUN(show_egp_peer, show_egp_peer_cmd, "show ip egp neighbors A.B.C.D [json]",
+      SHOW_STR IP_STR "EGP\nNeighbors\nPeer IPv4\nJSON output\n")
+{
+	int idx = 0;
+	bool as_json = argv_find(argv, argc, "json", &idx);
+	struct neighbor *n;
+	struct in_addr addr;
+	time_t t = now();
+	inet_pton(AF_INET, argv[4]->arg, &addr);
+	n = find_peer(addr);
+	if (!n) {
+		vty_out(vty, "No such EGP neighbor\n");
+		return CMD_WARNING;
+	}
+	if (as_json) {
+		struct json_object *o = peer_json(n, t);
+		vty_json(vty, o);
+		return CMD_SUCCESS;
+	}
+	peer_detail_text(vty, n, t);
 	return CMD_SUCCESS;
 }
 static int config_write(struct vty *vty)
@@ -639,7 +795,9 @@ int main(int argc, char **argv)
 	install_element(CONFIG_NODE, &no_egp_peer_cmd);
 	install_element(CONFIG_NODE, &egp_network_cmd);
 	install_element(VIEW_NODE, &show_egp_cmd);
+	install_element(VIEW_NODE, &show_egp_peer_cmd);
 	install_element(ENABLE_NODE, &clear_egp_peer_cmd);
+	install_element(ENABLE_NODE, &clear_egp_all_cmd);
 	event_add_timer(master, tick, NULL, 1, &ticker);
 	frr_config_fork();
 	frr_run(master);

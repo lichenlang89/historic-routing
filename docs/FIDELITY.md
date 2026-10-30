@@ -101,7 +101,8 @@ Hello/Poll 最小间隔独立验证、协商，不要求 Poll 大于等于 Hello
 - 路由学习与撤销（空 Update、distance=255、删除 network、删除邻居、进程退出）
 - ZAPI 下发（类型 `ZEBRA_ROUTE_EGP`=32、显示码 `G`、管理距离 **140**），由 zebra 装内核
 - zebra 重连后重放路由；egpd 重启后邻居与路由重建
-- `show ip egp neighbors`；配置持久化（`write memory` 到集成 `frr.conf`）
+- `show ip egp neighbors`（含 `detail` / `json` / 单邻居查询，见 `protocols/egp/README.md`）、
+  `clear ip egp neighbor <ip>|*`；配置持久化（`write memory` 到集成 `frr.conf`）
 - `show ip route egp` 与 `redistribute egp`（`lib/log.c` 的 `proto_redistnum` 映射随 `0001` 应用，
   默认构建即生效）
 - vtysh 集成（`VTYSH_EGPD = 0x400000`）

@@ -240,8 +240,18 @@ def c04():
     m2 = re.search(pat1, zebra_text(R2), re.M)
     if not m1 or not m2:
         raise AssertionError("文本输出里没有 'G>* <prefix> [140/x]' 行")
-    return "JSON protocol=egp distance=140；文本 R1: G>* %s [%s/%s]  R2: G>* %s [%s/%s]" % (
-        NET2_CIDR, m1.group(1), m1.group(2), NET1_CIDR, m2.group(1), m2.group(2))
+    # S9：协议名选择器走 proto_redistnum，和上面两条路径都不是同一段代码
+    sel = []
+    for who, want in ((R1, NET2_CIDR), (R2, NET1_CIDR)):
+        out = vty(who, "zebra", "show ip route egp")
+        if "Unknown route type" in out:
+            raise AssertionError("%s: show ip route egp 报 Unknown route type：\n%s" % (who, out))
+        if want not in out:
+            raise AssertionError("%s: show ip route egp 里没有 %s：\n%s" % (who, want, out))
+        sel.append("%s:%s" % (who, want))
+    return "JSON protocol=egp distance=140；文本 R1: G>* %s [%s/%s]  R2: G>* %s [%s/%s]；show ip route egp 命中 %s" % (
+        NET2_CIDR, m1.group(1), m1.group(2), NET1_CIDR, m2.group(1), m2.group(2),
+        " ".join(sel))
 
 
 @check("05 内核路由表存在学习到的路由")

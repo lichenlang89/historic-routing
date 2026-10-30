@@ -57,12 +57,20 @@ Peer configuration uses AS 65002, local address 198.18.123.2, neighbor
 
 ```text
 show ip egp neighbors
+show ip egp neighbors detail
+show ip egp neighbors json
+show ip egp neighbors 198.18.123.2
 show ip route egp
 show running-config
+clear ip egp neighbor 198.18.123.2
+clear ip egp neighbor *
 configure terminal
 no egp network 10.0.0.0
 no egp neighbor 198.18.123.2
 ```
+
+`detail` 每行一条学到的网络（前缀 / distance / gateway / 遗漏次数 / age），
+`json` 输出 `localAs`、`zebraConnected`、每个邻居的定时器剩余与 tx/rx 计数器。
 
 Default timers are 30/120 seconds. The 2/6 setting is for quick lab feedback.
 Hello and Poll minima are independent; Poll may be shorter than Hello.
