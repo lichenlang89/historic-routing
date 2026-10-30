@@ -160,8 +160,8 @@ static bool transmit_message(struct neighbor *n, struct egp_message *m)
 	}
 	return true;
 }
-static bool transmit_status(struct neighbor *n, uint8_t type, uint8_t code, uint16_t seq,
-                            bool unsolicited, int status)
+static bool transmit(struct neighbor *n, uint8_t type, uint8_t code, uint16_t seq,
+                     bool unsolicited)
 {
 	struct egp_message m = {0};
 	m.type = type;
@@ -173,8 +173,6 @@ static bool transmit_status(struct neighbor *n, uint8_t type, uint8_t code, uint
 		m.status |= 0x80;
 	if (type == EGP_ACQUIRE)
 		m.status = code <= 1 ? 0 : EGP_STATUS_GOING_DOWN;
-	if (status >= 0)
-		m.status = (uint8_t)status;
 	/* Acquisition advertises local minima, not the negotiated intervals. */
 	m.hello = hello_interval;
 	m.poll = poll_interval;
@@ -184,11 +182,6 @@ static bool transmit_status(struct neighbor *n, uint8_t type, uint8_t code, uint
 		memcpy(m.routes, networks, network_count * sizeof(*networks));
 	}
 	return transmit_message(n, &m);
-}
-static bool transmit(struct neighbor *n, uint8_t type, uint8_t code, uint16_t seq,
-                     bool unsolicited)
-{
-	return transmit_status(n, type, code, seq, unsolicited, -1);
 }
 /* RFC 904 A.5: an Error embeds the first 12 octets of the offending header. */
 static bool send_error(struct neighbor *n, uint16_t reason, const uint8_t *hdr,
