@@ -14,36 +14,33 @@ network encoding.
 
 ## Build
 
-Start with FRR's normal Linux build dependencies (see `doc/developer/`). Add
-`--enable-egpd` to configure; it is disabled by default. Build zebra, egpd and
-vtysh together: the additional ZAPI route type requires matching binaries.
+From the historic-routing repository root:
 
 ```sh
-./bootstrap.sh
-mkdir build && cd build
-../configure --enable-egpd --disable-doc
-make -j4
-make egpd/test_packet
-./egpd/test_packet
-sudo make install
+./scripts/test-egp.sh
+./scripts/build.sh --jobs 4
+./scripts/verify.sh --build-only --build-root "$PWD/build" --jobs 4
 ```
 
-Standalone codec checks, including sanitizers:
-
-```sh
-cc -std=c11 -Wall -Wextra -Werror -fsanitize=address,undefined \
-  egpd/egp_packet.c egpd/test_packet.c -o /tmp/test-egp
-/tmp/test-egp
-```
-
-Enable `egpd=yes` in the installed FRR daemons file if using the FRR service.
-On Linux the daemon needs `CAP_NET_RAW`; zebra needs its normal privileges.
-The VTY is a Unix socket, with no additional TCP listener.
+The scripts apply the fixed FRR baseline and register egpd with
+``--enable-egpd``. Build zebra, egpd, libfrr and vtysh together. On Linux
+egpd needs CAP_NET_RAW. The VTY uses a Unix socket without a TCP listener.
+The maintained user/man sources are in [doc/](doc/); source integration copies
+them to FRR's `doc/user/egp.rst` and `doc/manpages/frr-egpd.rst`.
 
 ## Configuration
 
 Commands live at the top configuration level. Configure AS/timers before
-neighbors. Remove neighbors before changing the AS or timers.
+neighbors. Remove neighbors and wait for Cease cleanup before directly changing the AS or
+timers. `no egp local-as [AS]` resets AS to 0; `no egp timers [HELLO POLL]`
+resets timers to 30/120. Reapplying the current values is a no-op.
+Package `systemctl reload historic-routing-egpd` uses the matching
+`frr-reload.py --reload --daemon egpd`, with explicit bindir/confdir/rundir/socket
+paths. Reload drains old neighbors before AS/timer changes and restores target
+neighbors; network-only changes preserve adjacency and the process PID.
+Do not send HUP. Syntax errors fail before changes; runtime semantic errors can
+partially apply, return nonzero and require correcting or reapplying the saved
+configuration. A global change may wait for the 120-second Cease abort.
 
 ```text
 egp local-as 65001
@@ -83,7 +80,7 @@ immediately; an omitted network is removed after three accepted Updates.
 Dead neighbors and stale Updates also cause route withdrawal.
 Reconnect to zebra replays the current learned routes.
 
-Refuse and Error are generated, not only decoded (RFC 904 sections 4.5 and A.5).
+Error reasons 1–4 are generated (RFC 904 sections 4.5 and A.5).
 Error messages (type 8) report an unusable length or invalid Type/Code/Status
 (reason 1), a bad data field such as a zero interval or an unparsable Update
 body (reason 2), a Poll naming a net this gateway does not serve (reason 3), and
@@ -104,39 +101,54 @@ matching Linux installation and a runtime image containing its dependencies,
 iproute2 and Python 3. The defaults refer to the prepared development host.
 
 ```sh
-bash egpd/lab.sh up
-bash egpd/lab.sh status
-bash egpd/lab.sh vty 1
-bash egpd/lab.sh vty 2
-python3 egpd/test_lab.py
-bash egpd/lab.sh down
+cd lab/egp
+export LAB_PREFIX=/path/to/matching/install
+export LAB_IMAGE=localhost/historic-routing-lab:egp
+export LAB_TIMERS="1 1"
+./lab.sh build
+./lab.sh up
+./lab.sh status
+./lab.sh test-updates
+./lab.sh test-protocol
+./lab.sh reload
+./lab.sh test-timers
+./lab.sh test
+./lab.sh down
 ```
 
-`PREFIX=/path/to/install IMAGE=your-runtime-image bash egpd/lab.sh up` overrides
-the installation and image. `test_lab.py` changes and restores the lab network
-advertisement, restarts lab daemons and tests data-plane traffic; run it only
-against these disposable containers. The lab remains running after tests.
+See [the lab manual](../../lab/README.md) for all `LAB_*` parameters and
+exclusive resource names. Tests change and restore only their disposable
+containers. `test-protocol` covers mixed interior/exterior gateway lists,
+invalid next hops, candidate failover and omission aging. `reload` covers
+network changes, complete deletion, idempotence, AS/timer changes, syntax and
+semantic failures, and recovery.
 
 ## Deliberate limits
 
 * Default VRF, IPv4 class A/B/C networks only, 16 neighbors, 255 advertised or
-  learned networks per peer. No CIDR, IPv6, default route or same-AS adjacency.
+  learned (network, gateway) candidates per peer. No CIDR, IPv6, default route or same-AS adjacency.
 * Explicit `egp network` announcements are operator assertions. They are not
   automatically derived from connected routes, and stay advertised if the
   local interface disappears. No redistribution, route maps or authentication.
-* Accepts only the configured peer's own gateway in Updates. A third-party
-  next hop rejects the entire Update, including the peer's own routes. This
-  also limits a stub receiving a core's normal multi-gateway Update; indirect
-  neighbors (RFC 888 sections 5/8) are not supported. Solicited and unsolicited
-  Updates are imported subject to sequence and receive-budget checks.
-  Metrics are not used to
-  compare different autonomous systems; first configured live peer wins.
+* Accepts interior and exterior gateway lists on the common classful network
+  (RFC 904 section 4.4/A.4; RFC 888 sections 5/8). The router's own address,
+  network/broadcast gateways, ambiguous duplicate claims from one gateway and
+  excess capacity reject the whole Update without changing routes or omissions.
+  Local-address validation covers all default-VRF IPv4 addresses, including
+  secondary/loopback addresses, via ZAPI address-add/delete notifications.
+  Distinct gateways may advertise the same network. Each candidate withdraws
+  or ages independently; stable first-live peer/candidate order wins, without
+  comparing distances across ASes. Solicited/unsolicited receive windows remain
+  enforced. Receiving indirect gateways does not add core relay/re-advertisement.
 * Deletion/shutdown uses Cease with 30-second retries and a 120-second abort.
   Duplicate Poll replies share one extra-Update allowance with triggered
   Updates; once spent, further duplicate Polls are ignored until a new Poll.
-  Error packets are validated but advisory errors are not generated.
-* No interoperability certification with historical EGP implementations,
-  packaging validation or complete upstream FRR regression suite yet.
+  Error reasons 1–4 are generated; received Error packets are advisory only.
+* Other daemons can use the `redistribute egp` name mapping. egpd itself does
+  not import other protocols from the local RIB; announcements remain explicit.
+* No interoperability certification with historical implementations, prolonged
+  loss/reordering/concurrency stress or SELinux frr_t execution validation.
+  See the [current handoff](../../docs/plan/issue-14-handoff.md) for executed
+  tests, packaging/service boundaries and known upstream test failures.
 
-The initial three-file sketch remains in the original workspace `egpd/`.
-This implementation is maintained in the FRR fork's `egpd/` directory.
+Maintenance sources live in `protocols/egp/src/`; generated FRR build copies are not the maintenance source.

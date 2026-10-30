@@ -26,6 +26,17 @@ int egp_network(struct in_addr a)
 	int n = egp_classlen(a);
 	return n && !(ntohl(a.s_addr) & (0xffffffffU >> (n * 8)));
 }
+int egp_gateway(struct in_addr shared, struct in_addr gateway)
+{
+	int n = egp_classlen(shared);
+	uint32_t mask, host;
+	if (!n || !egp_network(shared))
+		return 0;
+	mask = 0xffffffffU >> (n * 8);
+	host = ntohl(gateway.s_addr) & mask;
+	return (ntohl(gateway.s_addr) & ~mask) == ntohl(shared.s_addr) &&
+	       host && host != mask;
+}
 uint16_t egp_checksum(const uint8_t *p, size_t len)
 {
 	uint32_t sum = 0;
@@ -94,6 +105,8 @@ int egp_decode(const uint8_t *b, size_t len, struct egp_message *m)
 		gw = m->shared;
 		memcpy((uint8_t *)&gw + n, b + pos, 4 - n);
 		pos += 4 - n;
+		if (!egp_gateway(m->shared, gw))
+			return -1;
 		nd = b[pos++];
 		for (d = 0; d < nd; d++) {
 			uint8_t distance;
@@ -112,7 +125,8 @@ int egp_decode(const uint8_t *b, size_t len, struct egp_message *m)
 					return -1;
 				memcpy(&net, b + pos, k);
 				pos += k;
-				m->routes[m->count++] = (struct egp_route){net, gw, distance};
+				m->routes[m->count++] = (struct egp_route){
+				    .net = net, .gateway = gw, .distance = distance, .exterior = g >= b[10]};
 			}
 		}
 	}

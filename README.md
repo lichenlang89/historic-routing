@@ -19,7 +19,8 @@
 
 EGP 使用 IPv4 协议号 **8**，路由在 `show ip route` 中显示为 **G**，管理距离为 **140**。
 当前实现支持 IPv4 A/B/C 类网络、默认 VRF，最多 16 个邻居；不支持 CIDR、IPv6、
-认证或 RFC 904 的 core gateway 功能。具体行为见 [RFC 实现范围](docs/FIDELITY.md)。
+认证或 RFC 904 的 core gateway 功能。接收公共有类网络上的内部/外部多网关 Update，逐网关维护候选，
+不跨 AS 比较距离，也不转告学到的路由。具体行为见 [RFC 实现范围](docs/FIDELITY.md)。
 
 ## 安装
 
@@ -48,6 +49,11 @@ sudo systemctl start historic-routing-zebra.service historic-routing-egpd.servic
 sudo /opt/historic-routing/27f287be9/bin/vtysh
 ```
 
+配置文件修改后，`systemctl reload historic-routing-egpd.service` 使用同树脚本重载
+`egpd.conf`；network 增删保持进程和邻接，全局 AS/timers 变更会重建邻接。
+语法错误返回失败且保留运行配置；语义错误可能部分应用，需修正或重载备份配置。
+服务模板修复与本轮验证范围见 [Issue #14 交接](docs/plan/issue-14-handoff.md)。
+
 进入后可以查看：
 
 ```text
@@ -63,8 +69,9 @@ show running-config
 [EGP 配置说明](protocols/egp/README.md#configuration)。
 
 `show ip route egp`、`show ip route json` 里的 `"protocol": "egp"` 和
-`redistribute egp` 在默认构建里都可用（`lib/log.c` 的 `proto_redistnum` 映射随
-`0001` 补丁一起应用）；文本 `show ip route` 里的 `G` 行仍然是最直观的查看方式。
+`redistribute egp` 名字映射在默认构建里都可用（`lib/log.c` 的 `proto_redistnum` 映射随
+`0001` 补丁一起应用）。这让其它 daemon 能识别 EGP 路由；egpd 仍只显式宣告
+`egp network`，不从本地 RIB 导入其它协议路由。文本 `show ip route` 里的 `G` 行仍然是最直观的查看方式。
 
 程序和配置文件使用独立路径，但 Zebra 会修改所在网络命名空间的内核路由。
 请在实验机上运行，避免与系统 FRR 的 Zebra 同时管理同一张路由表；

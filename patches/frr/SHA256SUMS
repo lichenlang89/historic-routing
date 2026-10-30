@@ -2,5 +2,5 @@
 # 生成: sha256sum patches/frr/*/000*.patch（LF 字节）
 f0c693c4be9998de6ad85136b4c3b6ca59d18d428fb533c30c13145dd461b51e  patches/frr/egp/0001-lib-add-egp-route-type.patch
 d666e6a4221999ac2e08a29e1aa375268cc1c7d49c750eb4dd123fe835887fbc  patches/frr/egp/0002-zebra-install-egp-routes-with-distance-140.patch
-dab7a2a6fa71989b5fc1912adfd5c4416c23b96631876f2aa907b8da9e24ddc1  patches/frr/egp/0003-vtysh-add-egpd-client-and-node.patch
-bda057d869742f408e7c177a542418333cae8ac81b17716f7106e8658b437141  patches/frr/egp/0004-build-enable-egpd-and-keep-existing-tests.patch
+39dd24c225afcd843e53508d49fa46544ffe02360bd5a9df4e1d97fd444c031d  patches/frr/egp/0003-vtysh-add-egpd-client-and-node.patch
+c6646e3c67232bf9e0253085854868bb2283ccfe778ad226a620ade2fbd19583  patches/frr/egp/0004-build-enable-egpd-and-keep-existing-tests.patch

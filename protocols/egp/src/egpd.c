@@ -7,6 +7,7 @@
 #include "egp_update.h"
 #include "lib/command.h"
 #include "lib/frrevent.h"
+#include "lib/if.h"
 #include "lib/json.h"
 #include "lib/libfrr.h"
 #include "lib/log.h"
@@ -429,11 +430,15 @@ static void receive(struct event *event)
 	                        n->poll_pending, n->poll_seq))
 		return;
 	n->updates_rx++;
-	/* Stub-only: accept sender gateway, reject third-party transit claims.
-	 * RFC 888 section 5: distance 255 withdraws that net, not the Update. */
+	/* RFC 904 4.4/A.4 and RFC 888 5/8: a stub can receive multiple
+	 * gateways on the common network without acting as a core relay. */
 	for (i = 0; i < m.count; i++) {
-		if (m.routes[i].gateway.s_addr != n->peer.s_addr)
+		if (!egp_gateway(n->shared, m.routes[i].gateway) ||
+		    m.routes[i].gateway.s_addr == n->local.s_addr ||
+		    if_address_is_local(&m.routes[i].gateway, AF_INET, VRF_DEFAULT)) {
+			send_error(n, EGP_ERR_FIELD, egp, egplen, m.seq);
 			return;
+		}
 	}
 	count = egp_age_update(n->routes, n->count, n->misses, &m, next, next_misses);
 	if (count < 0)
@@ -525,18 +530,23 @@ static void remove_peer(struct neighbor *n)
 DEFUN(egp_as, egp_as_cmd, "egp local-as (1-65535)", "EGP\nLocal autonomous system\nAS number\n")
 {
 	size_t i;
+	uint16_t as = strtoul(argv[2]->arg, NULL, 10);
+	if (local_as == as)
+		return CMD_SUCCESS;
 	for (i = 0; i < MAX_PEERS; i++)
 		if (peers[i].used) {
 			vty_out(vty, "Remove neighbors before changing AS\n");
 			return CMD_WARNING_CONFIG_FAILED;
 		}
-	local_as = strtoul(argv[2]->arg, NULL, 10);
+	local_as = as;
 	return CMD_SUCCESS;
 }
 DEFUN(egp_timers, egp_timers_cmd, "egp timers (1-65535) (1-65535)", "EGP\nTimers (seconds)\nHello interval\nPoll interval\n")
 {
 	unsigned h = strtoul(argv[2]->arg, NULL, 10), p = strtoul(argv[3]->arg, NULL, 10);
 	size_t i;
+	if (hello_interval == h && poll_interval == p)
+		return CMD_SUCCESS;
 	for (i = 0; i < MAX_PEERS; i++)
 		if (peers[i].used) {
 			vty_out(vty, "Remove neighbors before changing timers\n");
@@ -544,6 +554,35 @@ DEFUN(egp_timers, egp_timers_cmd, "egp timers (1-65535) (1-65535)", "EGP\nTimers
 		}
 	hello_interval = h;
 	poll_interval = p;
+	return CMD_SUCCESS;
+}
+DEFUN(no_egp_as, no_egp_as_cmd, "no egp local-as [(1-65535)]",
+      NO_STR "EGP\nReset local AS to zero\nOld AS number\n")
+{
+	size_t i;
+	if (!local_as)
+		return CMD_SUCCESS;
+	for (i = 0; i < MAX_PEERS; i++)
+		if (peers[i].used) {
+			vty_out(vty, "Remove neighbors before changing AS\n");
+			return CMD_WARNING_CONFIG_FAILED;
+		}
+	local_as = 0;
+	return CMD_SUCCESS;
+}
+DEFUN(no_egp_timers, no_egp_timers_cmd, "no egp timers [(1-65535) (1-65535)]",
+      NO_STR "EGP\nReset timers to 30/120 seconds\nOld Hello interval\nOld Poll interval\n")
+{
+	size_t i;
+	if (hello_interval == 30 && poll_interval == 120)
+		return CMD_SUCCESS;
+	for (i = 0; i < MAX_PEERS; i++)
+		if (peers[i].used) {
+			vty_out(vty, "Remove neighbors before changing timers\n");
+			return CMD_WARNING_CONFIG_FAILED;
+		}
+	hello_interval = 30;
+	poll_interval = 120;
 	return CMD_SUCCESS;
 }
 DEFUN(egp_peer, egp_peer_cmd, "egp neighbor A.B.C.D local-address A.B.C.D remote-as (1-65535)",
@@ -565,8 +604,12 @@ DEFUN(egp_peer, egp_peer_cmd, "egp neighbor A.B.C.D local-address A.B.C.D remote
 		return CMD_WARNING_CONFIG_FAILED;
 	}
 	for (i = 0; i < MAX_PEERS; i++) {
-		if (peers[i].used && peers[i].peer.s_addr == peer.s_addr)
+		if (peers[i].used && peers[i].peer.s_addr == peer.s_addr) {
+			if (!peers[i].deleting && peers[i].local.s_addr == local.s_addr &&
+			    peers[i].as == as)
+				return CMD_SUCCESS;
 			return CMD_WARNING_CONFIG_FAILED;
+		}
 		if (!peers[i].used && !n)
 			n = &peers[i];
 	}
@@ -622,7 +665,8 @@ DEFUN(clear_egp_all, clear_egp_all_cmd, "clear ip egp neighbor *",
 	}
 	return CMD_SUCCESS;
 }
-DEFUN(no_egp_peer, no_egp_peer_cmd, "no egp neighbor A.B.C.D", NO_STR "EGP\nNeighbor\nPeer IPv4\n")
+DEFUN(no_egp_peer, no_egp_peer_cmd, "no egp neighbor A.B.C.D [local-address A.B.C.D remote-as (1-65535)]",
+      NO_STR "EGP\nNeighbor\nPeer IPv4\nLocal source\nLocal IPv4\nRemote AS\nAS number\n")
 {
 	struct in_addr peer;
 	size_t i;
@@ -680,10 +724,11 @@ static void peer_prefixes_text(struct vty *vty, const struct neighbor *n, time_t
 {
 	size_t i;
 	for (i = 0; i < n->count; i++)
-		vty_out(vty, "  prefix %pI4/%u distance %u gateway %pI4 misses %u age %llds\n",
+		vty_out(vty, "  prefix %pI4/%u distance %u gateway %pI4 misses %u age %llds %s\n",
 		        &n->routes[i].net, egp_classlen(n->routes[i].net) * 8,
 		        n->routes[i].distance, &n->routes[i].gateway, n->misses[i],
-		        (long long)(n->last_update ? t - n->last_update : -1));
+		        (long long)(n->last_update ? t - n->last_update : -1),
+		        n->routes[i].exterior ? "exterior" : "interior");
 }
 static void peer_detail_text(struct vty *vty, const struct neighbor *n, time_t t)
 {
@@ -719,6 +764,7 @@ static struct json_object *peer_json(const struct neighbor *n, time_t t)
 		                       inet_ntop(AF_INET, &n->routes[i].gateway, buf,
 		                                 sizeof(buf)));
 		json_object_int_add(r, "misses", n->misses[i]);
+		json_object_boolean_add(r, "exterior", n->routes[i].exterior);
 		json_object_array_add(arr, r);
 	}
 	json_object_string_add(o, "address", inet_ntop(AF_INET, &n->peer, buf, sizeof(buf)));
@@ -864,6 +910,20 @@ static void rotate(void)
 {
 	zlog_rotate();
 }
+/* The shared ZAPI handlers maintain interfaces, but address notifications need
+ * explicit consumers. Keep all local IPv4 addresses (including secondary and
+ * loopback addresses) available to the default-VRF next-hop check. */
+static int interface_address(ZAPI_CALLBACK_ARGS)
+{
+	struct connected *c = zebra_interface_address_read(cmd, zclient->ibuf, vrf_id);
+	if (c && cmd == ZEBRA_INTERFACE_ADDRESS_DELETE)
+		connected_free(&c);
+	return 0;
+}
+static zclient_handler *const zebra_handlers[] = {
+    [ZEBRA_INTERFACE_ADDRESS_ADD] = interface_address,
+    [ZEBRA_INTERFACE_ADDRESS_DELETE] = interface_address,
+};
 static struct frr_signal_t signals[] = {
     {.signal = SIGINT, .handler = terminate},
     {.signal = SIGTERM, .handler = terminate},
@@ -880,12 +940,15 @@ int main(int argc, char **argv)
 			frr_help_exit(1);
 	master = frr_init();
 	vrf_init(NULL, NULL, NULL, NULL);
-	zc = zclient_new(master, &zclient_options_default, NULL, 0);
+	zc = zclient_new(master, &zclient_options_default, zebra_handlers,
+	                 array_size(zebra_handlers));
 	zclient_init(zc, ZEBRA_ROUTE_EGP, 0, &privileges);
 	zc->zebra_connected = connected;
 	install_node(&egp_node);
 	install_element(CONFIG_NODE, &egp_as_cmd);
 	install_element(CONFIG_NODE, &egp_timers_cmd);
+	install_element(CONFIG_NODE, &no_egp_as_cmd);
+	install_element(CONFIG_NODE, &no_egp_timers_cmd);
 	install_element(CONFIG_NODE, &egp_peer_cmd);
 	install_element(CONFIG_NODE, &no_egp_peer_cmd);
 	install_element(CONFIG_NODE, &egp_network_cmd);

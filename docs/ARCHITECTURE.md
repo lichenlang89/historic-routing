@@ -42,8 +42,8 @@ protocols/egp/tests/test_packet.c  →  $FRR/egpd/test_packet.c
 | --- | --- | --- |
 | lib | 注册路由类型（`route_types.txt` + `rt_enabled`）、CLI 节点枚举 | 0001 |
 | zebra | RIB 管理距离 + 内核协议号映射 | 0002 |
-| vtysh | client 表项 + `VTYSH_*` 位 + 节点注册 | 0003 |
-| build | `--enable-<proto>`、`include <proto>/subdir.am`、daemons 文件、DAEMONS 顺序、测试注册 | 0004 |
+| vtysh | client 表项 + `VTYSH_*` 位 + 节点注册 + egpd reload 顺序 | 0003 |
+| build | `--enable-<proto>`、`include <proto>/subdir.am`、daemons 文件、DAEMONS 顺序、测试/文档注册 | 0004 |
 | lib（可选） | 让别的 daemon 能 `redistribute <proto>` | 0005（EGP 已并入 0001） |
 
 ## 数据流（以 EGP 为例）

@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-or-later
-"""frr-reload 回归：重载 egpd 配置不得重启进程、不得抖动邻居，且必须幂等。
+"""frr-reload 回归：PID 保持，network 无损，全局变更按序重建邻接。
 
 用例（都在实验里真跑）：
   1. 在完整运行配置后追加一条 `egp network`，用 frr-reload.py --reload 应用：
      对端在超时内学到该网络，egpd 的 pid 不变，两端邻居仍是 Up，原有网络不丢。
   2. 同一份配置再重载一次：frr-reload 报无变化，pid 不变，状态不变。
   3. 恢复原配置：只有新增的那条网络被撤掉。
+  4. 完整清空、默认值、AS/timers 变更、CLI 约束、错误返回及恢复。
+  5. 执行 RPM/DEB 原模板的 ExecReload 命令（不等同于包安装/systemd 验收）。
 
 实验里的注意事项（都是实测出来的）：
   * frr-reload.py 在 `sbin/`，且必须给 --bindir/--confdir，否则它以 /usr/bin、
@@ -19,6 +21,7 @@
 import sys
 
 import test_lab as lab
+from test_service_reload import check_templates
 
 EXTRA = "192.168.0.0"
 EXTRA_CIDR = "192.168.0.0/24"
@@ -30,8 +33,9 @@ PREFIX = "/build/prefix"
 CONF_DIR = WORK
 ENV = ("PATH=%s/bin:%s/sbin:$PATH LD_LIBRARY_PATH=%s/lib:%s/lib/frr"
        % (PREFIX, PREFIX, PREFIX, PREFIX))
-RELOAD = ("%s %s/sbin/frr-reload.py --reload --bindir %s/bin --confdir %s "
-          "--vty_socket %s %s; echo RC=$?" % (ENV, PREFIX, PREFIX, CONF_DIR, WORK, CONF))
+RELOAD = ("%s %s/sbin/frr-reload.py --reload --daemon egpd --bindir %s/bin --confdir %s "
+          "--rundir %s --vty_socket %s %s; echo RC=$?"
+          % (ENV, PREFIX, PREFIX, CONF_DIR, WORK, WORK, CONF))
 
 
 def running_config(node):
@@ -99,6 +103,7 @@ def main():
     failure = None
     try:
         steps(base, pid)
+        check_templates(base, pid)
     except BaseException as exc:
         failure = exc
         raise
@@ -153,6 +158,85 @@ def steps(base, pid):
     if "Up" not in lab.neighbors(lab.R1):
         raise AssertionError("恢复后邻居不是 Up")
     print("PASS 恢复原配置：只撤掉新增网络，原路由与邻居保持", flush=True)
+
+    # Syntax errors must fail before a single running command is deleted.
+    write_conf(lab.R1, base + ["egp timers 0 1"])
+    rc, out = reload(lab.R1)
+    assert rc != 0 and out.strip(), (rc, out)
+    assert running_config(lab.R1) == base
+    assert egpd_pid(lab.R1) == pid and lab.both_up() and lab.both_routes()
+    print("PASS 语法错误返回非零与诊断，运行配置和原路由保持", flush=True)
+
+    # CLI global changes are guarded; reload performs the ordered teardown.
+    for cmd in ("no egp local-as", "no egp timers"):
+        try:
+            lab.vty(lab.R1, "egpd", "configure terminal", cmd)
+        except RuntimeError as exc:
+            assert "Remove neighbors" in str(exc), str(exc)
+        else:
+            raise AssertionError("有邻居时应拒绝 " + cmd)
+    assert running_config(lab.R1) == base
+    print("PASS 有邻居时直接删除 AS/timers 被拒绝", flush=True)
+
+    empty = [line for line in base if not line.startswith("egp ")]
+    write_conf(lab.R1, empty)
+    rc, out = reload(lab.R1)
+    assert rc == 0, (rc, out)
+    assert not any(line.startswith("egp ") for line in running_config(lab.R1))
+    assert "local AS 0" in lab.neighbors(lab.R1)
+    assert not lab.has_kernel(lab.R1, lab.NET2_CIDR)
+    assert egpd_pid(lab.R1) == pid
+    rc, out = reload(lab.R1)
+    assert rc == 0, (rc, out)
+    # Both bare and value-bearing reset forms are idempotent.
+    lab.vty(lab.R1, "egpd", "configure terminal", "no egp local-as",
+            "no egp local-as 65001", "no egp timers", "no egp timers 1 1")
+    print("PASS 全量清空及重复应用：AS=0、默认 timers、无残留配置或路由", flush=True)
+
+    write_conf(lab.R1, base)
+    rc, out = reload(lab.R1)
+    assert rc == 0, (rc, out)
+    lab.wait("清空后恢复", lambda: lab.both_up() and lab.both_routes(), timeout=60)
+
+    # A timer change with an unchanged neighbor needs delete/wait/re-add.
+    changed = ["egp timers 2 1" if line.startswith("egp timers ") else line
+               for line in base]
+    write_conf(lab.R1, changed)
+    rc, out = reload(lab.R1)
+    assert rc == 0, (rc, out)
+    assert "egp timers 2 1" in running_config(lab.R1)
+    lab.wait("新 timers 下邻居和路由恢复", lambda: lab.both_up() and lab.both_routes(), timeout=60)
+    assert egpd_pid(lab.R1) == pid
+    print("PASS timers 变更按序重建邻接，egpd PID 保持", flush=True)
+
+    # AS change is accepted without a process restart. The remote still
+    # expects the old AS; recovery below reapplies the original config.
+    changed = ["egp local-as 65003" if line.startswith("egp local-as ") else line
+               for line in base]
+    write_conf(lab.R1, changed)
+    rc, out = reload(lab.R1)
+    assert rc == 0, (rc, out)
+    assert "egp local-as 65003" in running_config(lab.R1)
+    assert egpd_pid(lab.R1) == pid
+    print("PASS AS 变更按序应用，egpd PID 保持", flush=True)
+
+    write_conf(lab.R1, base)
+    rc, out = reload(lab.R1)
+    assert rc == 0, (rc, out)
+    lab.wait("AS/timers 恢复", lambda: lab.both_up() and lab.both_routes(), timeout=60)
+
+    # A semantic error can occur after deletions: FRR reload is best effort.
+    bad = [line.replace("remote-as " + lab.AS2, "remote-as " + lab.AS1)
+           if line.startswith("egp neighbor ") else line for line in base]
+    write_conf(lab.R1, bad)
+    rc, out = reload(lab.R1)
+    assert rc != 0 and "Failed to apply EGP" in out and "remote-as" in out, (rc, out)
+    write_conf(lab.R1, base)
+    rc, out = reload(lab.R1)
+    assert rc == 0, (rc, out)
+    lab.wait("语义失败后恢复", lambda: lab.both_up() and lab.both_routes(), timeout=60)
+    assert egpd_pid(lab.R1) == pid
+    print("PASS 语义错误返回非零，重载原配置后恢复邻接与双向路由", flush=True)
 
 
 if __name__ == "__main__":

@@ -23,7 +23,7 @@ index 28bbe33f39..eee7701c4d 100644
 @@ -1172,6 +1173,13 @@ static struct cmd_node rip_node = {
  	.prompt = "%s(config-router)# ",
  };
- 
+
 +static struct cmd_node egp_node = {
 +	.name = "egp",
 +	.node = EGP_NODE,
@@ -51,9 +51,9 @@ index 07c6b4c3fb..eeff5481db 100644
  #define VTYSH_PIM6D     0x100000
  #define VTYSH_MGMTD 0x200000
 +#define VTYSH_EGPD 0x400000
- 
+
  #define VTYSH_RCV_BUF_MAX 16777216
- 
+
 @@ -50,7 +51,7 @@ extern struct event_loop *master;
  		VTYSH_LDPD | VTYSH_BGPD | VTYSH_ISISD | VTYSH_PIMD |           \
  		VTYSH_PIM6D | VTYSH_NHRPD | VTYSH_EIGRPD | VTYSH_BABELD |      \
@@ -63,6 +63,131 @@ index 07c6b4c3fb..eeff5481db 100644
  #define VTYSH_ACL_CONFIG                                                       \
  	VTYSH_BABELD | VTYSH_BGPD | VTYSH_EIGRPD | VTYSH_ISISD |               \
  		VTYSH_FABRICD | VTYSH_LDPD | VTYSH_NHRPD | VTYSH_OSPF6D |      \
--- 
-2.53.0.windows.3
+diff --git a/tools/frr-reload.py b/tools/frr-reload.py
+--- a/tools/frr-reload.py
++++ b/tools/frr-reload.py
+@@ -18,6 +18,8 @@
+ import logging
+ import os, os.path
+ import random
++import json
++import time
+ import re
+ import string
+ import subprocess
+@@ -1428,7 +1430,7 @@
+         bgp_delete_inst_move_line(lines_to_del)
+         if del_nbr_dict:
+             bgp_remove_neighbor_cfg(lines_to_del, del_nbr_dict)
+-        return (lines_to_add, lines_to_del)
++        return order_egp_reload(newconf, running, lines_to_add, lines_to_del)
 
+     # {'router bgp 65001': {'PG': ['10.1.1.2'], 'PG1': ['10.1.1.21']},
+     #  'router bgp 65001 vrf vrf1': {'PG': ['10.1.1.2'], 'PG1': ['10.1.1.21']}}
+@@ -2977,6 +2979,50 @@
+         if not exec_delete_lines(vtysh, rundir, unread):
+             exec_success = False
+     return exec_success
++
++
++def egp_entries(config, prefix):
++    return [(keys, None) for keys in config.contexts
++            if len(keys) == 1 and keys[0].startswith(prefix)]
++
++
++def order_egp_reload(newconf, running, adds, deletes):
++    # A global change requires a deliberate adjacency rebuild. Even unchanged
++    # neighbors must be removed, then restored from the target configuration.
++    if any(len(keys) == 1 and keys[0].startswith(("egp local-as ", "egp timers "))
++           for keys, line in adds + deletes):
++        for entry in egp_entries(running, "egp neighbor "):
++            if entry not in deletes:
++                deletes.append(entry)
++        for entry in egp_entries(newconf, "egp neighbor "):
++            if entry not in adds:
++                adds.append(entry)
++    # Preserve non-EGP ordering. EGP globals precede neighbor additions even
++    # when an operator writes the target file in a different order.
++    egp_adds = [entry for entry in adds if entry[0][0].startswith("egp ")]
++    adds = [entry for entry in adds if not entry[0][0].startswith("egp ")]
++    adds.extend(sorted(egp_adds, key=lambda e: e[0][0].startswith("egp neighbor ")))
++    return adds, deletes
++
++
++def delete_egp_neighbors(vtysh, rundir, deletes):
++    neighbors = [entry for entry in deletes
++                 if len(entry[0]) == 1 and entry[0][0].startswith("egp neighbor ")]
++    if not neighbors:
++        return deletes
++    if not exec_delete_lines(vtysh, rundir, neighbors):
++        raise VtyshException("EGP neighbor deletion failed; globals were not changed")
++    addresses = {entry[0][0].split()[2] for entry in neighbors}
++    # no neighbor starts RFC 904 Cease; it is not a synchronous close. Wait
++    # for a matching ack or the daemon's 120-second abort before changing AS.
++    deadline = time.monotonic() + 125
++    while True:
++        state = json.loads(vtysh("show ip egp neighbors json"))
++        if not addresses.intersection(peer["address"] for peer in state["peers"]):
++            return [entry for entry in deletes if entry not in neighbors]
++        if time.monotonic() >= deadline:
++            raise VtyshException("Timed out waiting for EGP Cease cleanup; retry reload")
++        time.sleep(0.2)
+
+
+ if __name__ == "__main__":
+@@ -3157,6 +3203,7 @@
+         "pathd",
+         "bfdd",
+         "eigrpd",
++        "egpd",
+     ]:
+         msg = "Daemon %s is not a valid option for 'show running-config'" % args.daemon
+         print(msg)
+@@ -3193,10 +3240,19 @@
+     newconf = Config(vtysh)
+     try:
+         newconf.load_from_file(args.filename)
++        if args.daemon == "egpd" or egp_entries(newconf, "egp "):
++            check = vtysh._call(["-C", "-f", args.filename],
++                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
++            out, err = check.communicate()
++            if check.returncode:
++                raise VtyshException((out + err).decode("UTF-8", errors="replace"))
+         reload_ok = True
+     except VtyshException as ve:
+         log.error("vtysh failed to process new configuration: {}".format(ve))
+         reload_ok = False
++
++    if not reload_ok:
++        sys.exit(1)
+
+     if args.test:
+         # Create a Config object from the running config
+@@ -3333,6 +3389,12 @@
+                 # Flush log before executing deletes so content is preserved if crash occurs
+                 for handler in log.handlers:
+                     handler.flush()
++
++                try:
++                    lines_to_del = delete_egp_neighbors(vtysh, args.rundir, lines_to_del)
++                except (VtyshException, ValueError, KeyError) as exc:
++                    log.error("EGP reload aborted: %s", exc)
++                    sys.exit(1)
+
+                 # Take scaled line deletes out of lines_to_del and apply them
+                 # as a single "vtysh -f" batch (below) to avoid the per-line
+@@ -3502,7 +3564,11 @@
+                     try:
+                         vtysh.exec_file(filename)
+                     except VtyshException as e:
+-                        log.warning(f"frr-reload.py failed due to\n{e}")
++                        if args.daemon == "egpd" or egp_entries(newconf, "egp "):
++                            log.error("Failed to apply EGP configuration commands %s: %s",
++                                      lines_to_configure, e)
++                        else:
++                            log.warning(f"frr-reload.py failed due to\n{e}")
+                         reload_ok = False
+                     os.unlink(filename)
+
+--
+2.53.0

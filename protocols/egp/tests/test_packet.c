@@ -60,6 +60,43 @@ static void test_aging(void)
 	m.routes[0] = (struct egp_route){.net = addr("10.0.0.0"), .distance = 1};
 	assert(egp_age_update(old, EGP_MAX_ROUTES, misses, &m, next, next_misses) < 0);
 }
+static void test_gateways(void)
+{
+	/* Independent mixed interior/exterior wire sample, not encoder output. */
+	uint8_t wire[] = {2, 1, 0, 1, 0, 0, 0xfd, 0xe8, 0, 7,
+	                  1, 1, 192, 0, 2, 0,
+	                  1, 1, 9, 1, 10,
+	                  3, 1, 2, 1, 10};
+	struct egp_message m;
+	struct egp_route next[EGP_MAX_ROUTES], old[EGP_MAX_ROUTES];
+	uint8_t misses[EGP_MAX_ROUTES] = {0}, nm[EGP_MAX_ROUTES];
+	seal(wire, sizeof(wire));
+	assert(!egp_decode(wire, sizeof(wire), &m) && m.count == 2);
+	assert(!m.routes[0].exterior && m.routes[1].exterior);
+	assert(m.routes[0].gateway.s_addr == addr("192.0.2.1").s_addr);
+	assert(m.routes[1].gateway.s_addr == addr("192.0.2.3").s_addr);
+	assert(egp_age_update(NULL, 0, misses, &m, old, nm) == 2);
+	/* Withdrawing one gateway preserves the other candidate, regardless of
+	 * their distances. An omitted candidate ages independently. */
+	m.routes[0].distance = 255;
+	assert(egp_age_update(old, 2, misses, &m, next, nm) == 1);
+	assert(next[0].exterior && next[0].gateway.s_addr == m.routes[1].gateway.s_addr);
+	m.count = 0;
+	memcpy(old, next, sizeof(*next));
+	assert(egp_age_update(old, 1, misses, &m, next, nm) == 1 && nm[0] == 1);
+	misses[0] = 2;
+	assert(egp_age_update(old, 1, misses, &m, next, nm) == 0);
+	/* Network and broadcast gateway IDs are rejected, even in empty blocks. */
+	wire[21] = 0;
+	seal(wire, sizeof(wire));
+	assert(egp_decode(wire, sizeof(wire), &m) < 0);
+	wire[21] = 255;
+	seal(wire, sizeof(wire));
+	assert(egp_decode(wire, sizeof(wire), &m) < 0);
+	assert(!egp_gateway(addr("192.0.2.0"), addr("192.0.3.1")));
+	assert(!egp_gateway(addr("10.0.0.0"), addr("10.255.255.255")));
+	assert(egp_gateway(addr("172.16.0.0"), addr("172.16.255.254")));
+}
 static void test_distances(void)
 {
 	/* Independent wire oracle: one gateway, three distance groups. */
@@ -153,6 +190,7 @@ int main(void)
 	size_t i;
 	test_distances();
 	test_aging();
+	test_gateways();
 	test_error_message();
 	struct egp_update_window window = {0};
 	/* First reply is free; a duplicate reply and a triggered Update share credit. */

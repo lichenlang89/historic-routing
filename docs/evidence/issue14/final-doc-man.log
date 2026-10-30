@@ -1,0 +1,40 @@
+Running Sphinx v7.4.7
+loading translations [en]... done
+making output directory... done
+Converting `source_suffix = '.rst'` to `source_suffix = {'.rst': 'restructuredtext'}`.
+building [mo]: targets for 0 po files that are out of date
+writing output...
+building [man]: all manpages
+updating environment: [new config] 24 added, 0 changed, 0 removed
+reading sources... [  4%] frr
+reading sources... [  8%] frr-bfdd
+reading sources... [ 12%] frr-bgpd
+reading sources... [ 17%] frr-egpd
+reading sources... [ 21%] frr-eigrpd
+reading sources... [ 25%] frr-fabricd
+reading sources... [ 29%] frr-isisd
+reading sources... [ 33%] frr-ldpd
+reading sources... [ 38%] frr-nhrpd
+reading sources... [ 42%] frr-ospf6d
+reading sources... [ 46%] frr-ospfclient
+reading sources... [ 50%] frr-ospfd
+reading sources... [ 54%] frr-pbrd
+reading sources... [ 58%] frr-pimd
+reading sources... [ 62%] frr-ripd
+reading sources... [ 67%] frr-ripngd
+reading sources... [ 71%] frr-sharpd
+reading sources... [ 75%] frr-staticd
+reading sources... [ 79%] frr-vrrpd
+reading sources... [ 83%] frr-watchfrr
+reading sources... [ 88%] frr-zebra
+reading sources... [ 92%] index
+reading sources... [ 96%] mtracebis
+reading sources... [100%] vtysh
+
+looking for now-outdated files... none found
+pickling environment... done
+checking consistency... done
+writing... frr-bfdd.8 { } frr-bgpd.8 { } frr-egpd.8 { } frr-eigrpd.8 { } frr-fabricd.8 { } frr-isisd.8 { } frr-ldpd.8 { } frr-nhrpd.8 { } frr-ospf6d.8 { } frr-ospfclient.8 { } frr-ospfd.8 { } frr-pbrd.8 { } frr-pimd.8 { } frr-ripd.8 { } frr-ripngd.8 { } frr-sharpd.8 { } frr-staticd.8 { } frr-vrrpd.8 { } frr-watchfrr.8 { } frr-zebra.8 { } frr.1 { } mtracebis.8 { } vtysh.1 { } done
+build succeeded.
+
+The manual pages are in ../build/final-doc-man.

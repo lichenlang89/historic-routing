@@ -25,12 +25,18 @@ cd lab/egp
 ./lab.sh status           # 邻居 / RIB / 内核路由
 ./lab.sh vty 1            # 进 r1 的 vtysh（exit 退出）
 ./lab.sh test             # 12 项集成测试 + 收尾校验
-./lab.sh reload           # frr-reload 重载回归（不重启、不抖邻居、幂等）
+./lab.sh reload           # frr-reload 回归（network 无损、清空/AS/timers、错误及恢复）
 ./lab.sh down             # 只删本实验的容器与网络
 ```
 
 `cp lab.env.example lab.env` 可以只写要改的项（先加载 example 的默认值，再用
 `lab.env` 覆盖）。`lab.env` 已在 `.gitignore` 里，**不要提交个人路径或凭据**。
+
+`test-protocol` 还覆盖独立报文构造的内部/外部混合网关、无效下一跳原子拒绝、
+同前缀备用网关切换和逐候选遗漏老化。`reload` 保留 network 无损与幂等检查，
+并测试全量清空、默认值、AS/timers 变更、语法/语义错误及恢复；全局变化有意重建邻接，
+不会重启 egpd；还会渲染并执行 RPM/DEB 原模板的 `ExecReload` 命令
+（等价命令检查，不是安装包 systemd/SELinux 验收）。等待失联邻居 Cease abort 最长约 120 秒。
 
 ## 参数（lab.env）
 
