@@ -256,3 +256,16 @@ tar xJf historic-routing-<short>-src.tar.xz && cd historic-routing-<short>
 [验收证据](evidence/package-service-20261031/README.md)；复测见
 [packaging/TESTING.md](../packaging/TESTING.md)。本轮为 RHEL aarch64 与 Debian arm64
 容器用户态，不扩大为 x86 或完整 Debian 宿主验收，保持实验性/预发布。
+
+
+## SELinux RPM 集成与运行目录修正
+
+新增可选 noarch historic-routing-selinux，严格依赖同版 runtime 及发行版 frr-selinux。
+受限部署通过正常 dnf 安装三包，模块/标签/vendor drop-in 随包管理，详见
+[profile 说明](../packaging/selinux/README.md)。DEB 不安装该 RPM 策略。
+
+RPM/DEB 的共享运行目录只由 Zebra 持有；停止/卸载 egpd 不再删除 Zebra 的 ZAPI socket。
+独立回归为 packaging/test_shared_runtime.py；完整 profile 安装/卸载与负例为
+packaging/selinux/test_installed_profile.py。两者需要调用者事先准备独占实验环境。
+
+本次直接证据与首次失败：[SELinux/运行目录验收](evidence/selinux-package-20261031/README.md)。
