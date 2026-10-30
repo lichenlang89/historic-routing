@@ -56,7 +56,7 @@ URL:            https://github.com/lichenlang89/historic-routing
 Source0:        historic-routing-%{hr_version}.tar.gz
 Source1:        historic-routing-zebra.service
 Source2:        historic-routing-egpd.service
-BuildArch:      x86_64
+# Build for the native RPM architecture; both daemon and runtime share it.
 
 # 只用同一棵 FRR 树构建：runtime 与 egp 共用这个 ABI 标识
 Provides:       historic-routing-abi = %{hr_abi}
