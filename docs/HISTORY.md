@@ -487,3 +487,42 @@ S6 复核发现：**这行只是警告**（zebra 仍正常启动并装路由）�
    `%config(noreplace)` 追加语义都还没落地。
 4. **保留区间是团队约定**：`0x400000`..`0x3FFFFFF` 不在任何规范里，只是本项目自用；
    若将来与上游 FRR 的位分配冲突，`check-allocations.sh --frr` 会报出来，需要改用新位。
+
+## S9：收口文档里写着的三条限制（执行记录，S9.1/S9.2）
+
+本轮只做 S9 的前两个子步，S9.3–S9.5 未执行，因此本节不涉及 Error/Refuse、
+`doc/user/egp.rst` 与 frr-reload 回归。
+
+### S9.1 `show ip route egp` / `redistribute egp` 默认可用
+
+原可选补丁 `0005`（`lib/log.c` 的 `proto_redistnum` 加一行 `"egp"` 映射）并入必需补丁
+`0001`：路由类型和它的名字选择器是同一项能力。EGP 补丁集由 5 个变为 4 个，
+`0002`–`0004` 的 Subject 序号同步改为 `/4`，`patches/frr/SHA256SUMS` 全部重算。
+`--with-optional` 保留给未来协议，EGP 不再有 `0005`。
+
+连带更新：`scripts/apply-patches.sh`（可选补丁断言只在协议确实提供 `0005` 时执行）、
+`scripts/build.sh` 帮助文本、`patches/frr/README.md`、`README.md`、`docs/ARCHITECTURE.md`、
+`docs/FIDELITY.md`、`AGENTS.md`、`lab/README.md`、`lab/egp/test_lab.py` 的说明，
+以及 `lab` 的检查 04 新增第三条证据路径（协议名选择器）。
+
+### S9.2 可观测性
+
+- `show ip egp neighbors [detail] [json]`、`show ip egp neighbors A.B.C.D [json]`
+- `clear ip egp neighbor *`
+- 每邻居 tx/rx 计数（hello/poll/update），只用于观测，协议状态机不读它
+- `protocols/egp/evidence/SOURCES.sha256` 随 `egpd.c` 更新
+
+### 实测（证据见 `docs/evidence/s9-20261030.md` 与同目录两份原始日志）
+
+- `verify.sh --build-only`：PASS 13 / KNOWN-FAIL 1 / SKIP 0 / FAIL 0；
+  `A2` 为 4 个补丁、`A4` 为 13 个文件（原 12），`B7` 仍为 14 failed（isisd/pimd，未新增）。
+- `lab.sh up && status && test`：13/13 通过；检查 04 的 `show ip route egp` 命中
+  `172.16.0.0/16` 与 `10.0.0.0/8`，`show ip route egp` 的 legend 出现 `G - EGP`。
+
+### 本轮的环境事实（与 S5/S6 记录不同的部分）
+
+构建在 `localhost/frr-23837-base:20261022`（Fedora 42）容器里做，宿主为 RHEL 10.2 aarch64；
+FRR 源码来自 15M 的离线 bare 镜像（容器内无外网）。实验镜像复用了
+`localhost/hr-rfc904-lab:20261026`，因为 Containerfile 只装运行期库、FRR 前缀运行时挂载。
+宿主机上旧实验网络 `egp-lab-net` 占用 `198.18.123.0/24`，本轮改用 `egp-s9-net`
+（`198.18.140.0/24`）并在结束时清理。
