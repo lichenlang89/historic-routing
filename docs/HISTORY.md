@@ -538,6 +538,8 @@ S9.4（`doc/user/egp.rst` + man 页）**未执行**：现有构建镜像里没�
   `172.16.0.0/16` 与 `10.0.0.0/8`，`show ip route egp` 的 legend 出现 `G - EGP`。
 - `lab.sh test-protocol`（`LAB_TIMERS="1 1"`）：28 条 PASS，其中 5 条是本轮新增的
   Refuse/Error 断言；原有 23 条（邻接、可达性、Cease、遗漏老化、主动更新、定时器协商）不变。
+- 同一实验里另跑 `test-updates`（6 条）与 `test-timers`（4 条）、`test`（13/13），
+  整体 51 条 PASS、`LAB_RC=0`（日志 `docs/evidence/s9-full-suite-20261030.log`）。
 - `lab.sh reload`：三条断言全 PASS。
 
 ### 本轮实测暴露并修掉的两个问题
