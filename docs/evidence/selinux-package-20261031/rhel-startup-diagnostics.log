@@ -1,0 +1,120 @@
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: Waiting for children to finish applying config...
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: [2708163|egpd] sending configuration
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: Set local-as first; distinct ASes and peers on the same classful network required
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: Set local-as first; distinct ASes and peers on the same classful network required
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: [2708150|zebra] done
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: line 1: Failure to communicate[13] to egpd, line: egp neighbor 198.18.250.12 local-address 198.18.250.11 remote-as 65001
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: line 3: Failure to communicate[13] to egpd, line: egp neighbor 198.18.250.12 local-address 198.18.250.11 remote-as 65001
+Oct 31 06:16:22 <host> frr-reload.py[2708093]: [2708163|egpd] Configuration file[/opt/historic-routing/27f287be9/etc/frr/frr.conf] processing failure: 13
+Oct 31 06:16:22 <host> systemd[1]: historic-routing-egpd.service: Control process exited, code=exited, status=1/FAILURE
+Oct 31 06:16:22 <host> systemd[1]: Reload failed for historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+Oct 31 06:16:22 <host> systemd[1]: Reloading historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production)...
+Oct 31 06:16:22 <host> frr-reload.py[2708176]: [2708184|zebra] sending configuration
+Oct 31 06:16:22 <host> frr-reload.py[2708176]: Waiting for children to finish applying config...
+Oct 31 06:16:22 <host> frr-reload.py[2708176]: [2708197|egpd] sending configuration
+Oct 31 06:16:22 <host> frr-reload.py[2708176]: [2708184|zebra] done
+Oct 31 06:16:22 <host> frr-reload.py[2708176]: [2708197|egpd] done
+Oct 31 06:16:22 <host> frr-reload.py[2708176]: Waiting for children to finish applying config...
+Oct 31 06:16:22 <host> frr-reload.py[2708176]: [2708209|zebra] sending configuration
+Oct 31 06:16:22 <host> frr-reload.py[2708176]: [2708222|egpd] sending configuration
+Oct 31 06:16:22 <host> frr-reload.py[2708176]: [2708209|zebra] done
+Oct 31 06:16:22 <host> frr-reload.py[2708176]: [2708222|egpd] done
+Oct 31 06:16:22 <host> systemd[1]: Reloaded historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+Oct 31 06:16:26 <host> systemd[1]: Reloading historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production)...
+Oct 31 06:16:26 <host> frr-reload.py[2708984]: [2708992|zebra] sending configuration
+Oct 31 06:16:26 <host> frr-reload.py[2708984]: Waiting for children to finish applying config...
+Oct 31 06:16:26 <host> frr-reload.py[2708984]: [2709005|egpd] sending configuration
+Oct 31 06:16:26 <host> frr-reload.py[2708984]: [2708992|zebra] done
+Oct 31 06:16:26 <host> frr-reload.py[2708984]: [2709005|egpd] done
+Oct 31 06:16:26 <host> systemd[1]: Reloaded historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+Oct 31 06:16:26 <host> systemd[1]: Stopping historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production)...
+Oct 31 06:16:27 <host> systemd[1]: historic-routing-egpd.service: Deactivated successfully.
+Oct 31 06:16:27 <host> systemd[1]: Stopped historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+Oct 31 06:16:27 <host> systemd[1]: historic-routing-egpd.service: Consumed 1.100s CPU time, 34.6M memory peak.
+Oct 31 06:16:27 <host> systemd[1]: Stopping historic-routing-zebra.service - historic-routing zebra (experimental, non-production)...
+Oct 31 06:16:27 <host> systemd[1]: historic-routing-zebra.service: Deactivated successfully.
+Oct 31 06:16:27 <host> systemd[1]: Stopped historic-routing-zebra.service - historic-routing zebra (experimental, non-production).
+Oct 31 06:16:27 <host> systemd[1]: Starting historic-routing-zebra.service - historic-routing zebra (experimental, non-production)...
+Oct 31 06:16:27 <host> systemd[1]: Started historic-routing-zebra.service - historic-routing zebra (experimental, non-production).
+Oct 31 06:16:27 <host> systemd[1]: Starting historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production)...
+Oct 31 06:16:27 <host> zebra[2709077]: 2026/10/31 06:16:27 ZEBRA: [TF6P2-X0GVD][EC 100663299] netlink_send_msg error: Permission denied
+Oct 31 06:16:27 <host> zebra[2709077]: 2026/10/31 06:16:27 ZEBRA: [VQYGV-SKT5D] Kernel does not support 'SEG6' Generic Netlink family. Any attempt to set the encapsulation parameters under the SRv6 configuration will fail
+Oct 31 06:16:27 <host> zebra[2709077]: 2026/10/31 06:16:27 ZEBRA: [TF6P2-X0GVD][EC 100663299] netlink_send_msg error: Permission denied
+Oct 31 06:16:27 <host> zebra[2709077]: 2026/10/31 06:16:27 ZEBRA: [JAV3J-5GKTN] Kernel does not support 'ethtool' Generic Netlink family; interface speed will be reported as unknown
+Oct 31 06:16:27 <host> zebra[2709077]: 2026/10/31 06:16:27 ZEBRA: [VRS77-2YV72][EC 4043309077] Failed to get SRv6 encap source address: kernel does not support 'SEG6' Generic Netlink family.
+Oct 31 06:16:27 <host> systemd[1]: Started historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+Oct 31 06:16:27 <host> zebra[2709077]: 2026/10/31 06:16:27 ZEBRA: [QBKSZ-0KHCW][EC 4043309138] Disabling MPLS support (no kernel support)
+Oct 31 06:16:36 <host> systemd[1]: Stopping historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production)...
+Oct 31 06:16:36 <host> systemd[1]: historic-routing-egpd.service: Deactivated successfully.
+Oct 31 06:16:36 <host> systemd[1]: Stopped historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+Oct 31 06:16:36 <host> systemd[1]: Stopping historic-routing-zebra.service - historic-routing zebra (experimental, non-production)...
+Oct 31 06:16:36 <host> systemd[1]: historic-routing-zebra.service: Deactivated successfully.
+Oct 31 06:16:36 <host> systemd[1]: Stopped historic-routing-zebra.service - historic-routing zebra (experimental, non-production).
+Oct 31 06:16:40 <host> systemd[1]: Starting historic-routing-zebra.service - historic-routing zebra (experimental, non-production)...
+Oct 31 06:16:40 <host> selinux-policy[2709396]: historic-routing SELinux: the packaged priority-200 policy module is missing
+Oct 31 06:16:40 <host> systemd[1]: historic-routing-zebra.service: Control process exited, code=exited, status=1/FAILURE
+Oct 31 06:16:40 <host> systemd[1]: historic-routing-zebra.service: Failed with result 'exit-code'.
+Oct 31 06:16:40 <host> systemd[1]: Failed to start historic-routing-zebra.service - historic-routing zebra (experimental, non-production).
+Oct 31 06:16:40 <host> systemd[1]: Starting historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production)...
+Oct 31 06:16:40 <host> selinux-policy[2709402]: historic-routing SELinux: the packaged priority-200 policy module is missing
+Oct 31 06:16:40 <host> systemd[1]: historic-routing-egpd.service: Control process exited, code=exited, status=1/FAILURE
+Oct 31 06:16:40 <host> systemd[1]: historic-routing-egpd.service: Failed with result 'exit-code'.
+Oct 31 06:16:40 <host> systemd[1]: Failed to start historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+Oct 31 06:16:40 <host> systemd[1]: Stopped historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+Oct 31 06:16:40 <host> systemd[1]: Stopped historic-routing-zebra.service - historic-routing zebra (experimental, non-production).
+Oct 31 06:16:44 <host> systemd[1]: Starting historic-routing-zebra.service - historic-routing zebra (experimental, non-production)...
+Oct 31 06:16:44 <host> systemd[1]: Started historic-routing-zebra.service - historic-routing zebra (experimental, non-production).
+Oct 31 06:16:44 <host> systemd[1]: Starting historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production)...
+Oct 31 06:16:44 <host> systemd[1]: Started historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+Oct 31 06:16:44 <host> zebra[2709633]: 2026/10/31 06:16:44 ZEBRA: [TF6P2-X0GVD][EC 100663299] netlink_send_msg error: Permission denied
+Oct 31 06:16:44 <host> zebra[2709633]: 2026/10/31 06:16:44 ZEBRA: [VQYGV-SKT5D] Kernel does not support 'SEG6' Generic Netlink family. Any attempt to set the encapsulation parameters under the SRv6 configuration will fail
+Oct 31 06:16:44 <host> zebra[2709633]: 2026/10/31 06:16:44 ZEBRA: [TF6P2-X0GVD][EC 100663299] netlink_send_msg error: Permission denied
+Oct 31 06:16:44 <host> zebra[2709633]: 2026/10/31 06:16:44 ZEBRA: [JAV3J-5GKTN] Kernel does not support 'ethtool' Generic Netlink family; interface speed will be reported as unknown
+Oct 31 06:16:44 <host> zebra[2709633]: 2026/10/31 06:16:44 ZEBRA: [VRS77-2YV72][EC 4043309077] Failed to get SRv6 encap source address: kernel does not support 'SEG6' Generic Netlink family.
+Oct 31 06:16:44 <host> zebra[2709633]: 2026/10/31 06:16:44 ZEBRA: [QBKSZ-0KHCW][EC 4043309138] Disabling MPLS support (no kernel support)
+Oct 31 06:16:49 <host> systemd[1]: Stopping historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production)...
+Oct 31 06:16:49 <host> systemd[1]: historic-routing-egpd.service: Deactivated successfully.
+Oct 31 06:16:49 <host> systemd[1]: Stopped historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+Oct 31 06:16:49 <host> systemd[1]: Stopping historic-routing-zebra.service - historic-routing zebra (experimental, non-production)...
+Oct 31 06:16:49 <host> systemd[1]: historic-routing-zebra.service: Deactivated successfully.
+Oct 31 06:16:49 <host> systemd[1]: Stopped historic-routing-zebra.service - historic-routing zebra (experimental, non-production).
+Oct 31 06:17:01 <host> systemd[1]: Started historic-routing-zebra.service - historic-routing zebra (experimental, non-production).
+Oct 31 06:17:01 <host> systemd[1]: Started historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+Oct 31 06:17:01 <host> zebra[2710574]: 2026/10/31 06:17:01 ZEBRA: [QBKSZ-0KHCW][EC 4043309138] Disabling MPLS support (no kernel support)
+Oct 31 06:17:06 <host> systemd[1]: Stopping historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production)...
+Oct 31 06:17:06 <host> systemd[1]: historic-routing-egpd.service: Deactivated successfully.
+Oct 31 06:17:06 <host> systemd[1]: Stopped historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+Oct 31 06:17:06 <host> systemd[1]: Stopping historic-routing-zebra.service - historic-routing zebra (experimental, non-production)...
+Oct 31 06:17:07 <host> systemd[1]: historic-routing-zebra.service: Deactivated successfully.
+Oct 31 06:17:07 <host> systemd[1]: Stopped historic-routing-zebra.service - historic-routing zebra (experimental, non-production).
+Oct 31 06:17:11 <host> systemd[1]: Starting historic-routing-zebra.service - historic-routing zebra (experimental, non-production)...
+Oct 31 06:17:11 <host> systemd[1]: Started historic-routing-zebra.service - historic-routing zebra (experimental, non-production).
+Oct 31 06:17:11 <host> systemd[1]: Starting historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production)...
+Oct 31 06:17:11 <host> zebra[2710768]: 2026/10/31 06:17:11 ZEBRA: [TF6P2-X0GVD][EC 100663299] netlink_send_msg error: Permission denied
+Oct 31 06:17:11 <host> zebra[2710768]: 2026/10/31 06:17:11 ZEBRA: [VQYGV-SKT5D] Kernel does not support 'SEG6' Generic Netlink family. Any attempt to set the encapsulation parameters under the SRv6 configuration will fail
+Oct 31 06:17:11 <host> zebra[2710768]: 2026/10/31 06:17:11 ZEBRA: [TF6P2-X0GVD][EC 100663299] netlink_send_msg error: Permission denied
+Oct 31 06:17:11 <host> zebra[2710768]: 2026/10/31 06:17:11 ZEBRA: [JAV3J-5GKTN] Kernel does not support 'ethtool' Generic Netlink family; interface speed will be reported as unknown
+Oct 31 06:17:11 <host> zebra[2710768]: 2026/10/31 06:17:11 ZEBRA: [VRS77-2YV72][EC 4043309077] Failed to get SRv6 encap source address: kernel does not support 'SEG6' Generic Netlink family.
+Oct 31 06:17:11 <host> systemd[1]: Started historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+Oct 31 06:17:11 <host> zebra[2710768]: 2026/10/31 06:17:11 ZEBRA: [QBKSZ-0KHCW][EC 4043309138] Disabling MPLS support (no kernel support)
+Oct 31 06:17:16 <host> systemd[1]: Stopping historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production)...
+Oct 31 06:17:16 <host> systemd[1]: historic-routing-egpd.service: Deactivated successfully.
+Oct 31 06:17:16 <host> systemd[1]: Stopped historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+Oct 31 06:17:18 <host> systemd[1]: Starting historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production)...
+Oct 31 06:17:18 <host> systemd[1]: Started historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+Oct 31 06:17:23 <host> systemd[1]: Stopping historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production)...
+Oct 31 06:17:24 <host> systemd[1]: historic-routing-egpd.service: Deactivated successfully.
+Oct 31 06:17:24 <host> systemd[1]: Stopped historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+Oct 31 06:17:24 <host> systemd[1]: Stopping historic-routing-zebra.service - historic-routing zebra (experimental, non-production)...
+Oct 31 06:17:24 <host> systemd[1]: historic-routing-zebra.service: Deactivated successfully.
+Oct 31 06:17:24 <host> systemd[1]: Stopped historic-routing-zebra.service - historic-routing zebra (experimental, non-production).
+Oct 31 06:17:33 <host> systemd[1]: Starting historic-routing-zebra.service - historic-routing zebra (experimental, non-production)...
+Oct 31 06:17:34 <host> systemd[1]: Started historic-routing-zebra.service - historic-routing zebra (experimental, non-production).
+Oct 31 06:17:34 <host> systemd[1]: Starting historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production)...
+Oct 31 06:17:34 <host> zebra[2712403]: 2026/10/31 06:17:34 ZEBRA: [TF6P2-X0GVD][EC 100663299] netlink_send_msg error: Permission denied
+Oct 31 06:17:34 <host> zebra[2712403]: 2026/10/31 06:17:34 ZEBRA: [VQYGV-SKT5D] Kernel does not support 'SEG6' Generic Netlink family. Any attempt to set the encapsulation parameters under the SRv6 configuration will fail
+Oct 31 06:17:34 <host> zebra[2712403]: 2026/10/31 06:17:34 ZEBRA: [TF6P2-X0GVD][EC 100663299] netlink_send_msg error: Permission denied
+Oct 31 06:17:34 <host> zebra[2712403]: 2026/10/31 06:17:34 ZEBRA: [JAV3J-5GKTN] Kernel does not support 'ethtool' Generic Netlink family; interface speed will be reported as unknown
+Oct 31 06:17:34 <host> zebra[2712403]: 2026/10/31 06:17:34 ZEBRA: [VRS77-2YV72][EC 4043309077] Failed to get SRv6 encap source address: kernel does not support 'SEG6' Generic Netlink family.
+Oct 31 06:17:34 <host> systemd[1]: Started historic-routing-egpd.service - historic-routing EGP daemon (experimental, non-production).
+Oct 31 06:17:34 <host> zebra[2712403]: 2026/10/31 06:17:34 ZEBRA: [QBKSZ-0KHCW][EC 4043309138] Disabling MPLS support (no kernel support)

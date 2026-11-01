@@ -1,0 +1,8 @@
+historic-routing-runtime-0.1.1-0.4.devfd0c3ed.fc42.aarch64
+historic-routing-egp-0.1.1-0.4.devfd0c3ed.fc42.aarch64
+usage: test_package_lifecycle.py [-h] --config CONFIG --old OLD [OLD ...]
+                                 --new NEW [NEW ...] [--selinux]
+test_package_lifecycle.py: error: --selinux requires RPM and explicit selinux_mode Enforcing or Disabled
+Failed to reset failed state of unit historic-routing-egpd.service: Unit historic-routing-egpd.service not loaded.
+Failed to reset failed state of unit historic-routing-zebra.service: Unit historic-routing-zebra.service not loaded.
+NATIVE_SERVICE_RC=2

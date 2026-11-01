@@ -1,0 +1,187 @@
+[21:50:20Z] package-rpm.sh         源码提交 : d2c01a56d8a32da1a192945c23fc2117561dd029
+[21:50:20Z] package-rpm.sh         FRR 基线 : 27f287be9210d4024a140486b7b8ddd5eb41fe04
+[21:50:20Z] package-rpm.sh         版本     : 0.1.1-0.3.devd2c01a5%{?dist}（开发验证构建，不是发布版本）
+[21:50:20Z] package-rpm.sh         rpmbuild : <work>
+[21:50:20Z] package-rpm.sh         源码 tarball: historic-routing-0.1.1.tar.gz 0bb9a0aebc00417e… 376K
+[21:50:20Z] package-rpm.sh         SPEC/units 已就位
+[21:50:20Z] package-rpm.sh         开始 rpmbuild -bb（%build 会从固定 FRR 基线完整构建，约几分钟）
+[21:50:20Z] package-rpm.sh         QA_RPATHS=17
+[21:50:20Z] package-rpm.sh         FRR 源码来源覆盖为 <work>
+[21:52:26Z] package-rpm.sh         rpmbuild 成功（日志: <work>
+
+================ historic-routing-egp-0.1.1-0.3.devd2c01a5.fc42.aarch64.rpm
+大小   : 60K
+SHA256 : 40c22b5e6771f69ded0d952b3692bb3bddf63b211ad1bf6d58c878748a6b8a88
+---- rpm -qpR（依赖）
+  /bin/sh
+  /bin/sh
+  config(historic-routing-egp) = 0.1.1-0.3.devd2c01a5.fc42
+  historic-routing-abi = d2c01a5-27f287be9
+  historic-routing-runtime(aarch-64) = 0.1.1-0.3.devd2c01a5.fc42
+  ld-linux-aarch64.so.1()(64bit)
+  ld-linux-aarch64.so.1(GLIBC_2.17)(64bit)
+  libc.so.6()(64bit)
+  libc.so.6(GLIBC_2.17)(64bit)
+  libc.so.6(GLIBC_2.34)(64bit)
+  libc.so.6(GLIBC_2.38)(64bit)
+  libc.so.6(GLIBC_ABI_DT_RELR)(64bit)
+  libjson-c.so.5()(64bit)
+  libjson-c.so.5(JSONC_0.14)(64bit)
+  python3
+  rpmlib(CompressedFileNames) <= 3.0.4-1
+  rpmlib(FileDigests) <= 4.6.0-1
+  rpmlib(PayloadFilesHavePrefix) <= 4.0-1
+  rpmlib(PayloadIsZstd) <= 5.4.18-1
+  rtld(GNU_HASH)
+  /usr/bin/python3
+---- rpm -qpl（文件）
+  /opt/historic-routing/27f287be9
+  /opt/historic-routing/27f287be9/etc
+  /opt/historic-routing/27f287be9/etc/frr
+  /opt/historic-routing/27f287be9/etc/frr/egpd.conf
+  /opt/historic-routing/27f287be9/sbin
+  /opt/historic-routing/27f287be9/sbin/egpd
+  /opt/historic-routing/27f287be9/sbin/frr-reload.py
+  /usr/lib/systemd/system/historic-routing-egpd.service
+  /usr/share/doc/historic-routing-egp
+  /usr/share/doc/historic-routing-egp/README.md
+
+================ historic-routing-runtime-0.1.1-0.3.devd2c01a5.fc42.aarch64.rpm
+大小   : 1.8M
+SHA256 : 990c9571bf468b722682ba796041c925cef1549ce512c0befbbd802a001682e6
+---- rpm -qpR（依赖）
+  /bin/sh
+  /bin/sh
+  /bin/sh
+  /bin/sh
+  config(historic-routing-runtime) = 0.1.1-0.3.devd2c01a5.fc42
+  ld-linux-aarch64.so.1()(64bit)
+  ld-linux-aarch64.so.1(GLIBC_2.17)(64bit)
+  libatomic.so.1()(64bit)
+  libcap.so.2()(64bit)
+  libcrypt.so.2()(64bit)
+  libcrypt.so.2(XCRYPT_2.0)(64bit)
+  libc.so.6()(64bit)
+  libc.so.6(GLIBC_2.17)(64bit)
+  libc.so.6(GLIBC_2.25)(64bit)
+  libc.so.6(GLIBC_2.32)(64bit)
+  libc.so.6(GLIBC_2.33)(64bit)
+  libc.so.6(GLIBC_2.34)(64bit)
+  libc.so.6(GLIBC_2.38)(64bit)
+  libc.so.6(GLIBC_ABI_DT_RELR)(64bit)
+  libgcc_s.so.1()(64bit)
+  libgcc_s.so.1(GCC_3.0)(64bit)
+  libgcc_s.so.1(GCC_3.3.1)(64bit)
+  libjson-c.so.5()(64bit)
+  libjson-c.so.5(JSONC_0.14)(64bit)
+  libjson-c.so.5(JSONC_PRIVATE)(64bit)
+  libm.so.6()(64bit)
+  libreadline.so.8()(64bit)
+  libyang.so.2()(64bit)
+  rpmlib(CompressedFileNames) <= 3.0.4-1
+  rpmlib(FileDigests) <= 4.6.0-1
+  rpmlib(PayloadFilesHavePrefix) <= 4.0-1
+  rpmlib(PayloadIsZstd) <= 5.4.18-1
+  rtld(GNU_HASH)
+---- rpm -qpl（文件）
+  /opt/historic-routing/27f287be9
+  /opt/historic-routing/27f287be9/RPM-BUILD-INFO.txt
+  /opt/historic-routing/27f287be9/bin
+  /opt/historic-routing/27f287be9/bin/vtysh
+  /opt/historic-routing/27f287be9/etc
+  /opt/historic-routing/27f287be9/etc/frr
+  /opt/historic-routing/27f287be9/etc/frr/daemons
+  /opt/historic-routing/27f287be9/etc/frr/frr.conf
+  /opt/historic-routing/27f287be9/etc/frr/vtysh.conf
+  /opt/historic-routing/27f287be9/lib
+  /opt/historic-routing/27f287be9/lib/libfrr.so.0
+  /opt/historic-routing/27f287be9/lib/libfrr.so.0.0.0
+  /opt/historic-routing/27f287be9/sbin
+  /opt/historic-routing/27f287be9/sbin/zebra
+  /opt/historic-routing/27f287be9/var
+  /opt/historic-routing/27f287be9/var/lib
+  /opt/historic-routing/27f287be9/var/lib/frr
+  /usr/lib/systemd/system/historic-routing-zebra.service
+  /usr/share/doc/historic-routing-runtime
+  /usr/share/doc/historic-routing-runtime/ARCHITECTURE.md
+  /usr/share/doc/historic-routing-runtime/CHANGELOG.md
+  /usr/share/doc/historic-routing-runtime/FIDELITY.md
+  /usr/share/doc/historic-routing-runtime/PACKAGING.md
+  /usr/share/doc/historic-routing-runtime/README.md
+  /usr/share/licenses/historic-routing-runtime
+  /usr/share/licenses/historic-routing-runtime/LICENSE
+
+================ historic-routing-selinux-0.1.1-0.3.devd2c01a5.fc42.noarch.rpm
+大小   : 24K
+SHA256 : d9343a9bc1cef2f38499c44c9f8bbd5fca81d75a246ea2e872dffaf273f88ccc
+---- rpm -qpR（依赖）
+  /bin/bash
+  /bin/sh
+  /bin/sh
+  /bin/sh
+  /bin/sh
+  frr-selinux
+  frr-selinux
+  historic-routing-runtime = 0.1.1-0.3.devd2c01a5.fc42
+  historic-routing-runtime = 0.1.1-0.3.devd2c01a5.fc42
+  libselinux-utils
+  libselinux-utils
+  libselinux-utils
+  libselinux-utils
+  libselinux-utils
+  policycoreutils
+  policycoreutils
+  policycoreutils
+  policycoreutils
+  policycoreutils
+  rpmlib(CompressedFileNames) <= 3.0.4-1
+  rpmlib(FileDigests) <= 4.6.0-1
+  rpmlib(PayloadFilesHavePrefix) <= 4.0-1
+  rpmlib(PayloadIsZstd) <= 5.4.18-1
+  selinux-policy-targeted
+  selinux-policy-targeted
+  systemd
+  systemd
+  systemd
+  systemd
+  systemd
+  /usr/bin/bash
+---- rpm -qpl（文件）
+  /usr/lib/systemd/system/historic-routing-egpd.service.d
+  /usr/lib/systemd/system/historic-routing-egpd.service.d/20-selinux.conf
+  /usr/lib/systemd/system/historic-routing-zebra.service.d
+  /usr/lib/systemd/system/historic-routing-zebra.service.d/20-selinux.conf
+  /usr/libexec/historic-routing
+  /usr/libexec/historic-routing/selinux-policy
+  /usr/share/doc/historic-routing-selinux
+  /usr/share/doc/historic-routing-selinux/README.md
+  /usr/share/licenses/historic-routing-selinux
+  /usr/share/licenses/historic-routing-selinux/LICENSE
+  /usr/share/selinux/packages/targeted/historic_routing_egp.pp.bz2
+  /var/lib/selinux/targeted/active/modules/200/historic_routing_egp
+
+================ rpmlint
+============================ rpmlint session starts ============================
+rpmlint: 2.8.0
+configuration:
+    /usr/lib/python3.13/site-packages/rpmlint/configdefaults.toml
+    /etc/xdg/rpmlint/fedora-spdx-licenses.toml
+    /etc/xdg/rpmlint/fedora.toml
+    /etc/xdg/rpmlint/scoring.toml
+    /etc/xdg/rpmlint/users-groups.toml
+    /etc/xdg/rpmlint/warn-on-functions.toml
+rpmlintrc: [PosixPath('<work>')]
+checks: 32, packages: 3
+
+historic-routing-selinux.noarch: W: zero-perms-ghost Suggestion: "%ghost %attr(0644,root,root) /var/lib/selinux/targeted/active/modules/200/historic_routing_egp"
+historic-routing-selinux.noarch: W: files-duplicate /usr/lib/systemd/system/historic-routing-zebra.service.d/20-selinux.conf /usr/lib/systemd/system/historic-routing-egpd.service.d/20-selinux.conf
+historic-routing-selinux.noarch: E: description-line-too-long Optional, experimental targeted SELinux profile for the packaged runtime and EGP.
+historic-routing-selinux.noarch: E: description-line-too-long Installs and removes only its priority-200 module, project labels and unit drop-ins.
+historic-routing-selinux.noarch: E: description-line-too-long Requires stopped project services on first installation; never enables or starts them.
+ 3 packages and 0 specfiles checked; 3 errors, 2 warnings, 67 filtered, 3 badness; has taken 0.3 s
+(rpmlint 退出码 64；上面的 warning 逐条在报告里说明)
+
+[21:52:27Z] package-rpm.sh         RPM 目录: <work>
+<work>
+<work>
+<work>

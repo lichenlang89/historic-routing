@@ -166,3 +166,11 @@ cd lab/egp && LAB_PREFIX=/opt/historic-routing/27f287be9 ./lab.sh up && ./lab.sh
 
 安装服务、升级/回退的复测入口见[packaging/TESTING.md](../TESTING.md)。
 默认日志使用 stdout/journal；升级保留旧配置时请复核 `.rpmnew`，旧的 prefix/run 日志路径不会自动改写。
+
+## 可选 SELinux 子包
+
+同一次构建另生成 noarch `historic-routing-selinux`，启用 targeted 受限服务部署时
+正常 dnf 安装匹配的三个包；core 两包仍可单独安装。
+依赖、首次停机、升级/回退及卸载行为见[SELinux profile](../selinux/README.md)。
+策略安装由子包负责，不再要求手工 semodule、fcontext 或环境 drop-in；
+RPM CI 也使用正常 dnf 依赖解析，不能把 --nodeps 结果当作依赖已验证。

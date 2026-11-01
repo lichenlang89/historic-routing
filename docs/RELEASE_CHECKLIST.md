@@ -96,3 +96,15 @@ git push origin v0.1.0
 仍不发布正式版：需要 SELinux 策略的安装/升级/卸载集成及目标平台覆盖；
 x86_64/amd64 本轮由维护者暂缓，Debian 完整宿主内核未测。历史实现互通、长期丢包/乱序、
 多邻居压力按独立后续任务推进，Issue #14 保持开放。
+
+
+## SELinux 包管理集成候选（2026-10-31）
+
+可选 targeted profile 已有 noarch RPM，实现模块/定向标签/vendor drop-in 的安装、
+升级/回退与卸载；两台 ARM 主机完成真实包矩阵，RHEL Enforcing 下两个 daemon 为 frr_t。
+共享运行目录改由 Zebra 独有，RPM/DEB 的 egpd stop/start 不再丢失活跃 ZAPI socket。
+具体产物、首次失败和直接证据见[本轮记录](evidence/selinux-package-20261031/README.md)。
+
+这覆盖了本轮选定平台的手动 profile 包管理集成门禁；仍为开发候选，待 PR 审查。
+没有声称 x86/完整 Debian 宿主或全部 SELinux 发行版已验收，历史互通/长期压力按 #16
+后续推进，#14 保持开放，不自动发布正式版。

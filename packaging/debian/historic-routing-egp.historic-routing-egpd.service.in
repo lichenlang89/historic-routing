@@ -10,8 +10,6 @@ ConditionPathExists=@PREFIX@/sbin/egpd
 
 [Service]
 Type=simple
-RuntimeDirectory=historic-routing/frr
-RuntimeDirectoryMode=0755
 ExecStart=@PREFIX@/sbin/egpd \
 	-f @PREFIX@/etc/frr/egpd.conf \
 	-i @RUNSTATEDIR@/frr/egpd.pid \

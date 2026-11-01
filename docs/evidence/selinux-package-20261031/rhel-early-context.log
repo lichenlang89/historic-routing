@@ -1,0 +1,88 @@
+historic-routing-runtime-0.1.1-0.4.devfd0c3ed.el10.aarch64
+historic-routing-egp-0.1.1-0.4.devfd0c3ed.el10.aarch64
+COMMAND dnf '--disablerepo=*' -y install <work> RC 1
+Updating Subscription Management repositories.
+Dependencies resolved.
+================================================================================
+ Package                  Arch   Version                     Repository    Size
+================================================================================
+Installing:
+ historic-routing-selinux noarch 0.1.1-0.4.devfd0c3ed.el10   @commandline  22 k
+
+Transaction Summary
+================================================================================
+Install  1 Package
+
+Total size: 22 k
+Installed size: 26 k
+Downloading Packages:
+Running transaction check
+Transaction check succeeded.
+Running transaction test
+Transaction test succeeded.
+Running transaction
+  Preparing        :                                                        1/1
+  Running scriptlet: historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.n   1/1
+Stop historic-routing-egpd.service before first installing the SELinux profile
+error: %prein(historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.noarch) scriptlet failed, exit status 1
+
+Error in PREIN scriptlet in rpm package historic-routing-selinux
+Installed products updated.
+Error: Transaction failed
+
+Failed:
+  historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.noarch
+
+
+PASS live first-install refused without restarting services
+STOPPED_UNIT historic-routing-egpd.service ActiveState=inactive MainPID=0
+STOPPED_UNIT historic-routing-zebra.service ActiveState=inactive MainPID=0
+COMMAND dnf '--disablerepo=*' -y install <work> RC 0
+Updating Subscription Management repositories.
+Dependencies resolved.
+================================================================================
+ Package                  Arch   Version                     Repository    Size
+================================================================================
+Installing:
+ historic-routing-selinux noarch 0.1.1-0.4.devfd0c3ed.el10   @commandline  22 k
+
+Transaction Summary
+================================================================================
+Install  1 Package
+
+Total size: 22 k
+Installed size: 26 k
+Downloading Packages:
+Running transaction check
+Transaction check succeeded.
+Running transaction test
+Transaction test succeeded.
+Running transaction
+  Preparing        :                                                        1/1
+  Running scriptlet: historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.n   1/1
+  Installing       : historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.n   1/1
+  Running scriptlet: historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.n   1/1
+Installed products updated.
+
+Installed:
+  historic-routing-selinux-0.1.1-0.4.devfd0c3ed.el10.noarch
+
+Complete!
+
+STOPPED_UNIT historic-routing-egpd.service ActiveState=inactive MainPID=0
+STOPPED_UNIT historic-routing-zebra.service ActiveState=inactive MainPID=0
+EXACT_CONFIG frr.conf 924ad51f052ede6d186803a20d437a1dcd12229c61b1054099d520e6f6e26482
+EXACT_CONFIG egpd.conf fc6315eaf971ab62b8454391380a47b74b234011cf460074a0aaf6ffc925b8dd
+EXACT_CONFIG vtysh.conf e7f2602341ca3386776a69ee70948861974b90876b41c90de9664de6b77523a9
+EXACT_CONFIG daemons 2d6ee3f80d483267331d3ccc698db25a632e18be3f363cc484ca1fd42b139278
+DOMAIN historic-routing-egpd.service MainPID=2693478 label=system_u:system_r:init_t:s0
+Traceback (most recent call last):
+  File "<work>", line 137, in <module>
+    start()
+  File "<work>", line 91, in start
+    assert (':frr_t:' in label) == profile, label
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: system_u:system_r:init_t:s0
+Failed to reset failed state of unit historic-routing-egpd.service: Unit historic-routing-egpd.service not loaded.
+Failed to reset failed state of unit historic-routing-zebra.service: Unit historic-routing-zebra.service not loaded.
+NATIVE_SERVICE_RC=1

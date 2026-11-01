@@ -1,0 +1,134 @@
+historic-routing-runtime-0.1.1-0.4.devfd0c3ed.fc42.aarch64
+historic-routing-egp-0.1.1-0.4.devfd0c3ed.fc42.aarch64
+OLD_PAIRED_VERSION=0.1.1-0.4.devfd0c3ed.fc42
+STOPPED_UNIT historic-routing-egpd.service ActiveState=inactive MainPID=0
+STOPPED_UNIT historic-routing-zebra.service ActiveState=inactive MainPID=0
+MISMATCH_PROBE rc=2
+error: Failed dependencies:
+	historic-routing-abi = 51c0197-27f287be9 is needed by historic-routing-egp-0.1.1-0.5.devretain.fc42.aarch64
+	historic-routing-runtime(aarch-64) = 0.1.1-0.5.devretain.fc42 is needed by historic-routing-egp-0.1.1-0.5.devretain.fc42.aarch64
+
+MISMATCH_PROBE rc=2
+error: Failed dependencies:
+	historic-routing-abi = fd0c3ed-27f287be9 is needed by (installed) historic-routing-egp-0.1.1-0.4.devfd0c3ed.fc42.aarch64
+	historic-routing-runtime = 0.1.1-0.4.devfd0c3ed.fc42 is needed by (installed) historic-routing-selinux-0.1.1-0.4.devfd0c3ed.fc42.noarch
+	historic-routing-runtime(aarch-64) = 0.1.1-0.4.devfd0c3ed.fc42 is needed by (installed) historic-routing-egp-0.1.1-0.4.devfd0c3ed.fc42.aarch64
+
+MISMATCH_PROBE rc=2
+error: Failed dependencies:
+	historic-routing-runtime = 0.1.1-0.5.devretain.fc42 is needed by historic-routing-selinux-0.1.1-0.5.devretain.fc42.noarch
+
+Updating and loading repositories:
+Repositories loaded.
+Package                               Arch    Version                   Repository        Size
+Upgrading:
+ historic-routing-egp                 aarch64 0.1.1-0.5.devretain.fc42  @commandline 214.3 KiB
+   replacing historic-routing-egp     aarch64 0.1.1-0.4.devfd0c3ed.fc42 @commandline 214.3 KiB
+ historic-routing-runtime             aarch64 0.1.1-0.5.devretain.fc42  @commandline  10.0 MiB
+   replacing historic-routing-runtime aarch64 0.1.1-0.4.devfd0c3ed.fc42 @commandline  10.0 MiB
+ historic-routing-selinux             noarch  0.1.1-0.5.devretain.fc42  @commandline  25.6 KiB
+   replacing historic-routing-selinux noarch  0.1.1-0.4.devfd0c3ed.fc42 @commandline  25.6 KiB
+
+Transaction Summary:
+ Upgrading:          3 packages
+ Replacing:          3 packages
+
+Total size of inbound packages is 2 MiB. Need to download 0 B.
+After this operation, 626 B extra will be used (install 10 MiB, remove 10 MiB).
+Running transaction
+[1/8] Verify package files              100% | 750.0   B/s |   3.0   B |  00m00s
+[2/8] Prepare transaction               100% |  61.0   B/s |   6.0   B |  00m00s
+[3/8] Upgrading historic-routing-runtim 100% |  53.8 MiB/s |  10.0 MiB |  00m00s
+[4/8] Upgrading historic-routing-egp-0: 100% |   1.5 MiB/s | 216.0 KiB |  00m00s
+[5/8] Upgrading historic-routing-selinu 100% |   6.0 KiB/s |  27.5 KiB |  00m05s
+[6/8] Removing historic-routing-selinux 100% |  61.0   B/s |  12.0   B |  00m00s
+[7/8] Removing historic-routing-egp-0:0 100% |  66.0   B/s |  10.0   B |  00m00s
+[8/8] Removing historic-routing-runtime 100% |  40.0   B/s |  26.0   B |  00m01s
+Warning: skipped OpenPGP checks for 3 packages from repository: @commandline
+Complete!
+
+STOPPED_UNIT historic-routing-egpd.service ActiveState=inactive MainPID=0
+STOPPED_UNIT historic-routing-zebra.service ActiveState=inactive MainPID=0
+SELINUX_UNIT historic-routing-egpd.service mode=Disabled MainPID=1275082 label=kernel
+SELINUX_UNIT historic-routing-zebra.service mode=Disabled MainPID=1275076 label=kernel
+PASS paired upgrade: configuration retained, no automatic start, RIB/kernel recovered; 0.1.1-0.5.devretain.fc42
+STOPPED_UNIT historic-routing-egpd.service ActiveState=inactive MainPID=0
+STOPPED_UNIT historic-routing-zebra.service ActiveState=inactive MainPID=0
+Updating and loading repositories:
+Repositories loaded.
+Package                               Arch    Version                   Repository        Size
+Downgrading:
+ historic-routing-egp                 aarch64 0.1.1-0.4.devfd0c3ed.fc42 @commandline 214.3 KiB
+   replacing historic-routing-egp     aarch64 0.1.1-0.5.devretain.fc42  @commandline 214.3 KiB
+ historic-routing-runtime             aarch64 0.1.1-0.4.devfd0c3ed.fc42 @commandline  10.0 MiB
+   replacing historic-routing-runtime aarch64 0.1.1-0.5.devretain.fc42  @commandline  10.0 MiB
+ historic-routing-selinux             noarch  0.1.1-0.4.devfd0c3ed.fc42 @commandline  25.6 KiB
+   replacing historic-routing-selinux noarch  0.1.1-0.5.devretain.fc42  @commandline  25.6 KiB
+
+Transaction Summary:
+ Replacing:          3 packages
+ Downgrading:        3 packages
+
+Total size of inbound packages is 2 MiB. Need to download 0 B.
+After this operation, 626 B will be freed (install 10 MiB, remove 10 MiB).
+Running transaction
+[1/8] Verify package files              100% | 750.0   B/s |   3.0   B |  00m00s
+[2/8] Prepare transaction               100% |  64.0   B/s |   6.0   B |  00m00s
+[3/8] Downgrading historic-routing-runt 100% |  61.8 MiB/s |  10.0 MiB |  00m00s
+[4/8] Downgrading historic-routing-egp- 100% |   1.4 MiB/s | 216.0 KiB |  00m00s
+[5/8] Downgrading historic-routing-seli 100% |   5.9 KiB/s |  27.5 KiB |  00m05s
+[6/8] Removing historic-routing-selinux 100% |  82.0   B/s |  12.0   B |  00m00s
+[7/8] Removing historic-routing-egp-0:0 100% |  65.0   B/s |  10.0   B |  00m00s
+[8/8] Removing historic-routing-runtime 100% |  36.0   B/s |  26.0   B |  00m01s
+Warning: skipped OpenPGP checks for 3 packages from repository: @commandline
+Complete!
+
+STOPPED_UNIT historic-routing-egpd.service ActiveState=inactive MainPID=0
+STOPPED_UNIT historic-routing-zebra.service ActiveState=inactive MainPID=0
+SELINUX_UNIT historic-routing-egpd.service mode=Disabled MainPID=1276685 label=kernel
+SELINUX_UNIT historic-routing-zebra.service mode=Disabled MainPID=1276679 label=kernel
+PASS paired rollback: configuration retained, RIB/kernel recovered; 0.1.1-0.4.devfd0c3ed.fc42
+STOPPED_UNIT historic-routing-egpd.service ActiveState=inactive MainPID=0
+STOPPED_UNIT historic-routing-zebra.service ActiveState=inactive MainPID=0
+Updating and loading repositories:
+Repositories loaded.
+Package                               Arch    Version                   Repository        Size
+Upgrading:
+ historic-routing-egp                 aarch64 0.1.1-0.5.devretain.fc42  @commandline 214.3 KiB
+   replacing historic-routing-egp     aarch64 0.1.1-0.4.devfd0c3ed.fc42 @commandline 214.3 KiB
+ historic-routing-runtime             aarch64 0.1.1-0.5.devretain.fc42  @commandline  10.0 MiB
+   replacing historic-routing-runtime aarch64 0.1.1-0.4.devfd0c3ed.fc42 @commandline  10.0 MiB
+ historic-routing-selinux             noarch  0.1.1-0.5.devretain.fc42  @commandline  25.6 KiB
+   replacing historic-routing-selinux noarch  0.1.1-0.4.devfd0c3ed.fc42 @commandline  25.6 KiB
+
+Transaction Summary:
+ Upgrading:          3 packages
+ Replacing:          3 packages
+
+Total size of inbound packages is 2 MiB. Need to download 0 B.
+After this operation, 626 B extra will be used (install 10 MiB, remove 10 MiB).
+Running transaction
+[1/8] Verify package files              100% | 750.0   B/s |   3.0   B |  00m00s
+[2/8] Prepare transaction               100% |  64.0   B/s |   6.0   B |  00m00s
+[3/8] Upgrading historic-routing-runtim 100% |  65.9 MiB/s |  10.0 MiB |  00m00s
+[4/8] Upgrading historic-routing-egp-0: 100% |   1.5 MiB/s | 216.0 KiB |  00m00s
+[5/8] Upgrading historic-routing-selinu 100% |   6.3 KiB/s |  27.5 KiB |  00m04s
+[6/8] Removing historic-routing-selinux 100% |  82.0   B/s |  12.0   B |  00m00s
+[7/8] Removing historic-routing-egp-0:0 100% |  76.0   B/s |  10.0   B |  00m00s
+[8/8] Removing historic-routing-runtime 100% |  39.0   B/s |  26.0   B |  00m01s
+Warning: skipped OpenPGP checks for 3 packages from repository: @commandline
+Complete!
+
+STOPPED_UNIT historic-routing-egpd.service ActiveState=inactive MainPID=0
+STOPPED_UNIT historic-routing-zebra.service ActiveState=inactive MainPID=0
+SELINUX_UNIT historic-routing-egpd.service mode=Disabled MainPID=1277468 label=kernel
+SELINUX_UNIT historic-routing-zebra.service mode=Disabled MainPID=1277463 label=kernel
+PASS final paired upgrade and systemctl reload
+RESTORED_CONFIG /opt/historic-routing/27f287be9/etc/frr/frr.conf sha256=924ad51f052ede6d186803a20d437a1dcd12229c61b1054099d520e6f6e26482
+RESTORED_CONFIG /opt/historic-routing/27f287be9/etc/frr/egpd.conf sha256=fc6315eaf971ab62b8454391380a47b74b234011cf460074a0aaf6ffc925b8dd
+RESTORED_CONFIG /opt/historic-routing/27f287be9/etc/frr/vtysh.conf sha256=e7f2602341ca3386776a69ee70948861974b90876b41c90de9664de6b77523a9
+RESTORED_CONFIG /opt/historic-routing/27f287be9/etc/frr/daemons sha256=2d6ee3f80d483267331d3ccc698db25a632e18be3f363cc484ca1fd42b139278
+PASS original configuration restored after lifecycle tests
+Failed to reset failed state of unit historic-routing-egpd.service: Unit historic-routing-egpd.service not loaded.
+Failed to reset failed state of unit historic-routing-zebra.service: Unit historic-routing-zebra.service not loaded.
+NATIVE_SERVICE_RC=0

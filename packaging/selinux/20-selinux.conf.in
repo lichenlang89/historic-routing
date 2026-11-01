@@ -1,0 +1,4 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+[Service]
+Environment=HOME=@RUNSTATEDIR@/frr PYTHONNOUSERSITE=1
+ExecStartPre=/usr/libexec/historic-routing/selinux-policy prepare

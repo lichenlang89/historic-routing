@@ -30,10 +30,16 @@ def assert_services_stopped(target, units):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--config', required=True)
-    parser.add_argument('--old', nargs=2, required=True)
-    parser.add_argument('--new', nargs=2, required=True)
+    parser.add_argument('--old', nargs='+', required=True)
+    parser.add_argument('--new', nargs='+', required=True)
+    parser.add_argument('--selinux', action='store_true', help='verify a matching RPM profile bundle')
     args = parser.parse_args()
     config = json.loads(Path(args.config).read_text())
+    count = 3 if args.selinux else 2
+    if len(args.old) != count or len(args.new) != count:
+        parser.error('expected %d packages in both --old and --new' % count)
+    if args.selinux and (config['packages'] != 'rpm' or config.get('selinux_mode') not in ('Enforcing', 'Disabled')):
+        parser.error('--selinux requires RPM and explicit selinux_mode Enforcing or Disabled')
     prefix = config.get('prefix', '/opt/historic-routing/27f287be9')
     routers = {name: installed.Node(config[name], prefix) for name in ('target', 'peer')}
     target = routers['target']
@@ -43,6 +49,8 @@ def main():
     lab.vty = lambda node, daemon, *commands: routers[node].vty(daemon, commands)
     units = ['historic-routing-egpd.service', 'historic-routing-zebra.service']
     names = ['historic-routing-runtime', 'historic-routing-egp']
+    if args.selinux:
+        names.append('historic-routing-selinux')
 
     def healthy():
         return (lab.both_up() and lab.both_routes()
@@ -55,7 +63,7 @@ def main():
         else:
             text = target.run('dpkg-query', '-W', '-f', '${Version}\n', *names).stdout
         values = text.strip().splitlines()
-        assert len(values) == 2 and values[0] == values[1], text
+        assert len(values) == len(names) and len(set(values)) == 1, text
         return values[0]
 
     def stop():
@@ -94,6 +102,17 @@ def main():
         target.run('systemctl', 'start', *reversed(units))
         lab.wait('installed services recover RIB/kernel routes', healthy, timeout=60)
         assert target.pid() != '0'
+        if args.selinux:
+            mode = target.run('getenforce').stdout.strip()
+            assert mode == config['selinux_mode'], mode
+            modules = target.run('semodule', '-s', 'targeted', '-lfull').stdout
+            assert any(line.split()[:2] == ['200', 'historic_routing_egp'] for line in modules.splitlines()), modules
+            for unit in units:
+                pid = target.run('systemctl', 'show', unit, '-p', 'MainPID', '--value').stdout.strip()
+                label = target.run('ps', '-p', pid, '-o', 'label=').stdout.strip()
+                print('SELINUX_UNIT %s mode=%s MainPID=%s label=%s' % (unit, mode, pid, label), flush=True)
+                if mode == 'Enforcing':
+                    assert ':frr_t:' in label, label
 
     def apply(packages, downgrade=False):
         if config['packages'] == 'rpm':
