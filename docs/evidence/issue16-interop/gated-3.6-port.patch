@@ -1,0 +1,187 @@
+--- a/src/egp/egp.c	2000-02-19 05:35:38.000000000 +0800
++++ b/src/egp/egp.c	2026-11-01 23:48:03.460940525 +0800
+@@ -2504,19 +2504,30 @@
+ egp_check_packet (egp_neighbor * ngp, struct ip * ip, egp_packet * egp, size_t egplen)
+ {
+     /* Remove IP header from length */
+-    egplen -= task_parse_ip_hl(ip);
+-
+-    if (egplen != (size_t)ip->ip_len) {
++    {
++	/* PORT(gated-3.6-on-modern-kernel): Linux raw sockets return the IP
++	   header with ip_len in network byte order and still counting that
++	   header, while the BSD ip_input the code was written for had already
++	   converted it and subtracted the header length. Normalise first. */
++	size_t hdrlen = task_parse_ip_hl(ip);
++	eplen_adjust:
++	egplen -= hdrlen;
++	if (egplen != (size_t)(ntohs(ip->ip_len) - hdrlen)) {
+ 	trace_log_tf(ngp->ng_trace_options,
+ 		     0,
+ 		     LOG_ERR,
+-		     ("egp_check_packet: length mismatch: read: %u, ip_len: %u",
++		     ("egp_check_packet: LENFIX2 mismatch: read: %u, raw: %u, ntohs: %u, hdr: %u",
+ 		      egplen,
+-		      ip->ip_len));
++		      (unsigned)ip->ip_len,
++		      (unsigned)ntohs(ip->ip_len),
++		      (unsigned)hdrlen));
+ 	return 0;
++	}
+     }
+     
+-    if (ip->ip_off & ~IP_DF) {
++    /* PORT(gated-3.6-on-modern-kernel): ip_off is network byte order on
++       Linux; a plain host-order test flags every DF packet as fragmented. */
++    if (ntohs(ip->ip_off) & ~IP_DF) {
+ 	trace_log_tf(ngp->ng_trace_options,
+ 		     0,
+ 		     LOG_ERR,
+--- a/src/egp/egp_init.c	2000-02-19 05:35:39.000000000 +0800
++++ b/src/egp/egp_init.c	2026-11-01 23:22:03.866992131 +0800
+@@ -625,6 +625,18 @@
+ 	}
+     }
+ 
++    if (!ifap && BIT_TEST(ngp->ng_options, NGO_LCLADDR) && ngp->ng_lcladdr) {
++	/* PORT(gated-3.6-on-modern-kernel): the bundled kernel interface reader
++	   enumerates no usable interface here, so fall back to an entry built from
++	   the explicitly configured local address. EGP only needs ifa_addr_local
++	   for bind(); routing stays with the kernel. */
++	static if_addr egp_synthetic_ifa;
++	bzero((caddr_t) &egp_synthetic_ifa, sizeof(egp_synthetic_ifa));
++	egp_synthetic_ifa.ifa_addr_local = ngp->ng_lcladdr->ifae_addr;
++	BIT_SET(egp_synthetic_ifa.ifa_state, IFS_UP);
++	ifap = &egp_synthetic_ifa;
++    }
++
+     return ifap;
+ }
+ 
+--- a/src/gii/gii.h	2000-03-18 03:53:30.000000000 +0800
++++ b/src/gii/gii.h	2026-11-01 23:09:27.671090176 +0800
+@@ -179,20 +179,20 @@
+ int             gii_showbgpsum (gii_ctl_t *, char [GIITOKENLEN][GIINBMAXTOKENS], int);
+ int             gii_showbgppeeras (gii_ctl_t *, char [GIITOKENLEN][GIINBMAXTOKENS], int);
+ int             gii_showbgpaspath (gii_ctl_t *, char [GIITOKENLEN][GIINBMAXTOKENS], int);
+-int		gii_showbgpcidronly (gii_ctl_t *, char [][], int);
+-int		gii_showbgpexpression (gii_ctl_t *, char [][], int);
+-int		gii_showbgpfilter (gii_ctl_t *, char [][], int);
+-int		gii_showbgpinconsistent (gii_ctl_t *, char [][], int);
+-int		gii_showbgpneighbors (gii_ctl_t *, char [][], int);
+-int		gii_showbgppaths (gii_ctl_t *, char [][], int);
+-int		gii_showbgppeergroup (gii_ctl_t *, char [][], int);
+-int		gii_showbgproutes (gii_ctl_t *, char [][], int);
+-int		gii_showriproutes (gii_ctl_t *, char [][], int);
++int		gii_showbgpcidronly (gii_ctl_t *, char [GIITOKENLEN][GIINBMAXTOKENS], int);
++int		gii_showbgpexpression (gii_ctl_t *, char [GIITOKENLEN][GIINBMAXTOKENS], int);
++int		gii_showbgpfilter (gii_ctl_t *, char [GIITOKENLEN][GIINBMAXTOKENS], int);
++int		gii_showbgpinconsistent (gii_ctl_t *, char [GIITOKENLEN][GIINBMAXTOKENS], int);
++int		gii_showbgpneighbors (gii_ctl_t *, char [GIITOKENLEN][GIINBMAXTOKENS], int);
++int		gii_showbgppaths (gii_ctl_t *, char [GIITOKENLEN][GIINBMAXTOKENS], int);
++int		gii_showbgppeergroup (gii_ctl_t *, char [GIITOKENLEN][GIINBMAXTOKENS], int);
++int		gii_showbgproutes (gii_ctl_t *, char [GIITOKENLEN][GIINBMAXTOKENS], int);
++int		gii_showriproutes (gii_ctl_t *, char [GIITOKENLEN][GIINBMAXTOKENS], int);
+ void		gii_job_pathwalk (task_job *);
+ void		gii_job_walk_bgp (task_job *);
+ void		gii_job_walk_rip (task_job*);
+ void		gii_job_walk_bgp_comm (task_job*);
+ void		gii_job_walk_bgp_cidr (task_job*);
+-int		gii_showripsummary (gii_ctl_t *, char [][], int);
+-int		gii_showriptag (gii_ctl_t *, char [][], int);
++int		gii_showripsummary (gii_ctl_t *, char [GIITOKENLEN][GIINBMAXTOKENS], int);
++int		gii_showriptag (gii_ctl_t *, char [GIITOKENLEN][GIINBMAXTOKENS], int);
+ void		gii_job_walk_rip_tag (task_job*);
+--- a/src/gated/list.h	1999-08-31 06:29:38.000000000 +0800
++++ b/src/gated/list.h	2026-11-01 23:09:30.684721956 +0800
+@@ -86,7 +86,7 @@
+         if (((list_t *)elm)->l_prev) \
+                 ((list_t *)elm)->l_prev->l_next = ((list_t *)elm)->l_next; \
+         if (((list_t *)start) == ((list_t *)elm)) \
+-                ((list_t *)start) = ((list_t *)elm)->l_next; \
++                (start) = ((list_t *)elm)->l_next; \
+ }
+ 
+ #define LIST_ADD(start, elm) { \
+@@ -94,13 +94,13 @@
+         ((list_t *)elm)->l_next = ((list_t *)start); \
+         if (((list_t *)elm)->l_next) \
+                 ((list_t *)elm)->l_next->l_prev = ((list_t *)elm); \
+-        ((list_t *)start) = ((list_t *)elm); \
++        (start) = ((list_t *)elm); \
+ }
+ 
+ #define LIST_ADD_LAST(start, elm) { \
+ 	list_t *l; \
+ 	if (!((list_t *)(start))) { \
+-		((list_t *)start) = ((list_t *)elm); \
++		(start) = ((list_t *)elm); \
+ 		((list_t *)elm)->l_prev = NULL; \
+ 	} \
+ 	else { \
+--- a/src/gated/lexer.l	2000-03-17 14:00:20.000000000 +0800
++++ b/src/gated/lexer.l	2026-11-01 23:09:46.397836290 +0800
+@@ -178,7 +178,7 @@
+ 
+ #define	YYTEXT	yytext
+ 
+-int yylineno = 0;
++extern int yylineno;
+ 
+ #undef	YY_INPUT
+ #define	YY_INPUT(buf, result, max_size) \
+--- a/src/krt_os/krt_ifread_netlink.c	1999-12-14 11:20:12.000000000 +0800
++++ b/src/krt_os/krt_ifread_netlink.c	2026-11-01 23:33:19.021614662 +0800
+@@ -126,10 +126,17 @@
+ 				ifi.ifi_state |= IFS_BROADCAST;
+ 				break;
+ 			case IFA_ADDRESS:
+-				ifi.ifi_addr_remote = 
+-				    sockdup(
+-				       sockbuild_in(0, *(__u32*)RTA_DATA(rta)));
+-				ifi.ifi_state |= IFS_POINTOPOINT;
++				/* PORT(gated-3.6-on-modern-kernel): current kernels send
++				   IFA_ADDRESS for ordinary interfaces too, where it equals
++				   IFA_LOCAL. Treating that as a P2P peer made every
++				   interface look like a testing-mode duplicate and be
++				   dropped. Only honor it for real point-to-point links. */
++				if (BIT_TEST(ifl->ifl_state, IFS_POINTOPOINT)) {
++				    ifi.ifi_addr_remote =
++					sockdup(
++					   sockbuild_in(0, *(__u32*)RTA_DATA(rta)));
++				    ifi.ifi_state |= IFS_POINTOPOINT;
++				}
+ 				break;
+ 		}
+ 	}
+@@ -137,7 +144,18 @@
+ 		return;
+ 	}
+ 	if(!ifi.ifi_addr_broadcast){
+-		ifi.ifi_addr_broadcast = sockdup(sockbuild_in(0,0));
++		/* PORT(gated-3.6-on-modern-kernel): some kernels omit
++		   IFA_BROADCAST; derive it instead of leaving 0.0.0.0, which
++		   if_conf_addaddr() rejects as a bogus broadcast address. */
++		if (BIT_TEST(ifi.ifi_state, IFS_BROADCAST)
++		    && ifi.ifi_addr_local && ifi.ifi_netmask
++		    && socktype(ifi.ifi_netmask) == AF_INET) {
++		    u_int32_t a = sock2ip(ifi.ifi_addr_local);
++		    u_int32_t m = sock2ip(ifi.ifi_netmask);
++		    ifi.ifi_addr_broadcast = sockdup(sockbuild_in(0, a | ~m));
++		} else {
++		    ifi.ifi_addr_broadcast = sockdup(sockbuild_in(0,0));
++		}
+ 	}
+  	if(!ifi.ifi_addr_remote) {
+ 		ifi.ifi_addr_remote = sockdup(ifi.ifi_addr_local);
+--- a/src/krt_os/krt_symbols_proc.c	2000-02-19 05:39:35.000000000 +0800
++++ b/src/krt_os/krt_symbols_proc.c	2026-11-01 23:08:48.348321465 +0800
+@@ -95,7 +95,7 @@
+     FILE *fp;
+ 
+ #ifdef	PROTO_INET
+-    resp = (char *) fp = fopen("/proc/net/snmp","r");
++    resp = (char *)(fp = fopen("/proc/net/snmp", "r"));
+     if (fp) {
+ 	resp = fgets(buf, 240, fp);      /* skip header */
+ 	resp = fgets(buf, 6, fp);

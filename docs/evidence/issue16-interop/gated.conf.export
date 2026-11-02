@@ -1,0 +1,13 @@
+# 带 export 策略的配置：export 必须在 egp 语句之后，源用 proto kernel/direct + all
+traceoptions "<rundir>/gated.trace" all;
+autonomoussystem 65002;
+egp yes {
+    preference 140;
+    group peeras 65001 {
+        neighbor 198.18.161.1;
+    };
+};
+export proto egp as 65001 {
+    proto kernel { all; };
+    proto direct { all; };
+};
