@@ -1,0 +1,2 @@
+# gated trace：桥接拓扑下选中的是真实接口 br16，未走 if_addr 合成兜底
+Nov  2 00:11:53 egp_event_start: neighbor 198.18.161.1 AS 65001: local interface 198.18.161.2 (br16)

@@ -7,3 +7,6 @@
 # 抓包与二进制证据不做任何转换
 *.pcap -text
 *.png -text
+
+# 证据目录保存原始日志/第三方补丁，保留其原始空白字节，不参与空白检查
+docs/evidence/** whitespace=-trailing-space,-space-before-tab,-indent-with-non-tab,-tab-in-indent
