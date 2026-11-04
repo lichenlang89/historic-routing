@@ -12,10 +12,11 @@
 | 在现代工具链构建并运行 | 通过（7 个文件的移植补丁，见 §3） |
 | gated ↔ egpd 邻居 Up（双向） | **通过**（2026-11-01 23:50–23:52） |
 | Acquire / Hello / Poll / Update 双向交换 | 通过（抓包可逐字段解码，见 §5） |
-| gated 通告路由（带路由的 Update） | 部分：已发出 25 字节 Update，egpd 未接受 |
+| gated 通告路由（带路由的 Update） | 部分：已发出 25 字节 Update，但两条路由距离均为 255（=撤路），故 egpd 不装表属预期 |
 | 路由安装 / 撤路 / 老化 / Cease / 主动被动 / 定时器协商 | **未验证**（见 §7） |
 
-一句话：**邻居层与报文层互通成立；路由层未打通**，当前卡在 Update 序列号语义差异（§6 P0-1）。
+一句话：**邻居层与报文层互通成立；路由层尚未验证**——对端通告的是一条距离 255（=撤路）
+的 Update，先把有限距离通告跑出来，再谈装表/撤路。
 
 ## 2. 独立实现来源
 
@@ -55,7 +56,11 @@
    减去头长，原代码假设后者。
 10. 同函数：分片判断改为 `ntohs(ip->ip_off) & ~IP_DF`；否则带 DF 的正常报文会被判为分片丢弃。
 11. `src/egp/egp_init.c` `egp_ngp_ifa_select()`：找不到接口且配置了显式 `lcladdr` 时，
-    按该地址合成接口条目（诊断用兜底；最终配置未依赖它）。
+    按该地址合成接口条目。**这是单邻居实验的临时兜底**：它改变接口选择，且对触发兜底的
+    所有邻居共享同一个静态条目。本次记录的 bridge 拓扑实际命中真实接口
+    （`egp_event_start: ... local interface 198.18.161.2 (br16)`，见
+    [`gated-interface-selection.txt`](gated-interface-selection.txt)），因此该分支未被走到；
+    保留它只是为了在 veth/lo 场景下继续排查。
 
 ## 4. 运行边界（实测得出，不是设计意图）
 
@@ -83,31 +88,49 @@ gated 侧（[`gated-egp-trace.txt`](gated-egp-trace.txt)）：
 `egp_state_down: acquired neighbor 198.18.161.1 AS 65001 in PassiveMode`，随后进入 `state Up`，
 `egp_event_hello` / `egp_event_update` / `egp_event_reachability` 在 Up 下持续触发。
 
-线缆：22 帧双向，tcpdump 自带 EGP 解析器可逐字段解码
-（[`interop-neighbors-up.decode.txt`](interop-neighbors-up.decode.txt)、
-[`interop-neighbors-up.pcap`](interop-neighbors-up.pcap)）：
+线缆：pcap 共 22 条记录，按 `(ip_id, 源, 目的, 载荷)` 去重后是 **11 个唯一报文**
+（bridge `br16` 与 veth `hr16b0` 各捕到一次；接口索引 5 / 458）。tcpdump 自带解析器只解出
+其中一部分，文本解码 44 行里 18 行是 `[|egp]`；因此下表用本目录的
+[`decode_egp_pcap.py`](decode_egp_pcap.py)（按 `protocols/egp/src/egp_packet.c` 的布局解码）
+生成，原始输出见 [`interop-neighbors-up.table.txt`](interop-neighbors-up.table.txt)：
 
-```
-EGPv2, length 16 poll state:up net:198.18.161.0                          # 双向都有
-EGPv2, length 21 update unsolicited state:up 198.18.161.0 int 1 ext 0 int 1.1.1.0
-```
+| 时间（相对首帧） | 方向 | 类型 | code | status | U | AS | seq | 长度 | 路由（网络 / 网关 / 距离） |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| +0.000 | .1 → .2 | Reach | 0 | 2 | 0 | 65001 | 2 | 10 | — |
+| +0.001 | .2 → .1 | Reach | 1 | 2 | 0 | 65002 | 2 | 10 | — |
+| +1.001 | .1 → .2 | Poll | 0 | 1 | 0 | 65001 | 3 | 16 | — |
+| +1.001 | .1 → .2 | Update | 0 | 1 | **1** | 65001 | **1** | 21 | 10.0.0.0 / 198.18.161.1 / 1 (int) |
+| +1.002 | .2 → .1 | Poll | 0 | 1 | 0 | 65002 | 2 | 16 | — |
+| +1.002 | .1 → .2 | Update | 0 | 1 | 0 | 65001 | 2 | 21 | 10.0.0.0 / 198.18.161.1 / 1 (int) |
+| +1.002 | .2 → .1 | Update | 0 | 1 | 0 | 65002 | 3 | 25 | 172.16.0.0 / 198.18.161.2 / **255** (int)；198.18.161.0 / 198.18.161.2 / **255** (int) |
+| +30.034 | .1 → .2 | Reach | 0 | 1 | 0 | 65001 | 3 | 10 | — |
+| +30.034 | .2 → .1 | Reach | 1 | 1 | 0 | 65002 | 3 | 10 | — |
+| +60.080 | .1 → .2 | Reach | 0 | 1 | 0 | 65001 | 3 | 10 | — |
+| +60.081 | .2 → .1 | Reach | 1 | 1 | 0 | 65002 | 3 | 10 | — |
 
-即 Acquire → Confirm 后两侧进入 Up，Poll/Update 双向流动，AS 与状态字段与配置一致。
+即 Acquire → Confirm 后两侧进入 Up，Reach/Poll/Update 双向流动，AS 与状态字段与配置一致。
 
-随后加上 export 策略，gated 的 RIB 里出现 `ADD 172.16 255.255 gw 172.16.16.1 Kernel ...
-stub0`，并发出了一次 **25 字节** EGP 报文（带路由的 Update），但 egpd 侧仍是 `Prefixes 0`、
-没有 `G>` 路由、内核无 172.16 表项（[`gated-export-and-seq.txt`](gated-export-and-seq.txt)）。
+关键点：gated 那条 25 字节 Update 里两条路由的**距离都是 255**。EGP 中 255 表示
+"不可达/撤销"，因此 egpd 侧 `Prefixes 0`、无 `G>` 路由、内核无 172.16 表项**是预期行为**，
+不能据此判定为接收路径缺陷（见 §6 P0-2 的改写）。
 
 ## 6. 当前问题清单（按严重度）
 
-**P0-1 Update 序列号语义不一致（阻塞路由层）**
+**P0-1 Update 序列号语义待定（不预设是 egpd 的问题）**
 gated 报 `egp_event_update: neighbor 198.18.161.1 AS 65001: Sequence 1 expected 2`。
-两侧对"Update 的 S 何时推进"理解不同：可能是 egpd 未按 gated 期望递增，也可能是 gated
-沿用了旧行为。需要按 RFC 904 §4.x 与两侧实现逐报文比对后判定归属，不能直接改 egpd 迁就 gated。
+抓包可见 egpd 在收到 gated 的 `Poll seq=2` 之前先发了一帧 **U=1、seq=1** 的 Update，
+随后对那个 Poll 正常回复 **U=0、seq=2**。RFC 904 §4.1.1 要求"回复与 indication 使用最近
+收到的命令序号 R"，而此前 gated 发的 `Reach code=1 seq=2` 属于回复，不能用来更新 R。
+因此现有证据不足以判定归属：需要从 Acquire 开始抓一整轮会话，把 gated 发出的命令、egpd 的 R、
+gated 当时的 S 逐帧对齐，再判断是 egpd 的 R 初始化、还是一侧的状态推进/报文时序问题。
+**不能为了让对端接受就改 egpd。**
 
-**P0-2 egpd 未安装 gated 通告的路由**
-即便 gated 发出 25 字节 Update，egpd `Prefixes` 仍为 0。除 P0-1 外还需确认 egpd 的接收路径
-是否因 AS/网关分类把该 Update 判为无效（gated 通告的网关是它自己 172.16.16.1/198.18.161.2）。
+**P0-2 GateD 侧通告距离为 255，需验证有限距离通告**
+pcap 解码显示 gated 的 25 字节 Update 里 `172.16.0.0` 与 `198.18.161.0` 的距离都是 **255**
+（EGP 语义 = 不可达/撤销），网关是同网段对端地址 `198.18.161.2`。所以 egpd 侧 `Prefixes 0`
+是**预期结果**，不是接收路径缺陷。下一步是让 gated 以 <255 的距离导出（export 语句加
+`metric`，其 EGP 距离范围 0–255、0 最优），在同一轮里保存 pcap、egpd Update 接收计数、
+Zebra RIB 与内核路由，再判定装表是否正确。
 
 **P1-1 gated 无法在内核 RIB 生效（`-n` 的代价）**
 路由级"学到→装表→撤路→恢复"只能在 gated 自身 RIB 观察，不能在 gated 侧内核验证。
