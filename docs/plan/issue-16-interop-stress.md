@@ -62,13 +62,13 @@
   - 列出规范差异清单（本实现 vs RFC 904/888 vs gated 行为），不把 stub 角色差异写成缺陷。
 - 回滚：只删除本任务创建的容器、netns、运行目录与 gated 构建目录；不动宿主 systemd 的 FRR 与本项目 unit。
 - 证据：`docs/evidence/issue16-interop/`（抓包 pcap + 双方日志 + 源提交与 gated 补丁记录）。
-- **当前状态（2026-11-02）：部分通过。** gated 3.6 在修正 7 处现代内核/工具链差异后，
-  与 egpd 双向邻居 **Up**，抓包可见 Reach/Poll/Update 双向交换（AS 65001↔65002、state up）。
-  gated 加 export 策略后发出了带路由的 Update，但**两条路由距离都是 255（=撤路）**，
-  所以 egpd 侧 `Prefixes 0` 是预期行为；下一步需要 gated 以有限距离导出后复测装表。
-  Update 序列号差异（gated 报 `Sequence 1 expected 2`）归属未定，需按 RFC 904 §4.1.1
-  抓完整会话（从 Acquire 起）逐帧对齐后再判断。
-  仍未验证：路由安装/撤路/老化恢复、Cease、主动/被动组合、定时器协商比对、规范差异清单。
+- **当前状态（2026-11-05）：S-A 的邻居层、报文层与单条路由装表均已通过。**
+  gated 3.6 在修正 7 处现代内核/工具链差异后与 egpd 双向邻居 **Up**；export 加 `metric 1`
+  后同一会话内通告 `172.16.0.0` 距离 1，egpd 侧 `Up active 2`、Zebra `G>* [140/1]`、
+  内核 `proto zebra` 三层都装表。此前"距离 255 导致不装表"已定位为 export 缺 `metric`。
+  Update 序列号差异（gated 报 `Sequence 1 expected 2`）按 RFC 904 §4.1.1 判为对端更严格，
+  不是 egpd 缺陷。
+  仍未验证：撤路/老化恢复、反向安装、Cease、主动/被动组合、定时器协商比对、规范差异清单。
   详见 [互通记录](../evidence/issue16-interop/README.md)。
 
 ### S-B 长期丢包/乱序

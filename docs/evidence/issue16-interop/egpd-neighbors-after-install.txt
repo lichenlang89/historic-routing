@@ -1,0 +1,3 @@
+EGP local AS 65001, zebra connected, 1 network(s) configured
+Peer             AS     State        Mode     Prefixes
+198.18.161.2 65002 Up active 2

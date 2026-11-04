@@ -12,11 +12,12 @@
 | 在现代工具链构建并运行 | 通过（7 个文件的移植补丁，见 §3） |
 | gated ↔ egpd 邻居 Up（双向） | **通过**（2026-11-01 23:50–23:52） |
 | Acquire / Hello / Poll / Update 双向交换 | 通过（抓包可逐字段解码，见 §5） |
-| gated 通告路由（带路由的 Update） | 部分：已发出 25 字节 Update，但两条路由距离均为 255（=撤路），故 egpd 不装表属预期 |
-| 路由安装 / 撤路 / 老化 / Cease / 主动被动 / 定时器协商 | **未验证**（见 §7） |
+| gated 通告路由（带路由的 Update） | **通过**：export 加 `metric 1` 后通告 `172.16.0.0/16`，距离 1（见 §5.2） |
+| egpd 装表（EGP → Zebra → 内核） | **通过**：`Up active 2`、`G>* 172.16.0.0/16 [140/1]`、内核 `proto zebra` |
+| 撤路 / 老化 / Cease / 主动被动 / 定时器协商 | **未验证**（见 §7） |
 
-一句话：**邻居层与报文层互通成立；路由层尚未验证**——对端通告的是一条距离 255（=撤路）
-的 Update，先把有限距离通告跑出来，再谈装表/撤路。
+一句话：**邻居层、报文层与单条路由的装表链路已互通**；剩下的撤路/老化、Cease、角色与定时器矩阵未做。
+序列号那一条已按 RFC 904 §4.1.1 判为对端更严格，不构成 egpd 缺陷（§6 P0-1）。
 
 ## 2. 独立实现来源
 
@@ -114,23 +115,62 @@ gated 侧（[`gated-egp-trace.txt`](gated-egp-trace.txt)）：
 "不可达/撤销"，因此 egpd 侧 `Prefixes 0`、无 `G>` 路由、内核无 172.16 表项**是预期行为**，
 不能据此判定为接收路径缺陷（见 §6 P0-2 的改写）。
 
+### 5.2 有限距离导出与装表（2026-11-05 02:40，同一次会话）
+
+gated 的 export 加 `metric 1`（见 [`gated.conf.export`](gated.conf.export)），
+并在**启动邻居之前**开始抓包，覆盖 Acquire → Up → 装表全过程。
+原始证据：[`install-session.pcap`](install-session.pcap)、
+[`install-session.table.txt`](install-session.table.txt)。
+
+会话前段（完整 14 帧见 table）：
+
+```
+Acquire  .1 -> .2  seq=1 hello/poll=2/6        # egpd Request
+Acquire  .2 -> .1  seq=1 hello/poll=30/120     # gated Request
+Acquire  .1 -> .2  code=1 seq=1 hello/poll=2/6 # egpd Confirm
+Reach    .1 -> .2  code=0 seq=1 ；.2 -> .1 code=1 seq=1   # 每 30s 一次
+Poll     .1 -> .2  seq=2
+Update   .1 -> .2  U=1 seq=1  route 10.0.0.0 gw .1 distance 1      # 非请求 Update
+Poll     .2 -> .1  seq=2
+Update   .1 -> .2  U=0 seq=2  route 10.0.0.0 gw .1 distance 1      # 对 Poll 的回复
+Update   .2 -> .1  U=0 seq=2  route 172.16.0.0 gw .2 distance 1
+                              route 198.18.161.0 gw .2 distance 1
+```
+
+同轮状态快照（均为实测输出）：
+
+| 层 | 证据 |
+| --- | --- |
+| egpd 邻居 | `198.18.161.2  65002  Up  active  2`（[`egpd-neighbors-after-install.txt`](egpd-neighbors-after-install.txt)） |
+| Zebra RIB | `G>* 172.16.0.0/16 [140/1] via 198.18.161.2, hr16a0`；`G 198.18.161.0/24 [140/1] ... inactive`（与直连同前缀，未选路） |
+| 内核 | `172.16.0.0/16 nhid 18 via 198.18.161.2 dev hr16a0 proto zebra metric 20` |
+
+即「报文到达 → egpd 接收并计数 → Zebra 选路 → 内核安装」四段全通；
+`198.18.161.0/24` 被 egpd 收到但安装为 inactive，属于与本机直连前缀冲突，选路正确。
+
 ## 6. 当前问题清单（按严重度）
 
-**P0-1 Update 序列号语义待定（不预设是 egpd 的问题）**
+**P0-1 Update 序列号：已定性为对端更严格，不是 egpd 缺陷**
 gated 报 `egp_event_update: neighbor 198.18.161.1 AS 65001: Sequence 1 expected 2`。
-抓包可见 egpd 在收到 gated 的 `Poll seq=2` 之前先发了一帧 **U=1、seq=1** 的 Update，
-随后对那个 Poll 正常回复 **U=0、seq=2**。RFC 904 §4.1.1 要求"回复与 indication 使用最近
-收到的命令序号 R"，而此前 gated 发的 `Reach code=1 seq=2` 属于回复，不能用来更新 R。
-因此现有证据不足以判定归属：需要从 Acquire 开始抓一整轮会话，把 gated 发出的命令、egpd 的 R、
-gated 当时的 S 逐帧对齐，再判断是 egpd 的 R 初始化、还是一侧的状态推进/报文时序问题。
-**不能为了让对端接受就改 egpd。**
+抓包（§5.2）显示 egpd 的**非请求** Update 带 `U=1, seq=1`，而它此前的 Poll 是 `seq=2`。
+RFC 904 §4.1.1 原文：
 
-**P0-2 GateD 侧通告距离为 255，需验证有限距离通告**
-pcap 解码显示 gated 的 25 字节 Update 里 `172.16.0.0` 与 `198.18.161.0` 的距离都是 **255**
-（EGP 语义 = 不可达/撤销），网关是同网段对端地址 `198.18.161.2`。所以 egpd 侧 `Prefixes 0`
-是**预期结果**，不是接收路径缺陷。下一步是让 gated 以 <255 的距离导出（export 语句加
-`metric`，其 EGP 距离范围 0–255、0 最优），在同一轮里保存 pcap、egpd Update 接收计数、
-Zebra RIB 与内核路由，再判定装表是否正确。
+> The state variable R records the last sequence number received in a **command** from that
+> neighbor. The current value of R is used as the sequence number for **all replies and
+> indications** sent to the neighbor until a command with a different sequence number is
+> received from that neighbor.
+
+而 RFC 904 §3/§4 对消息分类写明：Update 既是 response 也是 indication，
+"an unsolicited Update message … is classed as an **indication**"。因此 egpd 在非请求 Update
+中使用 R（gated 最后一条**命令**是 `Request seq=1`）符合 §4.1.1；gated 按自己 `S=2` 的期望
+判错，属于比 RFC 更严格的实现（RFC 对序号不符只写"不建议规定，推荐丢弃"）。
+结论：**不据此改 egpd**；作为互通限制记录，后续在文档/FIDELITY 说明对端这一行为。
+
+**P0-2 有限距离通告与装表：已通过（历史问题已定位）**
+第一次失败的原因是 gated 的 export 没有设 `metric`，通告距离为 255（=撤路），
+所以 `Prefixes 0` 是预期。加 `export proto egp as 65001 metric 1 { … };` 后，
+同一会话里 gated 通告 `172.16.0.0` 距离 1，egpd 装表链路全通（§5.2 的表与三层快照）。
+注意 export 语句必须写在 `egp` 之后，否则 `gated -C` 会报 `statement out of order`。
 
 **P1-1 gated 无法在内核 RIB 生效（`-n` 的代价）**
 路由级"学到→装表→撤路→恢复"只能在 gated 自身 RIB 观察，不能在 gated 侧内核验证。
@@ -152,11 +192,12 @@ gated 的 netlink 接口读取在 veth/lo 上表现为只登记 lo；本实验�
 
 ## 7. 尚未验证（S-A 剩余）
 
-- 路由内容与双向安装；255 撤路；连续遗漏老化；撤路后恢复。
+- 撤路：显式 255 与连续遗漏老化在跨实现场景下的行为；撤路后的恢复。
+- 反向安装：gated 学到 egpd 通告的 `10.0.0.0/8` 后是否进入其 RIB/选路（因 `-n` 只在其自身 RIB 可见）。
 - Cease / GOINGDOWN 的对称性与邻居重启后的恢复。
-- 主动/被动三种组合；定时器协商逐字段比对。
-- 规范差异清单（RFC 904/888 vs 本实现 vs gated 行为）。
-- 抓包层面逐字段比对（Acquire/Hello/Poll 的 code/status、距离分块、网关列表）尚未整理成表。
+- 主动/被动三种组合；定时器协商逐字段比对（gated 通告 30/120，egpd 侧 2/6）。
+- 规范差异清单：目前只有第一条（Update 序列号，见 §6 P0-1），其余待整理。
+- 抓包逐字段表已覆盖 Acquire/Reach/Poll/Update（§5、§5.2），Hello 与 Error 的 code/status 尚未单独整理。
 
 ## 8. 环境状态
 
@@ -183,8 +224,8 @@ make depend && make -j1 CFLAGS="同上"
 
 # 3) 拓扑：两个 netns + veth；对端侧用 bridge 挂地址（gated 的 ifread 需要）
 #    a: 198.18.161.1/24（zebra+egpd）  b: br16 198.18.161.2/24（gated）
-# 4) 启动（gated 必须 -n）
-gated -n -f gated.conf
+# 4) 启动（gated 必须 -n；export 需 metric，否则通告距离 255）
+gated -n -f gated.conf.export
 ```
 
 配置样例见 [`gated.conf`](gated.conf)（仅邻居）与
