@@ -32,3 +32,10 @@ man/HTML 构建，以及可用发行版安装环境的 systemd reload。保留�
 错误增加。修复在消费接收窗口/更新候选之前调用 FRR 精确本机地址查找，并接入 ZAPI
 地址增删通知；保留原邻接源地址兜底。新增独立报文回归覆盖动态添加的 lo/secondary、
 原子拒绝、遗漏与普通/主动接收额度、删除地址后可用性及恢复。使用独占资源验证。
+
+
+## 后续跟踪
+
+配置生命周期、多网关接收与安装服务的结果保留在 [#14](https://github.com/lichenlang89/historic-routing/issues/14)。
+历史实现互通、丢包乱序和多邻居证据汇总在 [#16 的验收计划](issue-16-interop-stress.md)。
+新版包的目标平台复验由 [#22](https://github.com/lichenlang89/historic-routing/issues/22) 跟踪。

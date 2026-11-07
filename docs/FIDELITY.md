@@ -142,6 +142,10 @@ Hello/Poll 最小间隔独立验证、协商，不要求 Poll 大于等于 Hello
 
 ## 5. 验证状态
 
+Issue #16 的实测结果见 [GateD 互通补验](evidence/issue16-interop/follow-up-20261107.md)
+和 [链路与多邻居验收](evidence/issue16-stress/README.md)。测试覆盖独立历史对端的
+双向内核装表、端点转发、撤路与恢复，以及 16 邻居的并发状态与下一跳隔离。
+
 下表保留原有阶段证据；本轮执行结果与未验证项见 [Issue #14 交接](plan/issue-14-handoff.md)。
 
 | 项目 | 状态 | 证据 |
