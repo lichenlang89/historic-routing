@@ -17,7 +17,7 @@
 | 撤路 / 老化 / Cease / 主动被动 / 定时器协商 | **未验证**（见 §7） |
 
 一句话：**邻居层、报文层与单条路由的装表链路已互通**；剩下的撤路/老化、Cease、角色与定时器矩阵未做。
-序列号那一条已按 RFC 904 §4.1.1 判为对端更严格，不构成 egpd 缺陷（§6 P0-1）。
+本次非请求 Update 的发送序号和 GateD 的接收处理均有 RFC 904 §4.1.1 依据（§6 P0-1）。
 
 ## 2. 独立实现来源
 
@@ -119,6 +119,8 @@ gated 侧（[`gated-egp-trace.txt`](gated-egp-trace.txt)）：
 
 gated 的 export 加 `metric 1`（见 [`gated.conf.export`](gated.conf.export)），
 并在**启动邻居之前**开始抓包，覆盖 Acquire → Up → 装表全过程。
+实验运行的是 aarch64 RPM `0.1.1-0.2.devbb070e0.el10`，其构建记录指向源码提交
+`bb070e0` 和 FRR 基线 `27f287be9`。
 原始证据：[`install-session.pcap`](install-session.pcap)、
 [`install-session.table.txt`](install-session.table.txt)。
 
@@ -146,11 +148,11 @@ Update   .2 -> .1  U=0 seq=2  route 172.16.0.0 gw .2 distance 1
 | 内核 | `172.16.0.0/16 nhid 18 via 198.18.161.2 dev hr16a0 proto zebra metric 20` |
 
 即「报文到达 → egpd 接收并计数 → Zebra 选路 → 内核安装」四段全通；
-`198.18.161.0/24` 被 egpd 收到但安装为 inactive，属于与本机直连前缀冲突，选路正确。
+`198.18.161.0/24` 由 egpd 学到，Zebra 将该候选标为 inactive，保留同前缀的直连路由。
 
 ## 6. 当前问题清单（按严重度）
 
-**P0-1 Update 序列号：已定性为对端更严格，不是 egpd 缺陷**
+**P0-1 Update 序列号：发送和接收各自按 RFC 904 §4.1.1 处理**
 gated 报 `egp_event_update: neighbor 198.18.161.1 AS 65001: Sequence 1 expected 2`。
 抓包（§5.2）显示 egpd 的**非请求** Update 带 `U=1, seq=1`，而它此前的 Poll 是 `seq=2`。
 RFC 904 §4.1.1 原文：
@@ -160,11 +162,11 @@ RFC 904 §4.1.1 原文：
 > indications** sent to the neighbor until a command with a different sequence number is
 > received from that neighbor.
 
-而 RFC 904 §3/§4 对消息分类写明：Update 既是 response 也是 indication，
-"an unsolicited Update message … is classed as an **indication**"。因此 egpd 在非请求 Update
-中使用 R（gated 最后一条**命令**是 `Request seq=1`）符合 §4.1.1；gated 按自己 `S=2` 的期望
-判错，属于比 RFC 更严格的实现（RFC 对序号不符只写"不建议规定，推荐丢弃"）。
-结论：**不据此改 egpd**；作为互通限制记录，后续在文档/FIDELITY 说明对端这一行为。
+RFC 904 §2 将非请求 Update 归类为 indication。本次 egpd 发送该报文时，最后收到的
+GateD 命令是 `Request seq=1`，因此按 §4.1.1 使用 `R=1`。GateD 此时的 `S=2`。
+§4.1.1 未强制规定序号与 `S` 不符时的接收动作，并建议丢弃这类 response 或 indication。
+GateD 的拒收符合该建议。随后 GateD 发出 `Poll seq=2`，egpd 回复 `U=0, seq=2`，
+GateD 继续解析路由内容。本次记录将非请求 Update 的拒收列为互通现象。
 
 **P0-2 有限距离通告与装表：已通过（历史问题已定位）**
 第一次失败的原因是 gated 的 export 没有设 `metric`，通告距离为 255（=撤路），
@@ -193,7 +195,8 @@ gated 的 netlink 接口读取在 veth/lo 上表现为只登记 lo；本实验�
 ## 7. 尚未验证（S-A 剩余）
 
 - 撤路：显式 255 与连续遗漏老化在跨实现场景下的行为；撤路后的恢复。
-- 反向安装：gated 学到 egpd 通告的 `10.0.0.0/8` 后是否进入其 RIB/选路（因 `-n` 只在其自身 RIB 可见）。
+- 反向安装：本轮 GateD 对 solicited Update 中的 `10.0.0.0/8` 记录了 `ignoring net 10`。
+  需要复验 GateD 内部 RIB，并单独记录 `-n` 模式下的内核装表限制。
 - Cease / GOINGDOWN 的对称性与邻居重启后的恢复。
 - 主动/被动三种组合；定时器协商逐字段比对（gated 通告 30/120，egpd 侧 2/6）。
 - 规范差异清单：目前只有第一条（Update 序列号，见 §6 P0-1），其余待整理。

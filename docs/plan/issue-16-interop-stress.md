@@ -66,8 +66,8 @@
   gated 3.6 在修正 7 处现代内核/工具链差异后与 egpd 双向邻居 **Up**；export 加 `metric 1`
   后同一会话内通告 `172.16.0.0` 距离 1，egpd 侧 `Up active 2`、Zebra `G>* [140/1]`、
   内核 `proto zebra` 三层都装表。此前"距离 255 导致不装表"已定位为 export 缺 `metric`。
-  Update 序列号差异（gated 报 `Sequence 1 expected 2`）按 RFC 904 §4.1.1 判为对端更严格，
-  不是 egpd 缺陷。
+  非请求 Update 中，egpd 按 RFC 904 §4.1.1 使用 `R=1`，GateD 按同节建议丢弃与本地
+  `S=2` 不符的报文。随后 GateD 解析了序号匹配的 Poll 回复。
   仍未验证：撤路/老化恢复、反向安装、Cease、主动/被动组合、定时器协商比对、规范差异清单。
   详见 [互通记录](../evidence/issue16-interop/README.md)。
 
