@@ -152,3 +152,10 @@ semantic failures, and recovery.
   tests, packaging/service boundaries and known upstream test failures.
 
 Maintenance sources live in `protocols/egp/src/`; generated FRR build copies are not the maintenance source.
+
+
+## 互通与压力验收
+
+[GateD 3.6 互通补验](../../docs/evidence/issue16-interop/follow-up-20261107.md)
+包含双向内核装表、端点转发、撤路与恢复。隔离网络的
+[链路与多邻居验收](../../docs/evidence/issue16-stress/README.md)记录测试条件和原始证据。

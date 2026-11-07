@@ -1,0 +1,102 @@
+== interop ==
+10.0.0.0/8 dev stub proto kernel scope link src 10.16.0.1
+172.16.0.0/16 nhid 11 via 198.18.168.2 dev wire proto zebra metric 20
+198.18.168.0/24 dev wire proto kernel scope link src 198.18.168.1
+10.0.0.0/8 via 198.18.168.1 dev brwire proto gated
+unreachable 127.0.0.0/8 proto gated scope link
+127.0.0.1 dev lo proto gated scope link
+172.16.0.0/16 dev brstub proto kernel scope link src 172.16.16.1
+198.18.168.0/24 dev brwire proto kernel scope link src 198.18.168.2
+{
+  "localAs":65001,
+  "zebraConnected":1,
+  "configuredNetworks":1,
+  "peers":[
+    {
+      "address":"198.18.168.2",
+      "as":65002,
+      "state":"Up",
+      "mode":"active",
+      "hello":30,
+      "poll":120,
+      "prefixCount":2,
+      "helloTx":3,
+      "helloRx":0,
+      "pollTx":1,
+      "pollRx":1,
+      "updateTx":2,
+      "updateRx":1,
+      "errorTx":0,
+      "errorRx":0,
+      "lastUpdateAge":0,
+      "prefixes":[
+        {
+          "prefix":"172.16.0.0/16",
+          "distance":1,
+          "gateway":"198.18.168.2",
+          "misses":0,
+          "exterior":false
+        },
+        {
+          "prefix":"198.18.168.0/24",
+          "distance":1,
+          "gateway":"198.18.168.2",
+          "misses":0,
+          "exterior":false
+        }
+      ]
+    }
+  ]
+}
+
+== interop-mirror ==
+10.0.0.0/8 dev stub proto kernel scope link src 10.16.0.1
+172.16.0.0/16 nhid 11 via 198.18.168.2 dev wire proto zebra metric 20
+198.18.168.0/24 dev wire proto kernel scope link src 198.18.168.1
+10.0.0.0/8 via 198.18.168.1 dev brwire proto gated
+unreachable 127.0.0.0/8 proto gated scope link
+127.0.0.1 dev lo proto gated scope link
+172.16.0.0/16 dev brstub proto kernel scope link src 172.16.16.1
+198.18.168.0/24 dev brwire proto kernel scope link src 198.18.168.2
+{
+  "localAs":65002,
+  "zebraConnected":1,
+  "configuredNetworks":1,
+  "peers":[
+    {
+      "address":"198.18.168.2",
+      "as":65001,
+      "state":"Up",
+      "mode":"passive",
+      "hello":45,
+      "poll":180,
+      "prefixCount":2,
+      "helloTx":3,
+      "helloRx":3,
+      "pollTx":1,
+      "pollRx":1,
+      "updateTx":1,
+      "updateRx":2,
+      "errorTx":0,
+      "errorRx":0,
+      "lastUpdateAge":1,
+      "prefixes":[
+        {
+          "prefix":"172.16.0.0/16",
+          "distance":1,
+          "gateway":"198.18.168.2",
+          "misses":0,
+          "exterior":false
+        },
+        {
+          "prefix":"198.18.168.0/24",
+          "distance":1,
+          "gateway":"198.18.168.2",
+          "misses":0,
+          "exterior":false
+        }
+      ]
+    }
+  ]
+}
+

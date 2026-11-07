@@ -1,5 +1,8 @@
 # Issue #16 / S-A 互通记录：GateD 3.6 ↔ egpd
 
+2026-11-07 补验记录见 [双向内核装表、转发和撤路对照](follow-up-20261107.md)。
+下文保留前两轮实验的配置和当时的验证边界。
+
 日期：2026-11-01（Asia/Shanghai）。基线 `main` = `4b81f2a`。
 平台：RHEL 10.2 aarch64 独占实验主机（2 vCPU，SELinux Enforcing，rootful Podman 5.8.2）。
 本文件只记录**实际执行**的结果；未验证的部分不写成通过。
