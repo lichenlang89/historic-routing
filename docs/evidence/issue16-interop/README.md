@@ -150,6 +150,26 @@ Update   .2 -> .1  U=0 seq=2  route 172.16.0.0 gw .2 distance 1
 即「报文到达 → egpd 接收并计数 → Zebra 选路 → 内核安装」四段全通；
 `198.18.161.0/24` 由 egpd 学到，Zebra 将该候选标为 inactive，保留同前缀的直连路由。
 
+### 5.3 GateD 反向收路对照（2026-11-07）
+
+在两套临时 network namespace 中使用同一套 RPM 与 GateD 3.6。两轮依次运行，
+都使用 `198.18.162.1/24`（egpd）和 `198.18.162.2/24`（GateD），GateD 保持 `-n`，
+关闭 RIP，继续用 `metric 1` 导出。两轮的 GateD 邻居配置分别是
+`neighbor 198.18.162.1;` 和 `neighbor 198.18.162.1 importdefault;`。
+
+两轮均收到 egpd 的 `U=0, seq=2`，其中 `10.0.0.0/8` 的距离为 1。两轮也均在
+egpd 一侧的 Linux 内核看到 GateD 通告的 `172.16.0.0/16`。
+
+| GateD 邻居选项 | GateD trace 和状态转储 | GateD 侧 Linux 内核 |
+| --- | --- | --- |
+| 默认 | trace 记录 `egp_rt_recv: ignoring net 10`，内部 RIB 无该前缀 | 无该前缀 |
+| `importdefault` | 内部 RIB 有活跃 EGP 路由 `10.0.0.0/8`，下一跳 `198.18.162.1`，距离 `1` | 无该前缀 |
+
+抓包与解码表：[默认](reverse-control.pcap)（[表](reverse-control.table.txt)）、
+[开启选项](reverse-importdefault.pcap)（[表](reverse-importdefault.table.txt)）。
+以 [GateD trace 和状态转储节录](reverse-gated-excerpts.txt) 核对内部 RIB。`importdefault` 用于定位本次 GateD 的接收行为，
+实验仍以 `-n` 运行。GateD 侧内核装表和双向转发留待验证。
+
 ## 6. 当前问题清单（按严重度）
 
 **P0-1 Update 序列号：发送和接收各自按 RFC 904 §4.1.1 处理**
@@ -195,8 +215,8 @@ gated 的 netlink 接口读取在 veth/lo 上表现为只登记 lo；本实验�
 ## 7. 尚未验证（S-A 剩余）
 
 - 撤路：显式 255 与连续遗漏老化在跨实现场景下的行为；撤路后的恢复。
-- 反向安装：本轮 GateD 对 solicited Update 中的 `10.0.0.0/8` 记录了 `ignoring net 10`。
-  需要复验 GateD 内部 RIB，并单独记录 `-n` 模式下的内核装表限制。
+- 反向内核装表和双向转发：已复验 GateD 内部 RIB（§5.3）。两轮均用 `-n`，
+  GateD 侧内核均无 `10.0.0.0/8`。
 - Cease / GOINGDOWN 的对称性与邻居重启后的恢复。
 - 主动/被动三种组合；定时器协商逐字段比对（gated 通告 30/120，egpd 侧 2/6）。
 - 规范差异清单：目前只有第一条（Update 序列号，见 §6 P0-1），其余待整理。

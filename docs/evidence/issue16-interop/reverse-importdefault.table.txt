@@ -1,0 +1,19 @@
+unique=14 captured=14 duplicates=0
+1794037288.858836    198.18.162.1 -> 198.18.162.2    Acquire  code=0 status=0 U=0 AS=65001 seq=1 len=14 if=0 hello/poll=2/6
+1794037290.852672    198.18.162.2 -> 198.18.162.1    Acquire  code=0 status=0 U=0 AS=65002 seq=1 len=14 if=0 hello/poll=30/120
+1794037290.853522    198.18.162.1 -> 198.18.162.2    Acquire  code=1 status=0 U=0 AS=65001 seq=1 len=14 if=0 hello/poll=2/6
+1794037290.853542    198.18.162.1 -> 198.18.162.2    Reach    code=0 status=2 U=0 AS=65001 seq=1 len=10 if=0
+1794037290.853709    198.18.162.2 -> 198.18.162.1    Reach    code=1 status=2 U=0 AS=65002 seq=1 len=10 if=0
+1794037320.887507    198.18.162.1 -> 198.18.162.2    Reach    code=0 status=2 U=0 AS=65001 seq=1 len=10 if=0
+1794037320.887723    198.18.162.2 -> 198.18.162.1    Reach    code=1 status=2 U=0 AS=65002 seq=1 len=10 if=0
+1794037350.915396    198.18.162.1 -> 198.18.162.2    Reach    code=0 status=2 U=0 AS=65001 seq=1 len=10 if=0
+1794037350.915754    198.18.162.2 -> 198.18.162.1    Reach    code=1 status=2 U=0 AS=65002 seq=1 len=10 if=0
+1794037351.917042    198.18.162.1 -> 198.18.162.2    Poll     code=0 status=1 U=0 AS=65001 seq=2 len=16 if=0
+1794037351.917105    198.18.162.1 -> 198.18.162.2    Update   code=0 status=1 U=1 AS=65001 seq=1 len=21 if=0
+        route 10.0.0.0 gw 198.18.162.1 distance 1 (int)
+1794037351.917364    198.18.162.2 -> 198.18.162.1    Poll     code=0 status=1 U=0 AS=65002 seq=2 len=16 if=0
+1794037351.917457    198.18.162.1 -> 198.18.162.2    Update   code=0 status=1 U=0 AS=65001 seq=2 len=21 if=0
+        route 10.0.0.0 gw 198.18.162.1 distance 1 (int)
+1794037351.918895    198.18.162.2 -> 198.18.162.1    Update   code=0 status=1 U=0 AS=65002 seq=2 len=25 if=0
+        route 172.16.0.0 gw 198.18.162.2 distance 1 (int)
+        route 198.18.162.0 gw 198.18.162.2 distance 1 (int)

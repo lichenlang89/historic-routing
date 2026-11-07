@@ -68,7 +68,9 @@
   内核 `proto zebra` 三层都装表。此前"距离 255 导致不装表"已定位为 export 缺 `metric`。
   非请求 Update 中，egpd 按 RFC 904 §4.1.1 使用 `R=1`，GateD 按同节建议丢弃与本地
   `S=2` 不符的报文。随后 GateD 解析了序号匹配的 Poll 回复。
-  仍未验证：撤路/老化恢复、反向安装、Cease、主动/被动组合、定时器协商比对、规范差异清单。
+  2026-11-07 对照复验：GateD 开启 `importdefault` 后将 `10.0.0.0/8` 选入内部 RIB。
+  仍未验证：GateD 侧内核装表与双向转发、撤路/老化恢复、Cease、主动/被动组合、
+  定时器协商比对、规范差异清单。
   详见 [互通记录](../evidence/issue16-interop/README.md)。
 
 ### S-B 长期丢包/乱序
