@@ -1,0 +1,163 @@
+CHECK initial A_FIB=True B_FIB=True
+PASS initial bidirectional endpoint probes
+INPUT explicit 1794043490.953
+CHECK after-explicit A_FIB=False B_FIB=False
+CHECK explicit-recovered A_FIB=True B_FIB=True
+PASS explicit-recovered bidirectional endpoint probes
+INPUT omit 1794043747.507
+CHECK after-omit A_FIB=False B_FIB=False
+CHECK omit-recovered A_FIB=True B_FIB=True
+PASS omit-recovered bidirectional endpoint probes
+INPUT egpd cease 1794044211.940
+CHECK after-egpd-cease A_FIB=False B_FIB=False
+CHECK after-egpd-reacquire A_FIB=True B_FIB=True
+PASS after-egpd-reacquire bidirectional endpoint probes
+INPUT gated cease 1794044274.354
+CHECK after-gated-cease A_FIB=False B_FIB=False
+CHECK after-gated-restart A_FIB=True B_FIB=True
+PASS after-gated-restart bidirectional endpoint probes
+
+h16a454a-rewrite.log
+READY
+explicit seq=3 0201000186fafde900030100c612a8000101ff010a
+omit seq=5 0201000191fbfde900050000c612a800
+omit seq=6 0201000191fafde900060000c612a800
+
+h16a454b-rewrite.log
+READY
+explicit seq=3 0201000175d4fdea00030100c612a8000201ff02ac10c612a8
+omit seq=5 0201000191fafdea00050000c612a800
+omit seq=6 0201000191f9fdea00060000c612a800
+omit seq=7 0201000191f8fdea00070000c612a800
+
+explicit-h16a454a.nft
+table ip hr16 {
+	chain incoming {
+		type filter hook input priority filter; policy accept;
+		ip saddr 198.18.168.2 ip daddr 198.18.168.1 ip protocol egp ip dscp != cs1 @nh,168,8 0x1 counter packets 1 bytes 45 drop
+	}
+}
+
+explicit-h16a454b.nft
+table ip hr16 {
+	chain incoming {
+		type filter hook input priority filter; policy accept;
+		ip saddr 198.18.168.1 ip daddr 198.18.168.2 ip protocol egp ip dscp != cs1 @nh,168,8 0x1 counter packets 1 bytes 41 drop
+	}
+}
+
+omit-h16a454a.nft
+table ip hr16 {
+	chain incoming {
+		type filter hook input priority filter; policy accept;
+		ip saddr 198.18.168.2 ip daddr 198.18.168.1 ip protocol egp ip dscp != cs1 @nh,168,8 0x1 counter packets 3 bytes 135 drop
+	}
+}
+
+omit-h16a454b.nft
+table ip hr16 {
+	chain incoming {
+		type filter hook input priority filter; policy accept;
+		ip saddr 198.18.168.1 ip daddr 198.18.168.2 ip protocol egp ip dscp != cs1 @nh,168,8 0x1 counter packets 2 bytes 82 drop
+	}
+}
+
+after-egpd-cease-h16a454a.routes
+10.0.0.0/8 dev stub proto kernel scope link src 10.16.0.1
+198.18.168.0/24 dev wire proto kernel scope link src 198.18.168.1
+
+after-egpd-cease-h16a454b.routes
+unreachable 127.0.0.0/8 proto gated scope link
+127.0.0.1 dev lo proto gated scope link
+172.16.0.0/16 dev brstub proto kernel scope link src 172.16.16.1
+198.18.168.0/24 dev brwire proto kernel scope link src 198.18.168.2
+
+after-egpd-reacquire-h16a454a.routes
+10.0.0.0/8 dev stub proto kernel scope link src 10.16.0.1
+172.16.0.0/16 nhid 11 via 198.18.168.2 dev wire proto zebra metric 20
+198.18.168.0/24 dev wire proto kernel scope link src 198.18.168.1
+
+after-egpd-reacquire-h16a454b.routes
+10.0.0.0/8 via 198.18.168.1 dev brwire proto gated
+unreachable 127.0.0.0/8 proto gated scope link
+127.0.0.1 dev lo proto gated scope link
+172.16.0.0/16 dev brstub proto kernel scope link src 172.16.16.1
+198.18.168.0/24 dev brwire proto kernel scope link src 198.18.168.2
+
+after-explicit-h16a454a.routes
+10.0.0.0/8 dev stub proto kernel scope link src 10.16.0.1
+198.18.168.0/24 dev wire proto kernel scope link src 198.18.168.1
+
+after-explicit-h16a454b.routes
+unreachable 127.0.0.0/8 proto gated scope link
+127.0.0.1 dev lo proto gated scope link
+172.16.0.0/16 dev brstub proto kernel scope link src 172.16.16.1
+198.18.168.0/24 dev brwire proto kernel scope link src 198.18.168.2
+
+after-gated-cease-h16a454a.routes
+10.0.0.0/8 dev stub proto kernel scope link src 10.16.0.1
+198.18.168.0/24 dev wire proto kernel scope link src 198.18.168.1
+
+after-gated-cease-h16a454b.routes
+unreachable 127.0.0.0/8 proto gated scope link
+127.0.0.1 dev lo proto gated scope link
+172.16.0.0/16 dev brstub proto kernel scope link src 172.16.16.1
+198.18.168.0/24 dev brwire proto kernel scope link src 198.18.168.2
+
+after-gated-restart-h16a454a.routes
+10.0.0.0/8 dev stub proto kernel scope link src 10.16.0.1
+172.16.0.0/16 nhid 11 via 198.18.168.2 dev wire proto zebra metric 20
+198.18.168.0/24 dev wire proto kernel scope link src 198.18.168.1
+
+after-gated-restart-h16a454b.routes
+10.0.0.0/8 via 198.18.168.1 dev brwire proto gated
+unreachable 127.0.0.0/8 proto gated scope link
+127.0.0.1 dev lo proto gated scope link
+172.16.0.0/16 dev brstub proto kernel scope link src 172.16.16.1
+198.18.168.0/24 dev brwire proto kernel scope link src 198.18.168.2
+
+after-omit-h16a454a.routes
+10.0.0.0/8 dev stub proto kernel scope link src 10.16.0.1
+198.18.168.0/24 dev wire proto kernel scope link src 198.18.168.1
+
+after-omit-h16a454b.routes
+unreachable 127.0.0.0/8 proto gated scope link
+127.0.0.1 dev lo proto gated scope link
+172.16.0.0/16 dev brstub proto kernel scope link src 172.16.16.1
+198.18.168.0/24 dev brwire proto kernel scope link src 198.18.168.2
+
+explicit-recovered-h16a454a.routes
+10.0.0.0/8 dev stub proto kernel scope link src 10.16.0.1
+172.16.0.0/16 nhid 11 via 198.18.168.2 dev wire proto zebra metric 20
+198.18.168.0/24 dev wire proto kernel scope link src 198.18.168.1
+
+explicit-recovered-h16a454b.routes
+10.0.0.0/8 via 198.18.168.1 dev brwire proto gated
+unreachable 127.0.0.0/8 proto gated scope link
+127.0.0.1 dev lo proto gated scope link
+172.16.0.0/16 dev brstub proto kernel scope link src 172.16.16.1
+198.18.168.0/24 dev brwire proto kernel scope link src 198.18.168.2
+
+initial-h16a454a.routes
+10.0.0.0/8 dev stub proto kernel scope link src 10.16.0.1
+172.16.0.0/16 nhid 11 via 198.18.168.2 dev wire proto zebra metric 20
+198.18.168.0/24 dev wire proto kernel scope link src 198.18.168.1
+
+initial-h16a454b.routes
+10.0.0.0/8 via 198.18.168.1 dev brwire proto gated
+unreachable 127.0.0.0/8 proto gated scope link
+127.0.0.1 dev lo proto gated scope link
+172.16.0.0/16 dev brstub proto kernel scope link src 172.16.16.1
+198.18.168.0/24 dev brwire proto kernel scope link src 198.18.168.2
+
+omit-recovered-h16a454a.routes
+10.0.0.0/8 dev stub proto kernel scope link src 10.16.0.1
+172.16.0.0/16 nhid 11 via 198.18.168.2 dev wire proto zebra metric 20
+198.18.168.0/24 dev wire proto kernel scope link src 198.18.168.1
+
+omit-recovered-h16a454b.routes
+10.0.0.0/8 via 198.18.168.1 dev brwire proto gated
+unreachable 127.0.0.0/8 proto gated scope link
+127.0.0.1 dev lo proto gated scope link
+172.16.0.0/16 dev brstub proto kernel scope link src 172.16.16.1
+198.18.168.0/24 dev brwire proto kernel scope link src 198.18.168.2

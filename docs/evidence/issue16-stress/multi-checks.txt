@@ -1,0 +1,15 @@
+PASS capacity-1: 1 configured / 2 routes
+PASS capacity-2: 2 configured / 4 routes
+PASS capacity-4: 4 configured / 8 routes
+PASS capacity-8: 8 configured / 16 routes
+PASS capacity-16: 16 configured / 32 routes
+PASS peer-17-rejected: 16 configured / 32 routes
+PASS steady: 16 configured / 32 routes
+PASS concurrent-explicit-withdraw: 16 configured / 24 routes
+PASS concurrent-explicit-recover: 16 configured / 32 routes
+PASS concurrent-omission-aging: 16 configured / 24 routes
+PASS concurrent-omission-recover: 16 configured / 32 routes
+PASS abrupt-peer-loss: 16 configured / 24 routes
+PASS peer-restart-recover: 16 configured / 32 routes
+PASS all-deconfigured: 0 configured / 0 routes
+17th peer: egpd VTY status=13

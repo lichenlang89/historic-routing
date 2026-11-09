@@ -4,6 +4,18 @@
 [#16](https://github.com/lichenlang89/historic-routing/issues/16)（本方案主体）。
 基线 `main` = `4b81f2a`（已含 #15、#17、#18）。本文件是计划，不是完成记录。
 
+## 2026-11-07 补验索引
+
+- S-A：GateD 和 egpd 在互补角色下均可双向内核装表和转发。另用受控 Update
+  验证显式撤路、连续遗漏与恢复。双向 Cease 和重新建邻通过。
+  见 [互通补验](../evidence/issue16-interop/follow-up-20261107.md)。
+- S-B：1%/5%/10% 丢包各 20 分钟，伴随固定种子的延迟和乱序。陈旧/重复
+  Update 在接收窗口关闭后均被拒绝。全断链后邻居和双向路由恢复。10% 阶段有短时掉路。
+  见 [链路证据](../evidence/issue16-stress/README.md)。
+- S-C：从 1 扩到 16 个对端。16 个邻居和 32 条正确下一跳稳定 180 秒，
+  并发撤路、老化与对端重启恢复通过。见 [多邻居证据](../evidence/issue16-stress/README.md)。
+- 新版安装包的目标平台复验另由 [Issue #22](https://github.com/lichenlang89/historic-routing/issues/22) 跟踪。
+
 ## 1. Issue #14 现状审计（对照 main 与证据）
 
 | Issue #14 验收项 | 状态 | 依据 |
@@ -21,10 +33,11 @@
 | 统一 README / 协议 README / FIDELITY / 手册入口 | 已完成 | #15 文档提交；`protocols/egp/doc/` 接入 Sphinx |
 | S9 遗留的正式手册/man 页构建验证 | 已完成 | `docs/plan/issue-14-handoff.md` 记录 HTML 与 `frr-egpd.8` 构建、进入 `make dist` |
 | `redistribute egp` 名字映射 vs RIB 导入 | 已完成 | `README.md:72`、`protocols/egp/README.md:147` |
-| 独立历史实现互通 / 长期丢包乱序 / 多邻居压力 | **未完成** | 本文件 S-A/S-B/S-C |
+| 独立历史实现互通 / 长期丢包乱序 / 多邻居压力 | 已完成本轮实测 | 见上方补验索引及各报告的验证范围 |
 | 实际安装包服务与 SELinux 验收 | 已完成 | #17、#18 证据目录 |
 
-结论：#14 只剩互通、长期stress 与多邻居压力三项，即 #16 的全部内容。#18 合并后 #16 的前置门禁（可选 frr_t 配置的包管理集成）已满足。
+#18 合并后，#16 的前置门禁（可选 frr_t 配置的包管理集成）已满足。
+#16 本轮实测结果见上方索引。#14 的目标平台安装包复验由 #22 跟踪。
 
 ## 2. 资源与环境（已探测）
 
@@ -69,8 +82,8 @@
   非请求 Update 中，egpd 按 RFC 904 §4.1.1 使用 `R=1`，GateD 按同节建议丢弃与本地
   `S=2` 不符的报文。随后 GateD 解析了序号匹配的 Poll 回复。
   2026-11-07 对照复验：GateD 开启 `importdefault` 后将 `10.0.0.0/8` 选入内部 RIB。
-  仍未验证：GateD 侧内核装表与双向转发、撤路/老化恢复、Cease、主动/被动组合、
-  定时器协商比对、规范差异清单。
+  该次对照限于 GateD RIB。后续的内核装表、双向转发、撤路与恢复、Cease、
+  主动/被动角色及定时器对照见上方补验索引。
   详见 [互通记录](../evidence/issue16-interop/README.md)。
 
 ### S-B 长期丢包/乱序
