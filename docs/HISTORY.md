@@ -47,7 +47,7 @@ passive 只靠 Poll 仍可存活，以及错误 I-H-U 和四 T1 过期。
 
 新增独立报文金样本、255 路由/距离分组边界检查，以及
 `lab/egp/lab.sh test-updates` 原始报文对端测试。协议源码哈希清单随本次改动更新。
-验证记录见 [本轮证据](evidence/egp-update-rfc904-20261026.md)；
+验证记录见 [本轮证据](https://github.com/lichenlang89/historic-routing/blob/50c81b1b7600e88a070ce86456325940fdbf5930/docs/evidence/egp-update-rfc904-20261026.md)；
 剩余 stub/完整快照简化见 [忠实度矩阵](FIDELITY.md)。
 
 ## 冻结的源仓库

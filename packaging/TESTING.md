@@ -3,7 +3,7 @@
 这两个驱动复用 `lab/egp/test_reload.py` 的行为断言，目标是**安装包自己的 systemd unit**，
 不以手动执行 reload 脚本或重启 daemon 代替 `systemctl reload`。
 实测版本、失败、恢复和平台边界见
-[2026-10-31 证据](../docs/evidence/package-service-20261031/README.md)。
+[2026-10-31 证据](https://github.com/lichenlang89/historic-routing/blob/50c81b1b7600e88a070ce86456325940fdbf5930/docs/evidence/package-service-20261031/README.md)。
 
 ## 前置条件
 

@@ -115,6 +115,6 @@ sudo apt-get install debhelper devscripts lintian patchelf
 产物在 `<work>/src/*.deb`。
 
 本轮 Debian 13.7 arm64/systemd 容器的安装 unit reload、升级/回退与首次失败见
-[验收报告](../../docs/evidence/package-service-20261031/README.md)。宿主为 Fedora 42/aarch64，
+[验收报告](https://github.com/lichenlang89/historic-routing/blob/50c81b1b7600e88a070ce86456325940fdbf5930/docs/evidence/package-service-20261031/README.md)。宿主为 Fedora 42/aarch64，
 不能声称 Debian 内核或 amd64 已验收。Build-Depends 包含 libtool-bin；离线 tar 输入必须
 连同 SHA256SUMS 与 VENDOR.txt 提供。复测及 --keep 保留证据见[TESTING](../TESTING.md)。

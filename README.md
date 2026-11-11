@@ -52,7 +52,7 @@ sudo /opt/historic-routing/27f287be9/bin/vtysh
 配置文件修改后，`systemctl reload historic-routing-egpd.service` 使用同树脚本重载
 `egpd.conf`；network 增删保持进程和邻接，全局 AS/timers 变更会重建邻接。
 语法错误返回失败且保留运行配置；语义错误可能部分应用，需修正或重载备份配置。
-服务模板修复与本轮验证范围见 [Issue #14 交接](docs/plan/issue-14-handoff.md)。
+服务模板修复与本轮验证范围见 [Issue #14 交接](https://github.com/lichenlang89/historic-routing/blob/50c81b1b7600e88a070ce86456325940fdbf5930/docs/plan/issue-14-handoff.md)。
 
 进入后可以查看：
 
@@ -163,3 +163,5 @@ export LAB_PREFIX=/opt/historic-routing/27f287be9
 
 [GPL-2.0-or-later](LICENSE)。本项目独立维护，不隶属于 FRRouting 官方项目。
 源码来源和分发说明见 [许可审计](docs/LICENSE_AUDIT.md)。
+
+历史验收报告、抓包和原始日志见 [验收记录索引](docs/VALIDATION.md)。
