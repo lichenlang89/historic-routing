@@ -1,0 +1,24 @@
+PASS 重载新增一条 network：egpd pid 不变、邻居不抖、原有路由保留
+PASS 同配置二次重载幂等（frr-reload 报无变化，pid 不变）
+PASS 恢复原配置：只撤掉新增网络，原路由与邻居保持
+PASS 语法错误返回非零与诊断，运行配置和原路由保持
+PASS 有邻居时直接删除 AS/timers 被拒绝
+PASS 全量清空及重复应用：AS=0、默认 timers、无残留配置或路由
+PASS timers 变更按序重建邻接，egpd PID 保持
+PASS AS 变更按序应用，egpd PID 保持
+PASS 语义错误返回非零，重载原配置后恢复邻接与双向路由
+PASS installed package systemctl reload behavior cases
+PASS original file bytes, PID, neighbors and routes restored
+PASS egpd stop/start retained Zebra PID=75898 socket inode=2091 and recovered RIB/kernel routes
+PASS paired upgrade: configuration retained, no automatic start, RIB/kernel recovered; 0.1.1~dev50c81b1-2
+PASS paired rollback: configuration retained, RIB/kernel recovered; 0.1.1~dev50c81b1-1
+PASS final paired upgrade and systemctl reload
+PASS original configuration restored after lifecycle tests
+PASS package removal
+RESULT 0
+fe5ef11c805ec9ff6d9a4e9f3186956acb211b44819d95af4309804bbfd6cbf3  historic-routing-runtime_0.1.1~dev50c81b1-1_amd64.deb
+08f1c1ba68c6e28953e56c54d91729bda360600edf1485ec37b520e525449955  historic-routing-egp_0.1.1~dev50c81b1-1_amd64.deb
+ea594fb9ceb346acf5df23a3b289d179ae5efa90c14aa584c1f294978b0793c0  historic-routing-runtime_0.1.1~dev50c81b1-2_amd64.deb
+a08586961b85ea014058be48c3dadab908a7814dbf927fdf7bb834a9216dc662  historic-routing-egp_0.1.1~dev50c81b1-2_amd64.deb
+PASS host snapshots match
+6.12.113+deb13-cloud-amd64

@@ -1,0 +1,72 @@
+PASS 重载新增一条 network：egpd pid 不变、邻居不抖、原有路由保留
+PASS 同配置二次重载幂等（frr-reload 报无变化，pid 不变）
+PASS 恢复原配置：只撤掉新增网络，原路由与邻居保持
+PASS 语法错误返回非零与诊断，运行配置和原路由保持
+PASS 有邻居时直接删除 AS/timers 被拒绝
+PASS 全量清空及重复应用：AS=0、默认 timers、无残留配置或路由
+PASS timers 变更按序重建邻接，egpd PID 保持
+PASS AS 变更按序应用，egpd PID 保持
+PASS 语义错误返回非零，重载原配置后恢复邻接与双向路由
+PASS installed package systemctl reload behavior cases
+PASS original file bytes, PID, neighbors and routes restored
+PASS egpd stop/start retained Zebra PID=75320 socket inode=5092 and recovered RIB/kernel routes
+PASS live first-install refused without restarting services
+DOMAIN historic-routing-egpd.service MainPID=76433 label=system_u:system_r:frr_t:s0
+DOMAIN historic-routing-zebra.service MainPID=76418 label=system_u:system_r:frr_t:s0
+PASS 重载新增一条 network：egpd pid 不变、邻居不抖、原有路由保留
+PASS 同配置二次重载幂等（frr-reload 报无变化，pid 不变）
+PASS 恢复原配置：只撤掉新增网络，原路由与邻居保持
+PASS 语法错误返回非零与诊断，运行配置和原路由保持
+PASS 有邻居时直接删除 AS/timers 被拒绝
+PASS 全量清空及重复应用：AS=0、默认 timers、无残留配置或路由
+PASS timers 变更按序重建邻接，egpd PID 保持
+PASS AS 变更按序应用，egpd PID 保持
+PASS 语义错误返回非零，重载原配置后恢复邻接与双向路由
+PASS installed package systemctl reload behavior cases
+PASS original file bytes, PID, neighbors and routes restored
+PASS packaged profile full reload and exact configuration
+DOMAIN historic-routing-egpd.service MainPID=77377 label=system_u:system_r:frr_t:s0
+DOMAIN historic-routing-zebra.service MainPID=77362 label=system_u:system_r:frr_t:s0
+PASS removed runtime root recreated and labeled by installed units
+PASS live profile reinstall retains module and daemon PIDs
+PASS missing policy blocks both service starts
+DOMAIN historic-routing-egpd.service MainPID=77942 label=system_u:system_r:frr_t:s0
+DOMAIN historic-routing-zebra.service MainPID=77927 label=system_u:system_r:frr_t:s0
+PASS package reinstall recovers missing policy without manual relabel
+PASS first install refuses an unowned priority-400 module
+DOMAIN historic-routing-egpd.service MainPID=78140 label=system_u:system_r:unconfined_service_t:s0
+DOMAIN historic-routing-zebra.service MainPID=78139 label=system_u:system_r:unconfined_service_t:s0
+DOMAIN historic-routing-egpd.service MainPID=78352 label=system_u:system_r:frr_t:s0
+DOMAIN historic-routing-zebra.service MainPID=78336 label=system_u:system_r:frr_t:s0
+PASS profile-only erase, default restart, profile reinstall and route recovery
+PASS EGP erase retained the live Zebra socket inode
+DOMAIN historic-routing-egpd.service MainPID=78621 label=system_u:system_r:frr_t:s0
+DOMAIN historic-routing-zebra.service MainPID=78336 label=system_u:system_r:frr_t:s0
+PASS EGP-only erase stopped egpd, retained Zebra and rpmsave, then recovered
+PRESERVED_RPMSAVE frr.conf d818af79627beb2727e8d98a888febc6feb5fa6188171caf48cd210949c3c281
+PRESERVED_RPMSAVE egpd.conf 43744d7877ad32e0312aa51ca2210977fd2dfbfcd8c859916919ec4a49044684
+PRESERVED_RPMSAVE vtysh.conf 104d5a5fe962cf95d6de5b0aa0c4fbdb874c002a41e17bc5c3cb40201c8b9154
+PRESERVED_RPMSAVE daemons 0139c2cfc7d06b78dbb1f11c0f0055fbcdb774a57af2b69b17b74ebcf7778511
+DOMAIN historic-routing-egpd.service MainPID=79219 label=system_u:system_r:frr_t:s0
+DOMAIN historic-routing-zebra.service MainPID=79204 label=system_u:system_r:frr_t:s0
+PASS whole bundle erase stopped units and removed module; reinstall restored routes/config
+SELINUX_UNIT historic-routing-egpd.service mode=Enforcing MainPID=79848 label=system_u:system_r:frr_t:s0
+SELINUX_UNIT historic-routing-zebra.service mode=Enforcing MainPID=79833 label=system_u:system_r:frr_t:s0
+PASS paired upgrade: configuration retained, no automatic start, RIB/kernel recovered; 0.1.1-0.2.dev50c81b1.el10
+SELINUX_UNIT historic-routing-egpd.service mode=Enforcing MainPID=80435 label=system_u:system_r:frr_t:s0
+SELINUX_UNIT historic-routing-zebra.service mode=Enforcing MainPID=80420 label=system_u:system_r:frr_t:s0
+PASS paired rollback: configuration retained, RIB/kernel recovered; 0.1.1-0.1.dev50c81b1.el10
+SELINUX_UNIT historic-routing-egpd.service mode=Enforcing MainPID=81006 label=system_u:system_r:frr_t:s0
+SELINUX_UNIT historic-routing-zebra.service mode=Enforcing MainPID=80991 label=system_u:system_r:frr_t:s0
+PASS final paired upgrade and systemctl reload
+PASS original configuration restored after lifecycle tests
+PASS package removal
+RESULT 0
+cb9cf826f02d86c2b4d58443d37985f5f041e08ad42afe36c2185f2274e57426  historic-routing-runtime-0.1.1-0.1.dev50c81b1.el10.x86_64.rpm
+0a5bebb3feebbc72da848c18569e32d543abfe9846d0bb6b7087a0316fddf497  historic-routing-egp-0.1.1-0.1.dev50c81b1.el10.x86_64.rpm
+8dd02ccb23f573fb4cea846b7eb2ee55db43edd2d477c437417f93a84fc2eaf3  historic-routing-selinux-0.1.1-0.1.dev50c81b1.el10.noarch.rpm
+6a137745d2d04c199134764cc92d4d33f0ca1d5e90df0d0777c9a19adacab30f  historic-routing-runtime-0.1.1-0.2.dev50c81b1.el10.x86_64.rpm
+4aa343d11b5bb33cd783e9d22b70c6b3be5d3b69ce9ec7bca7464fb6d7bc0a4c  historic-routing-egp-0.1.1-0.2.dev50c81b1.el10.x86_64.rpm
+b9d9c271cc62b6bdda109133be56f6fc80c638d0b2321b7afd7c0466bcf51712  historic-routing-selinux-0.1.1-0.2.dev50c81b1.el10.noarch.rpm
+PASS host snapshots match
+Enforcing
