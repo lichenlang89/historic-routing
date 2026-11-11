@@ -148,7 +148,7 @@ semantic failures, and recovery.
   not import other protocols from the local RIB; announcements remain explicit.
 * No interoperability certification with historical implementations, prolonged
   loss/reordering/concurrency stress or SELinux frr_t execution validation.
-  See the [current handoff](../../docs/plan/issue-14-handoff.md) for executed
+  See the [current handoff](https://github.com/lichenlang89/historic-routing/blob/50c81b1b7600e88a070ce86456325940fdbf5930/docs/plan/issue-14-handoff.md) for executed
   tests, packaging/service boundaries and known upstream test failures.
 
 Maintenance sources live in `protocols/egp/src/`; generated FRR build copies are not the maintenance source.
@@ -156,6 +156,6 @@ Maintenance sources live in `protocols/egp/src/`; generated FRR build copies are
 
 ## 互通与压力验收
 
-[GateD 3.6 互通补验](../../docs/evidence/issue16-interop/follow-up-20261107.md)
+[GateD 3.6 互通补验](https://github.com/lichenlang89/historic-routing/blob/50c81b1b7600e88a070ce86456325940fdbf5930/docs/evidence/issue16-interop/follow-up-20261107.md)
 包含双向内核装表、端点转发、撤路与恢复。隔离网络的
-[链路与多邻居验收](../../docs/evidence/issue16-stress/README.md)记录测试条件和原始证据。
+[链路与多邻居验收](https://github.com/lichenlang89/historic-routing/blob/50c81b1b7600e88a070ce86456325940fdbf5930/docs/evidence/issue16-stress/README.md)记录测试条件和原始证据。

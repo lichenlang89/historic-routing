@@ -155,7 +155,7 @@ cd lab/egp && LAB_PREFIX=/opt/historic-routing/27f287be9 ./lab.sh up && ./lab.sh
 
 ## 9. 已知限制
 
-1. S8 历史验证为 RHEL 10.1 x86_64；新增 RHEL 10.2 aarch64 的安装 unit reload、升级/回退及 SELinux 证据见[本轮报告](../../docs/evidence/package-service-20261031/README.md)。不能把 aarch64 结果当作新版 x86_64 验收。
+1. S8 历史验证为 RHEL 10.1 x86_64；新增 RHEL 10.2 aarch64 的安装 unit reload、升级/回退及 SELinux 证据见[本轮报告](https://github.com/lichenlang89/historic-routing/blob/50c81b1b7600e88a070ce86456325940fdbf5930/docs/evidence/package-service-20261031/README.md)。不能把 aarch64 结果当作新版 x86_64 验收。
 2. ~~`%build` 需要访问 GitHub 取固定 FRR 提交~~ → 已支持离线输入：`--frr-repo` /
    `HR_FRR_REPO` 指向本地镜像，发布源码包里带的 `vendor/frr-<short>.git.tar.xz`
    由 `scripts/release-source.sh` 生成并校验（sha256 + commit + tree）。

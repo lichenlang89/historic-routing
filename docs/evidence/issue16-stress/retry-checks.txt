@@ -1,9 +1,0 @@
-PASS unanswered Acquire Request seq=1 repeat=30.027s
-PASS Cease after one dropped Cease-ack seq=3 repeat=29.991s
-PASS slot released and bidirectional routes/probes recovered
-table ip hr16 {
-	chain incoming {
-		type filter hook input priority filter; policy accept;
-		ip protocol egp @nh,168,16 0x304 counter packets 1 bytes 30 drop
-	}
-}

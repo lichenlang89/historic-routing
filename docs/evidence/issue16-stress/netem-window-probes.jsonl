@@ -1,6 +1,0 @@
-{"phase": "1", "probe": "stale", "time": 1794043330.1050727, "poll_seq": 102, "probe_seq": 101, "updateRx_before": 100, "updateRx_after": 100, "kernel_canary_absent": true, "neighbor_up": true}
-{"phase": "1", "probe": "duplicate", "time": 1794043330.6562827, "poll_seq": 102, "probe_seq": 102, "updateRx_before": 100, "updateRx_after": 100, "kernel_canary_absent": true, "neighbor_up": true}
-{"phase": "5", "probe": "stale", "time": 1794043979.387636, "poll_seq": 209, "probe_seq": 208, "updateRx_before": 205, "updateRx_after": 205, "kernel_canary_absent": true, "neighbor_up": true}
-{"phase": "5", "probe": "duplicate", "time": 1794043985.3618932, "poll_seq": 210, "probe_seq": 210, "updateRx_before": 206, "updateRx_after": 206, "kernel_canary_absent": true, "neighbor_up": true}
-{"phase": "10", "probe": "stale", "time": 1794045148.2450435, "poll_seq": 403, "probe_seq": 402, "updateRx_before": 375, "updateRx_after": 375, "kernel_canary_absent": true, "neighbor_up": true}
-{"phase": "10", "probe": "duplicate", "time": 1794045148.804533, "poll_seq": 403, "probe_seq": 403, "updateRx_before": 375, "updateRx_after": 375, "kernel_canary_absent": true, "neighbor_up": true}

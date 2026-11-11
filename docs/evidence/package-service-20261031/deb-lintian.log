@@ -1,2 +1,0 @@
-A future release will drop --no-tag-display-limit; please use '--tag-display-limit 0' instead.
-running with root privileges is not recommended!

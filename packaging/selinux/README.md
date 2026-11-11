@@ -58,7 +58,7 @@ SELinux Disabled 时安装到 targeted store，以支持离线策略部署；不
 ## 迁移旧手工实验
 
 早期手工 .te/.fc 编译和测试证据保留在
-[2026-10-31 记录](../../docs/evidence/package-service-20261031/README.md)。
+[2026-10-31 记录](https://github.com/lichenlang89/historic-routing/blob/50c81b1b7600e88a070ce86456325940fdbf5930/docs/evidence/package-service-20261031/README.md)。
 以前手工创建的模块和 /etc drop-in 不归此 RPM 所有；核对其来源并自行停止服务、
 移除旧的同名模块和该实验自己的 drop-in 后，再安装新子包。不要删除发行版 frr 模块
 或无关本地规则。

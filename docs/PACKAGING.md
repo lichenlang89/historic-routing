@@ -1,7 +1,7 @@
 # 打包设计（RPM / DEB）
 
 > 状态：RPM 与 DEB 均已实现；既有发行验证见根 README。
-> Issue #14 修正独立 egpd unit 的 reload 路径，当前验证边界见 [交接记录](plan/issue-14-handoff.md)。
+> Issue #14 修正独立 egpd unit 的 reload 路径，当前验证边界见 [交接记录](https://github.com/lichenlang89/historic-routing/blob/50c81b1b7600e88a070ce86456325940fdbf5930/docs/plan/issue-14-handoff.md)。
 > 实现细节与验收命令见 `packaging/rpm/README.md`。
 > 本文件保留"为什么这样划分"的设计推理，并把 S8-A 实测推翻的两条原始假设标注出来
 > （见 §3、§6 的"已证伪"段落）。
@@ -253,7 +253,7 @@ tar xJf historic-routing-<short>-src.tar.xz && cd historic-routing-<short>
 ## 合并后安装包验收（2026-10-31）
 
 实际安装 unit 的 reload、匹配包升级/回退、配置保留及 SELinux 范围见
-[验收证据](evidence/package-service-20261031/README.md)；复测见
+[验收证据](https://github.com/lichenlang89/historic-routing/blob/50c81b1b7600e88a070ce86456325940fdbf5930/docs/evidence/package-service-20261031/README.md)；复测见
 [packaging/TESTING.md](../packaging/TESTING.md)。本轮为 RHEL aarch64 与 Debian arm64
 容器用户态，不扩大为 x86 或完整 Debian 宿主验收，保持实验性/预发布。
 
@@ -268,4 +268,4 @@ RPM/DEB 的共享运行目录只由 Zebra 持有；停止/卸载 egpd 不再删�
 独立回归为 packaging/test_shared_runtime.py；完整 profile 安装/卸载与负例为
 packaging/selinux/test_installed_profile.py。两者需要调用者事先准备独占实验环境。
 
-本次直接证据与首次失败：[SELinux/运行目录验收](evidence/selinux-package-20261031/README.md)。
+本次直接证据与首次失败：[SELinux/运行目录验收](https://github.com/lichenlang89/historic-routing/blob/50c81b1b7600e88a070ce86456325940fdbf5930/docs/evidence/selinux-package-20261031/README.md)。

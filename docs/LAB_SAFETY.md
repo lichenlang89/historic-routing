@@ -2,7 +2,7 @@
 
 审查对象：`lab/egp/lab.sh`、`lab/egp/test_lab.py`、`lab/egp/Containerfile`。
 方法：**逐函数静态审查** + **由 `scripts/verify.sh` 现场执行的动态验证**（C0b、C1–C6）。
-凡是"动态验证"的结论，都能在 `docs/evidence/` 或构建根的 `logs/verify.log` 里找到原始输出。
+凡是"动态验证"的结论，可在[验收记录索引](VALIDATION.md)或构建根的 `logs/verify.log` 中找到原始输出。
 
 ## 1. 八项检查结论
 
