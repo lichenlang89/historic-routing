@@ -9,7 +9,7 @@
 当前版本：[v0.1.1（预发布版）](https://github.com/lichenlang89/historic-routing/releases/tag/v0.1.1)，
 提供 RPM、DEB 和包含 FRR 离线镜像的源码包。
 
-## 支持什么
+## 他支持什么
 
 | 协议 | 规范 | 状态 |
 | --- | --- | --- |
